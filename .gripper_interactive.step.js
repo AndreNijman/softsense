@@ -8,11 +8,12 @@
 // The four-bar solver below is the same one used by the Python generator,
 // so the live motion matches the baked STEP geometry exactly.
 //
-// Part occurrence ids (by assembly order in gripper.py):
-//   o1.1 enclosure  o1.2 shaft  o1.3 gearR  o1.4 gearL  o1.5 crankR  o1.6 crankL
-//   o1.7 followerR  o1.8 followerL  o1.9 fingerR  o1.10 fingerL
-//   o1.11 pinA_R o1.12 pinB_R o1.13 pinC_R o1.14 pinD_R
-//   o1.15 pinA_L o1.16 pinB_L o1.17 pinC_L o1.18 pinD_L
+// Part occurrence ids (assembly order in gripper.py; model is reoriented Z-up,
+// so the hinge axis is world +Y and translations map (dx,dy)->(dx,0,dy)):
+//   o1.1 enclosure   o1.2 drive_arm_R   o1.3 drive_arm_L(+shaft)
+//   o1.4 follower_R  o1.5 follower_L    o1.6 finger_R   o1.7 finger_L
+//   o1.8 pin_A_R  o1.9 pin_B_R  o1.10 pin_C_R  o1.11 pin_D_R
+//   o1.12 pin_B_L  o1.13 pin_C_L  o1.14 pin_D_L
 
 // ---- locked kinematic constants (mm, deg) -- mirror of gripper.py ----
 const A_R = [12.0, 0.0];
@@ -94,36 +95,39 @@ export default {
     const dCx = r.C[0] - r0.C[0], dCy = r.C[1] - r0.C[1];
     const dDx = r.D[0] - r0.D[0], dDy = r.D[1] - r0.D[1];
 
-    const Z = [0, 0, 1];
-    const rot = (id, origin, ang) =>
-      ctx.effects.transform(id, { rotate: { axis: Z, origin: [origin[0], origin[1], 0], angleDeg: ang } });
-    const fingerMove = (id, C0, dAng, dx, dy) =>
+    // Model is reoriented Z-up (rotate +90 deg about X at export). The 2D
+    // solver works in the authored frame; map into the world frame here:
+    //   hinge axis  +Z(model) -> -Y(world)  => rotate about +Y by -modelAngle
+    //   point   (x, y)(model) -> (x, 0, y)(world)
+    //   vector  (dx, dy)(model) -> (dx, 0, dy)(world)
+    const Y = [0, 1, 0];
+    const rot = (id, mx, my, modelAng) =>
+      ctx.effects.transform(id, { rotate: { axis: Y, origin: [mx, 0, my], angleDeg: -modelAng } });
+    const tr = (id, mdx, mdy) =>
+      ctx.effects.transform(id, { translate: [mdx, 0, mdy] });
+    const fingerMove = (id, c0x, c0y, modelAng, mdx, mdy) =>
       ctx.effects.transform(id, { transforms: [
-        { rotate: { axis: Z, origin: [C0[0], C0[1], 0], angleDeg: dAng } },
-        { translate: [dx, dy, 0] },
+        { rotate: { axis: Y, origin: [c0x, 0, c0y], angleDeg: -modelAng } },
+        { translate: [mdx, 0, mdy] },
       ] });
-    const tr = (id, dx, dy) => ctx.effects.transform(id, { translate: [dx, dy, 0] });
 
     const A_L = [-A_R[0], A_R[1]];
     const B_L = [-B_R[0], B_R[1]];
     const C0_L = [-r0.C[0], r0.C[1]];
 
     // ---- RIGHT side ----
-    rot("o1.3", A_R, dCrank);                 // gear_R
-    rot("o1.5", A_R, dCrank);                 // crank_R
-    rot("o1.7", B_R, dFollow);                // follower_R
-    fingerMove("o1.9", r0.C, dCoupler, dCx, dCy);     // finger_R
-    tr("o1.13", dCx, dCy);                    // pin_C_R
-    tr("o1.14", dDx, dDy);                    // pin_D_R
+    rot("o1.2", A_R[0], A_R[1], dCrank);              // drive_arm_R (gear+crank)
+    rot("o1.4", B_R[0], B_R[1], dFollow);             // follower_R
+    fingerMove("o1.6", r0.C[0], r0.C[1], dCoupler, dCx, dCy);  // finger_R
+    tr("o1.10", dCx, dCy);                            // pin_C_R
+    tr("o1.11", dDx, dDy);                            // pin_D_R
 
-    // ---- LEFT side (mirror: negate angles, mirror translations in X) ----
-    rot("o1.2", A_L, -dCrank);                // drive_shaft turns with left crank
-    rot("o1.4", A_L, -dCrank);                // gear_L
-    rot("o1.6", A_L, -dCrank);                // crank_L
-    rot("o1.8", B_L, -dFollow);               // follower_L
-    fingerMove("o1.10", C0_L, -dCoupler, -dCx, dCy);  // finger_L
-    tr("o1.17", -dCx, dCy);                   // pin_C_L
-    tr("o1.18", -dDx, dDy);                   // pin_D_L
+    // ---- LEFT side (mirror) ----
+    rot("o1.3", A_L[0], A_L[1], -dCrank);             // drive_arm_L (turns the shaft)
+    rot("o1.5", B_L[0], B_L[1], -dFollow);            // follower_L
+    fingerMove("o1.7", C0_L[0], C0_L[1], -dCoupler, -dCx, dCy);  // finger_L
+    tr("o1.13", -dCx, dCy);                           // pin_C_L
+    tr("o1.14", -dDx, dDy);                           // pin_D_L
 
     ctx.requestRender?.();
   },

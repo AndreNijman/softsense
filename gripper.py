@@ -93,6 +93,14 @@ PIN_R = 2.3           # pivot pin radius
 PIN_HEAD_R = 3.6      # socket-head cap radius
 PIN_HEAD_T = 1.2      # cap height (sits ~flush in a counterbore)
 
+# production / printability
+PRINT_CLEAR = 0.25    # FDM clearance on moving bores & slots (per side)
+AXLE_BORE_R = PIN_R + PRINT_CLEAR   # link/arm rides on its axle with clearance
+SHAFT_R = 4.0         # integral input-shaft radius
+SHAFT_COUPLER_R = 5.0 # rear coupler radius (D-profile for a servo/motor)
+SHAFT_COUPLER_LEN = 12.0
+SHAFT_DFLAT = 1.4     # D-flat depth on the coupler
+
 GEAR_TEETH = 16
 GEAR_TOOTH_H = 3.0    # radial tooth height
 GEAR_SECTOR_DEG = 150.0   # gears are sectors, not full discs
@@ -234,11 +242,12 @@ def link_bar(p0, p1, width, z0, thickness, label, color):
     return bar
 
 
-def gear(center, phase_deg, z0, thickness, label, color):
+def gear(center, phase_deg, z0, thickness, label, color, bore=True):
     """A full toothed gear disc centred at `center`, axis Z. Pitch radius
     R_GEAR; with centres at +/-R_GEAR the pitch circles touch on the
     centreline so the pair meshes. `phase_deg` rotates the teeth (the right
-    and left gears are offset half a tooth so the teeth interleave)."""
+    and left gears are offset half a tooth so the teeth interleave).
+    `bore=False` leaves the hub solid (for a gear with an integral shaft)."""
     pitch = R_GEAR
     root = pitch - 0.55 * GEAR_TOOTH_H
     tip = pitch + 0.45 * GEAR_TOOTH_H
@@ -252,12 +261,42 @@ def gear(center, phase_deg, z0, thickness, label, color):
             aa = c + frac * step
             pts.append((r * math.cos(aa), r * math.sin(aa)))
     sol = _poly_solid(pts, z0, thickness)
-    sol -= Cylinder(radius=PIN_R + 0.15, height=thickness * 3).moved(
-        Location((0, 0, z0 + thickness / 2.0)))
+    if bore:
+        sol -= Cylinder(radius=AXLE_BORE_R, height=thickness * 3).moved(
+            Location((0, 0, z0 + thickness / 2.0)))
     sol = sol.moved(Location((center[0], center[1], 0)))
     sol.label = label
     sol.color = color
     return sol
+
+
+def drive_arm(A, C, spin_deg, z0, thickness, label, color, with_shaft=False):
+    """Input link = gear sector fused with the crank arm (one rigid part, so
+    no gear-vs-crank clip). Pivots about A; the arm reaches the coupler pin C.
+    with_shaft=True adds the integral input shaft + rear D-coupler (this is the
+    driven left side); that side's shaft IS the axle, so its hub is left solid.
+    The right side has a clearance bore and rides on a separate axle pin."""
+    g = gear(A, spin_deg, z0, thickness, label + "_gear", color, bore=not with_shaft)
+    arm = link_bar(A, C, LINK_W, z0, thickness, label + "_arm", color)
+    part = g + arm
+    if with_shaft:
+        # integral shaft along -Z (out the back) + D-profile coupler
+        sh_len = (z0 + thickness) - SHAFT_BACK
+        part += Cylinder(radius=SHAFT_R, height=sh_len).moved(
+            Location((A[0], A[1], (SHAFT_BACK + z0 + thickness) / 2.0)))
+        coupler = Cylinder(radius=SHAFT_COUPLER_R, height=SHAFT_COUPLER_LEN).moved(
+            Location((A[0], A[1], SHAFT_BACK + SHAFT_COUPLER_LEN / 2.0)))
+        coupler -= Box(SHAFT_DFLAT * 2, 4 * SHAFT_COUPLER_R, SHAFT_COUPLER_LEN + 2).moved(
+            Location((A[0] + SHAFT_COUPLER_R, A[1], SHAFT_BACK + SHAFT_COUPLER_LEN / 2.0)))
+        part += coupler
+    else:
+        # clearance bore so the arm rides on its axle pin
+        part -= Cylinder(radius=AXLE_BORE_R, height=thickness * 4).moved(
+            Location((A[0], A[1], z0 + thickness / 2.0)))
+    part = part.moved(Location((0, 0, 0)))   # already in world coords
+    part.label = label
+    part.color = color
+    return part
 
 
 def pin(p, label, visible):
@@ -388,6 +427,17 @@ def finray_finger_closed(C0, D0, inner_dir, z0, thickness):
             teeth_all = teeth_all + t
         finger = finger + teeth_all
     # --- end grip texture ---
+
+    # Trim anything that crosses the centreline (just inboard of the tooth tips)
+    # so the two opposing fingers can NEVER collide at the closed pose. This
+    # clips the inboard side of the C bracket flat without touching the pin bore.
+    tooth_tip_x = contact_x - into * FR_GRIP_DEPTH
+    keep_x = tooth_tip_x - into * 0.1
+    BIG = 600.0
+    cut = Box(BIG, BIG, BIG).moved(
+        Location((keep_x - into * BIG / 2.0,
+                  base_y + FR_BLADE_LEN / 2.0, z0 + thickness / 2.0)))
+    finger -= cut
 
     for hp in (C0, D0):
         finger -= Cylinder(radius=MOUNT_HOLE_R, height=thickness * 3).moved(
@@ -523,19 +573,16 @@ def gen_step():
     parts = []
 
     parts.append(build_enclosure())
-    parts.append(drive_shaft())
 
-    # meshing gear pair (rigid with cranks). The right gear turns with the
-    # right crank; the left counter-rotates (mirror) + half-tooth offset so the
-    # teeth interleave on the centreline -> one shaft drives both fingers.
+    # Drive arms = gear sector fused with crank arm (one part -> no gear/crank
+    # clip). The LEFT arm is driven by its integral input shaft (out the back);
+    # the gear mesh counter-rotates the RIGHT arm -> one shaft moves both jaws.
     half_tooth = 360.0 / GEAR_TEETH / 2.0
     spin = crank_angle_deg(OPEN_NORM) - THETA_CLOSED      # crank rotation
-    parts.append(gear(R["A"], spin, Z_CRANK0, T_CRANK, "gear_R", STEEL_R))
-    parts.append(gear(L["A"], -spin + half_tooth, Z_CRANK0, T_CRANK, "gear_L", STEEL_L))
-
-    # cranks (gear arms) A->C
-    parts.append(link_bar(R["A"], R["C"], LINK_W, Z_CRANK0, T_CRANK, "crank_R", STEEL_R))
-    parts.append(link_bar(L["A"], L["C"], LINK_W, Z_CRANK0, T_CRANK, "crank_L", STEEL_L))
+    parts.append(drive_arm(R["A"], R["C"], spin, Z_CRANK0, T_CRANK,
+                           "drive_arm_R", STEEL_R, with_shaft=False))
+    parts.append(drive_arm(L["A"], L["C"], -spin + half_tooth, Z_CRANK0, T_CRANK,
+                           "drive_arm_L", STEEL_L, with_shaft=True))
 
     # followers B->D
     parts.append(link_bar(R["B"], R["D"], LINK_W, Z_FOLLOW0, T_FOLLOW, "follower_R", STEEL_R))
@@ -545,13 +592,18 @@ def gen_step():
     parts.append(finger(R, refR, -1, TPU, "finger_R"))
     parts.append(finger(L, refL, +1, TPU, "finger_L"))
 
-    # pins: finger pins (C,D) visible/capped above the housing; fixed pivots
-    # (A,B) are short internal axles hidden inside the enclosure.
-    for tag, pose in (("R", R), ("L", L)):
-        for j in ("A", "B", "C", "D"):
+    # axle pins: A_R (right-arm axle), B_R, B_L (follower axles) are hidden
+    # internal axles; C/D finger pins are visible. The LEFT arm's axle is its
+    # integral shaft, so there is no pin_A_L.
+    for tag, pose, joints in (("R", R, ("A", "B", "C", "D")),
+                              ("L", L, ("B", "C", "D"))):
+        for j in joints:
             parts.append(pin(pose[j], f"pin_{j}_{tag}", visible=(j in ("C", "D"))))
 
     asm = Compound(label="gripper", children=parts)
+    # reorient to Z-up for printing & viewing: fingers point +Z, the input
+    # shaft exits the back horizontally (+Y). (Model is authored Y-up.)
+    asm = asm.moved(Location((0, 0, 0), (1, 0, 0), 90))
     return asm
 
 
