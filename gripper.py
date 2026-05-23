@@ -108,8 +108,6 @@ T_FOLLOW = 5.0
 Z_FOLLOW0 = 7.0                       # follower layer
 T_FINGER = 10.0                      # Fin Ray finger depth in Z (z 13..23)
 Z_FINGER0 = 13.0                      # finger layer
-SHAFT_BACK = -34.0                   # input shaft extends to here (behind)
-
 LINK_W = 7.0          # link bar half-lobe width
 PIN_R = 2.3           # pivot pin radius
 PIN_HEAD_R = 3.6      # socket-head cap radius
@@ -119,8 +117,81 @@ PIN_HEAD_T = 1.2      # cap height (sits ~flush in a counterbore)
 PRINT_CLEAR = 0.3     # mating clearance per side (FDM standard ~0.3 mm)
 DFM_EDGE = 0.4        # universal edge-break chamfer: no sharp edges
 AXLE_BORE_R = PIN_R + PRINT_CLEAR   # link/arm rides on its axle with clearance
-SHAFT_R = 4.0         # integral input-shaft radius
-SHAFT_COUPLER_R = 5.0 # rear coupler radius (D-profile for a servo/motor)
+
+# --------------------------------------------------------------------------
+# RIGHT-ANGLE INPUT DRIVE (vertical input shaft + crown/pinion stage)
+# --------------------------------------------------------------------------
+# The proven four-bar + spur-mesh mechanism is UNCHANGED. To get the input
+# shaft out the BOTTOM (world -Z after the +90X reorient = MODEL -Y) while the
+# fingers stay UP, we add a 90deg gear stage at the LEFT crank gear A_L:
+#   * a CROWN gear (radial face teeth) rigid on A_L's +Z gear face (axis MODEL-Z)
+#   * a small spur INPUT PINION whose axis is MODEL -Y (-> world DOWN), meshing
+#     the crown at its -Y azimuth, integral with the input shaft (one printed
+#     part: pinion + journal + shaft + D-coupler).
+# Like the simplified spur gears already in this model, this right-angle mesh is
+# REPRESENTATIVE geometry (involute-free straight flanks, nominal pitch) meant
+# to be coupon-tuned for backlash/contact on the target printer -- NOT a final
+# tooth form. A_L keeps its spur rim teeth meshing A_R (drive is unbroken).
+SHAFT_R = 4.0         # vertical input-shaft radius
+# --- crown / face-gear stage geometry (genuine shallow face mesh) -----------
+# This is a RADIAL-PINION FACE-GEAR mesh, NOT two interpenetrating bodies:
+#   * the CROWN is a thin FACE RING on the A_L gear's +Z face. Its teeth are
+#     short axial-proud blocks around the pitch circle CROWN_RC, pointing in +Z.
+#   * the PINION (axis model-Y, pointing radially at the crown centre) sits
+#     ABOVE the crown face at the crown's -Y azimuth (model-Y = -CROWN_RC). Its
+#     pitch cylinder rolls on the crown pitch circle; only its BOTTOM TOOTH TIPS
+#     dip ~one tooth-depth into the crown teeth. The pinion ROOT cylinder, hub
+#     and shaft all clear the crown ring body and root.
+# The disengagement direction is +Z (lift the pinion off the crown face): the
+# tooth-tip overlap then collapses to ~0, proving this is a real tooth mesh and
+# not buried bodies. Representative straight-flank form (coupon-tunable), like
+# the spur gears elsewhere in this model.
+CROWN_RC = 8.0        # crown-gear pitch radius on the A_L gear face
+CROWN_Z = (6.0, 9.0)  # crown ring model-Z span (sits on the A_L gear +Z face)
+CROWN_TOOTH_H = 1.6   # crown tooth RADIAL band half-width about the pitch circle
+CROWN_FACE_H = 1.6    # crown tooth AXIAL proud height (teeth stand this far in +Z
+                      # from CROWN_Z[1] downward; the rest of the band is solid base)
+CROWN_TEETH = 24      # crown face-tooth count (representative)
+PINION_RP = 3.0       # input-pinion pitch radius
+PINION_TEETH = 9      # pinion tooth count (representative; ratio CROWN/PINION)
+PINION_TOOTH_H = 1.6
+PINION_T = 4.0        # pinion thickness along its axis (model Y)
+PINION_TIP = PINION_RP + 0.45 * PINION_TOOTH_H   # pinion tooth-tip radius
+MESH_DEPTH = 1.0      # how far the pinion tips dip into the crown teeth (~one module)
+DRIVE_X = -A_R[0]                    # shaft/pinion model-X = A_L x = -12
+# Shaft/pinion axis model-Z: raise it so the pinion sits ABOVE the crown face and
+# only its bottom tips reach MESH_DEPTH into the crown teeth (top at CROWN_Z[1]):
+#   pinion_bottom_tip_Z = CROWN_Z[1] - MESH_DEPTH = DRIVE_Z - PINION_TIP
+DRIVE_Z = CROWN_Z[1] - MESH_DEPTH + PINION_TIP    # = 9 - 1 + 3.72 = 11.72
+# Pinion centred at the crown -Y azimuth (model-Y = -CROWN_RC), straddling it so
+# the pinion face width sweeps the crown teeth at that azimuth.
+PINION_YC = -CROWN_RC                 # pinion centre model-Y = -8 (the mesh azimuth)
+PINION_Y = (PINION_YC - PINION_T / 2.0, PINION_YC + PINION_T / 2.0)  # -10 .. -6
+SHAFT_R_BORE = SHAFT_R + PRINT_CLEAR  # journal-bore radius (running clearance)
+# TWO JOURNAL BEARINGS along model -Y, with a CAPTURED-COLLAR POCKET between them
+# (the same head+step-shoulder idea as the captured axle dowels). Stack (model-Y,
+# +Y up/cavity, -Y down/exit), bore radius SHAFT_R_BORE throughout:
+#   UPPER bore  : DRIVE_UBORE_Y  (in the boss)         -- alignment guide
+#   POCKET      : DRIVE_POCKET_Y (widened, straddles the cavity floor) -- holds collar
+#   LOWER bore  : DRIVE_LBORE_Y  (wall + flange)       -- the long load-bearing exit
+DRIVE_UBORE_Y = (-15.5, -13.5)       # upper journal bore: len 2.0
+DRIVE_POCKET_Y = (-18.0, -15.5)      # collar pocket: height 2.5 (straddles floor -17)
+DRIVE_LBORE_Y = (-25.0, -18.0)       # lower journal bore: len 7.0
+# AXIAL CAPTURE (the known failure point): a single integral SHAFT COLLAR (OD >
+# bore -> cannot pass either bore) sits in the pocket and is trapped between the
+# two bore-mouth shoulders -> NO pull-out (-Y), NO push-in (+Y), NO wobble. This
+# replaces depending on the pinion as a stop (pinion tip < bore, so it would slip
+# straight through). Plus a bottom SHOULDER under the flange for redundant +Y
+# capture and a clean coupler land.
+SHAFT_COLLAR_R = SHAFT_R + 1.8       # captured collar OD (5.8 > bore 4.3 -> 1.5 mm seat)
+SHAFT_COLLAR_T = 2.0                 # collar axial length (model Y); 0.25 mm play each side
+SHAFT_COLLAR_YC = (DRIVE_POCKET_Y[0] + DRIVE_POCKET_Y[1]) / 2.0   # -16.75 (pocket centre)
+SHAFT_COLLAR_Y = (SHAFT_COLLAR_YC - SHAFT_COLLAR_T / 2.0,
+                  SHAFT_COLLAR_YC + SHAFT_COLLAR_T / 2.0)          # -17.75 .. -15.75
+POCKET_R = SHAFT_COLLAR_R + 0.2      # pocket radius (collar spins free inside)
+SHAFT_SHOULDER_R = SHAFT_R + 1.8     # redundant bottom shoulder OD (> bore -> can't pass)
+SHAFT_SHOULDER_T = 2.0               # shoulder axial length (model Y)
+SHAFT_COUPLER_R = 5.0 # bottom coupler radius (D-profile for a servo/motor)
 SHAFT_COUPLER_LEN = 12.0
 SHAFT_DFLAT = 1.4     # D-flat depth on the coupler
 
@@ -379,32 +450,65 @@ def gear(center, phase_deg, z0, thickness, label, color, bore=True):
     return sol
 
 
-def drive_arm(A, C, spin_deg, z0, thickness, label, color, with_shaft=False):
+def _crown_gear(center, z_lo, z_hi, label, color):
+    """CROWN gear: a ring at `center` (axis model-Z) carrying RADIAL FACE TEETH on
+    its +Z face -- axial-proud blocks repeating around the pitch circle. It meshes
+    a spur pinion whose axis is perpendicular (model -Y), giving the 90deg turn.
+    Representative tooth form (coupon-tunable), like the spur gears in this model.
+    The ring sits ON the A_L gear's +Z face (z_lo..z_hi) and fuses into it; its
+    bore is left to drive_arm (it shares the A_L axle bore)."""
+    thickness = z_hi - z_lo
+    ro = CROWN_RC + CROWN_TOOTH_H        # outer radius of the toothed band
+    ri = CROWN_RC - CROWN_TOOTH_H        # inner radius of the toothed band
+    ring = Cylinder(radius=ro, height=thickness).moved(
+        Location((0, 0, z_lo + thickness / 2.0)))
+    ring -= Cylinder(radius=ri, height=thickness * 3).moved(
+        Location((0, 0, z_lo + thickness / 2.0)))
+    # axial face teeth: short proud blocks standing CROWN_FACE_H in +Z off the top
+    # of the band. The lower (thickness - CROWN_FACE_H) of the band is a solid base
+    # fused to the A_L gear face. Only these short teeth stick up to mesh the
+    # pinion's bottom tooth tips -> a thin face ring, not a thick disc.
+    tooth_z = CROWN_FACE_H               # axial proud height of the face teeth
+    step = 2 * math.pi / CROWN_TEETH
+    teeth = []
+    for k in range(CROWN_TEETH):
+        c = k * step
+        # wedge tooth between two radii, half a pitch wide
+        pts = []
+        for frac, r in ((-0.25, ri), (-0.12, ro), (0.12, ro), (0.25, ri)):
+            aa = c + frac * step
+            pts.append((r * math.cos(aa), r * math.sin(aa)))
+        teeth.append(_poly_solid(pts, z_hi - tooth_z, tooth_z))
+    if teeth:
+        crown = ring
+        for t in teeth:
+            crown = crown + t
+    else:
+        crown = ring
+    crown = crown.moved(Location((center[0], center[1], 0)))
+    crown.label = label
+    crown.color = color
+    return crown
+
+
+def drive_arm(A, C, spin_deg, z0, thickness, label, color, with_crown=False):
     """Input link = gear sector fused with the crank arm (one rigid part, so
     no gear-vs-crank clip). Pivots about A; the arm reaches the coupler pin C.
-    with_shaft=True adds the integral input shaft + rear D-coupler (this is the
-    driven left side); that side's shaft IS the axle, so its hub is left solid.
-    The right side has a clearance bore and rides on a separate axle pin."""
-    g = gear(A, spin_deg, z0, thickness, label + "_gear", color, bore=not with_shaft)
+    Both sides now ride on a separate snap-pin axle (clearance bore at A).
+    with_crown=True (LEFT side) fuses a CROWN gear onto the A_L gear's +Z face so
+    the input pinion can drive it via the right-angle stage. The crown is rigid
+    with the crank gear -> the proven spur mesh A_L<->A_R is unchanged."""
+    g = gear(A, spin_deg, z0, thickness, label + "_gear", color, bore=True)
     # Counterbore the C-eye exit (bottom) face so the finger pin (pin_C) lip drops
     # into a rigid confining pocket -> geometric, creep-proof capture.
     cb = [(C, z0, SNAP_CB_DEPTH, True)]
     arm = link_bar(A, C, LINK_W, z0, thickness, label + "_arm", color, counterbores=cb)
     part = g + arm
-    if with_shaft:
-        # integral shaft along -Z (out the back) + D-profile coupler
-        sh_len = (z0 + thickness) - SHAFT_BACK
-        part += Cylinder(radius=SHAFT_R, height=sh_len).moved(
-            Location((A[0], A[1], (SHAFT_BACK + z0 + thickness) / 2.0)))
-        coupler = Cylinder(radius=SHAFT_COUPLER_R, height=SHAFT_COUPLER_LEN).moved(
-            Location((A[0], A[1], SHAFT_BACK + SHAFT_COUPLER_LEN / 2.0)))
-        coupler -= Box(SHAFT_DFLAT * 2, 4 * SHAFT_COUPLER_R, SHAFT_COUPLER_LEN + 2).moved(
-            Location((A[0] + SHAFT_COUPLER_R, A[1], SHAFT_BACK + SHAFT_COUPLER_LEN / 2.0)))
-        part += coupler
-    else:
-        # clearance bore so the arm rides on its axle pin
-        part -= Cylinder(radius=AXLE_BORE_R, height=thickness * 4).moved(
-            Location((A[0], A[1], z0 + thickness / 2.0)))
+    if with_crown:
+        part += _crown_gear(A, CROWN_Z[0], CROWN_Z[1], label + "_crown", color)
+    # clearance bore so the arm rides on its axle pin (re-cut after crown fuse)
+    part -= Cylinder(radius=AXLE_BORE_R, height=thickness * 6 + 8).moved(
+        Location((A[0], A[1], z0 + thickness / 2.0)))
     # Note: the arm portion already carries link_bar's 0.4 mm edge-break. The
     # gear-tooth flanks are deliberately left crisp -- they are functional
     # meshing surfaces (sealed inside the housing, printed in-plane so no
@@ -759,25 +863,50 @@ CAV_Z = (-2.0, 22.0)
 SLOT_Z = (0.0, 22.0)         # slots cut the full cavity depth in Z
 SLOT_R = (2.5, 41.0)         # right top slot x-span (WIDENED so arms clear)
 SLOT_L = (-41.0, -2.5)       # left top slot x-span  (WIDENED so arms clear)
-SHAFT_C = mirror_x(A_R)      # shaft bore centre (= A_L; (-12, 0))
-SHAFT_BORE_R = 5.0
-FLANGE_Z = (-16.0, -12.0)    # raised back mounting flange
-FLANGE_X = (-42.0, 42.0)
-FLANGE_Y = (-18.0, 12.0)
+# --- VERTICAL input-shaft journals through the model -Y BOTTOM wall ---------
+# World-down = model -Y. The shaft runs along model -Y at (x=DRIVE_X, z=DRIVE_Z),
+# through the bottom wall (y in [-20,-17]), and exits into a bottom mounting
+# flange + D-coupler. TWO journal bearings capture it:
+#   UPPER journal: a boss standing UP (+Y) off the inside bottom-wall face into
+#     the cavity, bored SHAFT_R_BORE; carries the load near the pinion.
+#   LOWER journal: the bottom wall itself + the flange thickness, bored
+#     SHAFT_R_BORE; the long exit bearing.
+# Between them the shaft's captured SHOULDER (OD > bore) sits in the gap and is
+# trapped against both bore mouths -> no pull-out, no wobble (axial capture).
+# Upper journal boss: stand it up off the cavity floor toward the pinion, but cap
+# its top so it CLEARS the A_L crank-gear teeth tips. With the pinion stage raised
+# (PINION higher in -Y), the boss can no longer reach to 0.3 mm below the pinion --
+# that would drive the boss radius into the gear teeth (radius R_GEAR+tip from A_L,
+# i.e. straight down to model-Y = -(R_GEAR + 0.45*GEAR_TOOTH_H)). So cap the boss
+# top at that gear-tip Y minus 0.3 mm running clearance. The shaft simply spans the
+# short gap from the boss top up to the pinion (it is captured by the collar + the
+# long lower bore; this upper boss is only the alignment journal).
+_GEAR_TIP_Y = -(R_GEAR + 0.45 * GEAR_TOOTH_H)            # -13.35 (gear teeth reach here)
+DRIVE_BOSS_Y = (CAV_Y[0], min(PINION_Y[0] - 0.3, _GEAR_TIP_Y - 0.3))  # -17 .. -13.65
+DRIVE_BOSS_R = SHAFT_R + 2.4                 # boss OD -> >=2 mm wall around bore
+BOT_FLANGE_Y = (-25.0, ENC_Y[0])            # bottom mounting flange: y -25 .. -20
+BOT_FLANGE_X = (-42.0, 42.0)
+BOT_FLANGE_Z = (-8.0, 22.0)                  # flange depth in model-Z (under cavity)
+FLANGE_TY = (BOT_FLANGE_Y[1] - BOT_FLANGE_Y[0])   # flange thickness in Y (5)
 BOLT_R = 2.25                # M4 clearance
-BOLT_XY = [(-37.0, -14.0), (37.0, -14.0), (-37.0, 8.0), (37.0, 8.0)]
+# bolt holes on the bottom flange, around (but clear of) the shaft exit at x=-12
+BOLT_XZ = [(-32.0, -2.0), (-32.0, 16.0), (8.0, -2.0), (8.0, 16.0), (32.0, 6.0)]
 R_VERT = 4.0
 R_TOP = 2.0
 
 # --- underwater drainage / flood holes (so the housing floods & drains) ---
+# With model -Y now WORLD-DOWN, the model -Y bottom wall is the low point. Drains
+# there let water in/out; the +Y top slots are the high vent (no trapped pocket).
 DRAIN_R = 2.5
-DRAIN_BOTTOM_X = [-32.0, -16.0, 0.0, 16.0, 32.0]   # bottom-face row (along Y)
+DRAIN_BOTTOM_X = [-32.0, 0.0, 16.0, 32.0]   # bottom-wall row (clear of shaft x=-12)
 DRAIN_SIDE_YZ = [(-14.0, 4.0), (-14.0, 16.0)]      # low side-wall holes (along X)
 
 # --- assembly split: open-front body + bolt-on front cover ---------------
 COVER_COLOR = Color(0.33, 0.35, 0.40)   # cover: slightly lighter than ENC
 FRONT_WALL_Z = (22.0, 24.0)             # old solid front wall, now removed
-AXLE_PIVOTS = [A_R, B_R, mirror_x(B_R)]  # captured-axle pivots (not A_L = shaft)
+AXLE_PIVOTS = [A_R, B_R, mirror_x(B_R), mirror_x(A_R)]  # captured-axle pivots
+# (A_L now rides on its OWN snap-pin axle too: the old integral input shaft is
+#  gone -- A_L is driven by the crown gear, so it needs a normal pivot axle.)
 AXLE_SCREW_R = AXLE_BORE_R              # snap-pin shank clearance (was M3)
 BOSS_OD_R = AXLE_SCREW_R + 2.0          # axle boss OD -> 2 mm wall around bore (DFM min)
 BACK_BOSS_Z = (-2.0, 1.0)              # back-wall boss into cavity
@@ -800,9 +929,9 @@ AXLE_DOWEL_Z1 = COVER_BOSS_Z[0] - AXLE_DOWEL_CLR - SNAP_HEAD_T   # 18.0 (shank t
 AXLE_STOP_Z = 0.0                           # back-bore step (shank bottoms here)
 AXLE_FLOOD_R = 1.5                          # narrow flood hole below the step
 AXLE_DOWEL_Z0 = AXLE_STOP_Z                 # shank flat end seats on the step
-BUSH_OD_R = 6.0                         # bushing-seat boss outer radius (OD ~12)
-BUSH_BORE_R = 4.4                       # flooded plain-bushing clearance
-BUSH_BOSS_Z = (-2.0, 1.0)
+# (the old back-wall A_L shaft bore + plain-bushing seat -- SHAFT_C/SHAFT_BORE_R/
+#  BUSH_* -- are REMOVED: A_L is now driven by the crown gear, not a coaxial
+#  horizontal shaft; the vertical input shaft journals through the bottom wall.)
 CORNER_XY = [(-43.0, -15.0), (43.0, -15.0), (-43.0, 13.0), (43.0, 13.0)]
 CORNER_BOSS_R = 3.0                     # screw-boss outer radius
 CORNER_TAP_R = 1.35                    # M3 tap (self-tap into body column)
@@ -882,10 +1011,13 @@ def _all_snap_clips():
 def build_enclosure():
     """Hollow flooded gearbox housing (underwater), SPLIT for assembly: open
     front so the mechanism drops in; the snap-clip cover supports the far axle
-    ends. Keeps the cavity, two top slots, back flange + M4 holes, A_L shaft
-    bore + bushing seat, captured-axle bosses, and all drain/flood holes. The
-    4 corner screw bosses are REPLACED by snap-clip catch windows in the long
-    side walls (zero hardware, tool-free cover)."""
+    ends. Keeps the cavity, two top slots, captured-axle bosses, and drain/flood
+    holes. The old back-wall A_L horizontal shaft bore + plain-bushing seat are
+    GONE; instead the BOTTOM (model -Y) wall carries the two-bearing journal for
+    the VERTICAL input shaft (upper boss bore + flange exit bore) and the mounting
+    flange + bolt holes moved to the bottom around that exit. The 4 corner screw
+    bosses are REPLACED by snap-clip catch windows in the long side walls (zero
+    hardware, tool-free cover)."""
     body = _box_between(*ENC_X, *ENC_Y, *ENC_Z)
     body = fillet(body.edges().filter_by(Axis.Y), radius=R_VERT)
     top_edges = body.edges().filter_by(Axis.Y, reverse=True).group_by(Axis.Y)[-1]
@@ -897,15 +1029,20 @@ def build_enclosure():
                          SLOT_Z[0] - 0.5, SLOT_Z[1] + 0.5)
     body -= _box_between(SLOT_L[0], SLOT_L[1], TOP_WALL_Y0 - 1.0, ENC_Y[1] + 1.0,
                          SLOT_Z[0] - 0.5, SLOT_Z[1] + 0.5)
-    flange = _box_between(*FLANGE_X, *FLANGE_Y, *FLANGE_Z)
-    flange = fillet(flange.edges().filter_by(Axis.Z), radius=R_VERT)
+    # BOTTOM mounting flange (model -Y wall = world DOWN), around the shaft exit
+    flange = _box_between(*BOT_FLANGE_X, *BOT_FLANGE_Y, *BOT_FLANGE_Z)
+    flange = fillet(flange.edges().filter_by(Axis.Y), radius=R_VERT)
     body += flange
 
     for (px, py) in AXLE_PIVOTS:
         body += Cylinder(radius=BOSS_OD_R, height=(BACK_BOSS_Z[1] - BACK_BOSS_Z[0])).moved(
             Location((px, py, (BACK_BOSS_Z[0] + BACK_BOSS_Z[1]) / 2.0)))
-    body += Cylinder(radius=BUSH_OD_R, height=(BUSH_BOSS_Z[1] - BUSH_BOSS_Z[0])).moved(
-        Location((SHAFT_C[0], SHAFT_C[1], (BUSH_BOSS_Z[0] + BUSH_BOSS_Z[1]) / 2.0)))
+
+    # UPPER journal boss: stands +Y off the inside bottom-wall face into the cavity
+    # at the shaft XY (model x=DRIVE_X, z=DRIVE_Z). Axis = model Y.
+    body += Cylinder(radius=DRIVE_BOSS_R, height=(DRIVE_BOSS_Y[1] - DRIVE_BOSS_Y[0])).moved(
+        Location((DRIVE_X, (DRIVE_BOSS_Y[0] + DRIVE_BOSS_Y[1]) / 2.0, DRIVE_Z),
+                 (1, 0, 0), -90.0))
 
     for e in body.edges().filter_by(GeomType.CIRCLE):
         if abs(e.center().Z - CAV_Z[0]) < 0.05:
@@ -914,11 +1051,16 @@ def build_enclosure():
             except Exception:
                 pass
 
-    bz0, bz1 = FLANGE_Z[0] - 2.0, CAV_Z[0]
-    body -= Cylinder(radius=SHAFT_BORE_R, height=(bz1 - bz0)).moved(
-        Location((SHAFT_C[0], SHAFT_C[1], (bz0 + bz1) / 2.0)))
-    body -= Cylinder(radius=BUSH_BORE_R, height=(BUSH_BOSS_Z[1] - CAV_Z[0]) + 4.0).moved(
-        Location((SHAFT_C[0], SHAFT_C[1], (CAV_Z[0] - 2.0 + BUSH_BOSS_Z[1]) / 2.0)))
+    # VERTICAL input-shaft journal: UPPER bore + COLLAR POCKET + LOWER bore, all
+    # at (x=DRIVE_X, z=DRIVE_Z), axis model -Y. The pocket (POCKET_R > bore) sits
+    # between the two bores; its two bore-mouth shoulders are the rigid axial stops
+    # that trap the shaft collar (geometric capture, like the axle dowels' step).
+    def _bore_y(r, y0, y1):
+        return Cylinder(radius=r, height=(y1 - y0)).moved(
+            Location((DRIVE_X, (y0 + y1) / 2.0, DRIVE_Z), (1, 0, 0), -90.0))
+    body -= _bore_y(SHAFT_R_BORE, DRIVE_UBORE_Y[0], DRIVE_BOSS_Y[1] + 0.02)  # upper bore
+    body -= _bore_y(POCKET_R, DRIVE_POCKET_Y[0], DRIVE_POCKET_Y[1])          # collar pocket
+    body -= _bore_y(SHAFT_R_BORE, BOT_FLANGE_Y[0] - 1.0, DRIVE_LBORE_Y[1])   # lower bore
 
     # STEPPED back axle bore: wide running bore (AXLE_SCREW_R) from the cavity down
     # to AXLE_STOP_Z, then a narrow flood hole (AXLE_FLOOD_R) on through the back wall.
@@ -942,13 +1084,23 @@ def build_enclosure():
                                  yc - SNAP_WIN_DY / 2.0, yc + SNAP_WIN_DY / 2.0,
                                  SNAP_WIN_Z[0], SNAP_WIN_Z[1])
 
-    for (bx, by) in BOLT_XY:
-        body -= Cylinder(radius=BOLT_R, height=(FLANGE_Z[1] - FLANGE_Z[0]) + 4.0).moved(
-            Location((bx, by, (FLANGE_Z[0] + FLANGE_Z[1]) / 2.0)))
+    # bolt holes through the BOTTOM mounting flange (axis model -Y), around the
+    # shaft exit at (x=DRIVE_X, z=DRIVE_Z); they clear the shaft + its lower bore.
+    for (bx, bz) in BOLT_XZ:
+        body -= Cylinder(radius=BOLT_R, height=(FLANGE_TY) + 4.0).moved(
+            Location((bx, (BOT_FLANGE_Y[0] + BOT_FLANGE_Y[1]) / 2.0, bz),
+                     (1, 0, 0), -90.0))
 
+    # bottom flood/drain holes (axis model -Y); now the housing LOW point. They
+    # must pass through BOTH the bottom wall AND the mounting flange below it to
+    # reach the outside, so make them full through-holes from cavity floor to the
+    # flange outer face. x positions clear the shaft exit (x=DRIVE_X=-12).
+    d_y0 = BOT_FLANGE_Y[0] - 2.0
+    d_y1 = CAV_Y[0] + 0.5
     for dx in DRAIN_BOTTOM_X:
-        body -= Cylinder(radius=DRAIN_R, height=(WALL + 6.0)).moved(
-            Location((dx, ENC_Y[0] + WALL / 2.0, 10.0), (1, 0, 0), 90.0))
+        for dz in (4.0, 16.0):
+            body -= Cylinder(radius=DRAIN_R, height=(d_y1 - d_y0)).moved(
+                Location((dx, (d_y0 + d_y1) / 2.0, dz), (1, 0, 0), -90.0))
     for (sy, sz) in DRAIN_SIDE_YZ:
         for sx in (ENC_X[0] + WALL / 2.0, ENC_X[1] - WALL / 2.0):
             body -= Cylinder(radius=DRAIN_R, height=(WALL + 6.0)).moved(
@@ -996,6 +1148,88 @@ def build_front_cover():
     return plate
 
 
+def _spur_pinion(thickness, label, color):
+    """Small spur INPUT PINION as a build123d solid, built with its axis along +Z
+    (caller rotates it to model -Y). Pitch radius PINION_RP, straight-flank
+    representative teeth (coupon-tunable, matching the model's other gears)."""
+    pitch = PINION_RP
+    root = pitch - 0.55 * PINION_TOOTH_H
+    tip = pitch + 0.45 * PINION_TOOTH_H
+    step = 2 * math.pi / PINION_TEETH
+    pts = []
+    for k in range(PINION_TEETH):
+        c = k * step
+        for frac, r in ((-0.30, root), (-0.16, tip), (0.16, tip), (0.30, root)):
+            aa = c + frac * step
+            pts.append((r * math.cos(aa), r * math.sin(aa)))
+    return _poly_solid(pts, 0.0, thickness)
+
+
+def _pinion_spin_deg(open_norm):
+    """Pinion rotation about its (model -Y) axis, geared to the crank delta so the
+    GIF reads as a real drive: crank turns by `crank_delta`, the crown (rc) turns
+    with it, the pinion (rp) turns crank_delta*(rc/rp). Sign chosen so the pinion
+    rolls along the crown; flip if it reads wrong on the meshing flank."""
+    crank_delta = -(crank_angle_deg(open_norm) - THETA_CLOSED)  # A_L turns -spin
+    return -crank_delta * (CROWN_RC / PINION_RP)
+
+
+def build_input_drive(open_norm):
+    """ONE printed part: input PINION integral with the vertical input SHAFT,
+    captured collar + coupler. Axis = model -Y (-> world DOWN after +90X reorient).
+    Stack (model-Y, +Y is up/cavity, -Y is down/exit):
+        pinion        y in PINION_Y          (-9 .. -13)   meshes the crown
+        upper journal y in DRIVE_UBORE_Y     (-13.5 .. -15.5)  rides UPPER bore
+        CAPTURE COLLAR y in SHAFT_COLLAR_Y   (-15.75 .. -17.75) trapped in POCKET
+        lower journal y in DRIVE_LBORE_Y     (-18 .. -25)  rides LOWER bore (load)
+        shoulder      y just below the flange (-25 .. -27)  redundant +Y stop
+        D-coupler     y below the shoulder    (-27 .. -39)  servo/motor interface
+    AXIAL CAPTURE (the known failure point, now solved geometrically): the COLLAR
+    (OD SHAFT_COLLAR_R > bore) sits in the housing POCKET between the two journal
+    bores and is trapped by both bore-mouth shoulders -> stops BOTH -Y pull-out
+    AND +Y push-in, no wobble. (Same head+step idea as the captured axle dowels;
+    the pinion itself is too small to act as a stop.) Printed, zero hardware.
+    Material PA12-GF (stiff, low-creep) so the journals stay round."""
+    # --- pinion (axis model -Y) ---
+    pin_t = PINION_T
+    pinion = _spur_pinion(pin_t, "pinion", color=DARK)
+    pinion = pinion.moved(Location((0, 0, 0), (1, 0, 0), -90.0))   # axis +Z -> +Y
+    # after -90X the slab z[0,pin_t] maps to y[0,pin_t]; shift so the disc spans
+    # PINION_Y = (PINION_YC -/+ pin_t/2), i.e. straddling the crown -Y azimuth.
+    pinion = pinion.moved(Location((0, PINION_Y[0], 0)))
+
+    def _cyl_y(r, y0, y1):
+        return Cylinder(radius=r, height=(y1 - y0)).moved(
+            Location((0, (y0 + y1) / 2.0, 0), (1, 0, 0), -90.0))
+
+    # --- journal shaft: one running diameter SHAFT_R through both bores ---
+    # from the pinion bottom (y=PINION_Y[0]) down through both journals to the
+    # flange bottom (BOT_FLANGE_Y[0]); journals are the boss + flange bore spans.
+    shaft = _cyl_y(SHAFT_R, BOT_FLANGE_Y[0], PINION_Y[0] + 0.01)
+
+    # --- captured COLLAR in the housing pocket (the primary axial capture) ---
+    collar = _cyl_y(SHAFT_COLLAR_R, SHAFT_COLLAR_Y[0], SHAFT_COLLAR_Y[1])
+
+    # --- captured shoulder just below the flange bottom face (+Y push-in stop) ---
+    sh_y0 = BOT_FLANGE_Y[0] - SHAFT_SHOULDER_T
+    shoulder = _cyl_y(SHAFT_SHOULDER_R, sh_y0, BOT_FLANGE_Y[0] + 0.01)
+
+    # --- D-profile coupler at the very bottom (the actuator interface) ---
+    cp_y1 = sh_y0
+    cp_y0 = cp_y1 - SHAFT_COUPLER_LEN
+    coupler = _cyl_y(SHAFT_COUPLER_R, cp_y0, cp_y1)
+    # flat the D on the +X side
+    coupler -= Box(SHAFT_DFLAT * 2, SHAFT_COUPLER_LEN + 2, 4 * SHAFT_COUPLER_R).moved(
+        Location((SHAFT_COUPLER_R, (cp_y0 + cp_y1) / 2.0, 0)))
+
+    part = pinion + shaft + collar + shoulder + coupler
+    part = part.moved(Location((0, 0, 0), (0, 1, 0), _pinion_spin_deg(open_norm)))
+    part = part.moved(Location((DRIVE_X, 0.0, DRIVE_Z)))
+    part.label = "input_pinion_shaft"
+    part.color = DARK
+    return part
+
+
 # ==========================================================================
 # Assembly
 # ==========================================================================
@@ -1007,14 +1241,17 @@ def gen_step():
     parts.append(build_enclosure())
 
     # Drive arms = gear sector fused with crank arm (one part -> no gear/crank
-    # clip). The LEFT arm is driven by its integral input shaft (out the back);
-    # the gear mesh counter-rotates the RIGHT arm -> one shaft moves both jaws.
+    # clip). The LEFT arm carries the CROWN gear of the right-angle stage; the
+    # input pinion (build_input_drive) turns the crown -> turns A_L; the spur mesh
+    # A_L<->A_R counter-rotates the RIGHT arm -> one (now VERTICAL) shaft moves
+    # both jaws. Both arms ride on their own snap-pin axles (the old integral
+    # horizontal shaft is gone).
     half_tooth = 360.0 / GEAR_TEETH / 2.0
     spin = crank_angle_deg(OPEN_NORM) - THETA_CLOSED      # crank rotation
     parts.append(drive_arm(R["A"], R["C"], spin, Z_CRANK0, T_CRANK,
-                           "drive_arm_R", STEEL_R, with_shaft=False))
+                           "drive_arm_R", STEEL_R, with_crown=False))
     parts.append(drive_arm(L["A"], L["C"], -spin + half_tooth, Z_CRANK0, T_CRANK,
-                           "drive_arm_L", STEEL_L, with_shaft=True))
+                           "drive_arm_L", STEEL_L, with_crown=True))
 
     # followers B->D. Counterbore the D-eye exit (bottom) face so the finger pin
     # (pin_D) lip drops into a rigid confining pocket (geometric capture).
@@ -1027,11 +1264,12 @@ def gen_step():
     parts.append(finger(R, refR, -1, TPU, "finger_R"))
     parts.append(finger(L, refL, +1, TPU, "finger_L"))
 
-    # axle pins: A_R (right-arm axle), B_R, B_L (follower axles) are hidden
-    # internal axles; C/D finger pins are visible. The LEFT arm's axle is its
-    # integral shaft, so there is no pin_A_L.
+    # axle pins: A_R/A_L (crank axles) and B_R/B_L (follower axles) are hidden
+    # internal axle dowels; C/D finger pins are visible. Both crank arms now ride
+    # a snap-pin axle (the left arm no longer carries an integral shaft -- the
+    # bottom-exit input drive replaced it), so there IS a pin_A_L.
     for tag, pose, joints in (("R", R, ("A", "B", "C", "D")),
-                              ("L", L, ("B", "C", "D"))):
+                              ("L", L, ("A", "B", "C", "D"))):
         for j in joints:
             lbl = f"pin_{j}_{tag}"
             if j in ("C", "D"):    # finger pins: barbed, head caps above finger.
@@ -1059,12 +1297,18 @@ def gen_step():
                 parts.append(snap_pin(pose[j], AXLE_DOWEL_Z0, AXLE_DOWEL_Z1,
                                       head_at="z1", barb=False, label=lbl))
 
-    # bolt-on front cover LAST so existing occurrence ids stay stable
+    # bolt-on front cover (keep existing occurrence ids stable up to here)
     parts.append(build_front_cover())
 
+    # NEW right-angle-stage input part appended LAST (after build_front_cover) so
+    # all pre-existing occurrence ids are unchanged: the vertical input pinion +
+    # shaft + D-coupler, exits the model -Y bottom (world DOWN).
+    parts.append(build_input_drive(OPEN_NORM))
+
     asm = Compound(label="gripper", children=parts)
-    # reorient to Z-up for printing & viewing: fingers point +Z, the input
-    # shaft exits the back horizontally (+Y). (Model is authored Y-up.)
+    # reorient to Z-up for printing & viewing: fingers point world +Z (up); the
+    # vertical input shaft (model -Y) exits world -Z (straight DOWN out the
+    # bottom). (Model is authored Y-up; +90X maps model+Y->world+Z, model-Y->-Z.)
     asm = asm.moved(Location((0, 0, 0), (1, 0, 0), 90))
     return asm
 

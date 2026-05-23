@@ -10,10 +10,11 @@
 //
 // Part occurrence ids (assembly order in gripper.py; model is reoriented Z-up,
 // so the hinge axis is world +Y and translations map (dx,dy)->(dx,0,dy)):
-//   o1.1 enclosure   o1.2 drive_arm_R   o1.3 drive_arm_L(+shaft)
+//   o1.1 enclosure   o1.2 drive_arm_R   o1.3 drive_arm_L
 //   o1.4 follower_R  o1.5 follower_L    o1.6 finger_R   o1.7 finger_L
 //   o1.8 pin_A_R  o1.9 pin_B_R  o1.10 pin_C_R  o1.11 pin_D_R
-//   o1.12 pin_B_L  o1.13 pin_C_L  o1.14 pin_D_L
+//   o1.12 pin_A_L  o1.13 pin_B_L  o1.14 pin_C_L  o1.15 pin_D_L
+//   o1.16 front_cover   o1.17 input_pinion_shaft (bottom drive; shown static)
 
 // ---- locked kinematic constants (mm, deg) -- mirror of gripper.py ----
 const A_R = [12.0, 0.0];
@@ -126,8 +127,8 @@ export default {
     rot("o1.3", A_L[0], A_L[1], -dCrank);             // drive_arm_L (turns the shaft)
     rot("o1.5", B_L[0], B_L[1], -dFollow);            // follower_L
     fingerMove("o1.7", C0_L[0], C0_L[1], -dCoupler, -dCx, dCy);  // finger_L
-    tr("o1.13", -dCx, dCy);                           // pin_C_L
-    tr("o1.14", -dDx, dDy);                           // pin_D_L
+    tr("o1.14", -dCx, dCy);                           // pin_C_L
+    tr("o1.15", -dDx, dDy);                           // pin_D_L
 
     ctx.requestRender?.();
   },

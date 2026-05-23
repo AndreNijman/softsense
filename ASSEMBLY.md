@@ -15,44 +15,45 @@ Read `PRINTING.md` for material, orientation, and post-processing first. Read
 part is printed, deburred, and fit-tested.
 
 Part names match `gripper.py` `gen_step()`: `enclosure`, `front_cover`,
-`drive_arm_R`, `drive_arm_L`, `follower_R`, `follower_L`, `finger_R`,
-`finger_L`. Pivots: **A_R** (right drive-arm axle), **B_R / B_L** (follower
-axles), **C_R, D_R, C_L, D_L** (finger pins). The **left drive arm's axle is
-its own integral shaft** — there is no A_L pin.
+`drive_arm_R`, `drive_arm_L`, `input_pinion_shaft`, `follower_R`, `follower_L`,
+`finger_R`, `finger_L`. Pivots: **A_R, A_L** (drive-arm axles), **B_R / B_L**
+(follower axles), **C_R, D_R, C_L, D_L** (finger pins). The drive input enters
+via a right-angle crown + pinion stage and exits the **housing bottom** — there
+is no shaft exiting the back or side.
 
 ---
 
-## Part inventory (15 printed parts, 0 hardware)
+## Part inventory (17 printed parts, 0 hardware)
 
 | Part label | Qty | Role |
 |---|---|---|
-| `enclosure` | 1 | Flooded gearbox housing, open front |
+| `enclosure` | 1 | Flooded gearbox housing, open front, bottom mounting flange |
 | `front_cover` | 1 | Snap-on cover with 4 integral cantilever clips |
-| `drive_arm_R` | 1 | Right gear sector + crank arm (clearance-bored at A_R) |
-| `drive_arm_L` | 1 | Left gear sector + crank arm + **integral input shaft** |
+| `drive_arm_R` | 1 | Right gear sector + crank arm (rides on axle dowel `pin_A_R`) |
+| `drive_arm_L` | 1 | Left gear sector + crank arm + **integral crown gear** (rides on axle dowel `pin_A_L`) |
+| `input_pinion_shaft` | 1 | Vertical input shaft: pinion + shaft + collar + bottom D-coupler |
 | `follower_R` | 1 | Right B→D link bar |
 | `follower_L` | 1 | Left B→D link bar |
 | `finger_R` | 1 | Right Fin Ray compliant jaw (TPU) |
 | `finger_L` | 1 | Left Fin Ray compliant jaw (TPU) |
 | `pin_A_R` | 1 | Axle dowel — right drive-arm pivot |
+| `pin_A_L` | 1 | Axle dowel — left drive-arm pivot |
 | `pin_B_R` | 1 | Axle dowel — right follower pivot |
 | `pin_B_L` | 1 | Axle dowel — left follower pivot |
 | `pin_C_R` | 1 | Finger snap pin — right crank-coupler joint |
 | `pin_D_R` | 1 | Finger snap pin — right follower-coupler joint |
 | `pin_C_L` | 1 | Finger snap pin — left crank-coupler joint |
 | `pin_D_L` | 1 | Finger snap pin — left follower-coupler joint |
-| **Total** | **15** | **Zero purchased hardware** |
-
-There is **no `pin_A_L`**: the left arm's shaft is integral to `drive_arm_L`.
+| **Total** | **17** | **Zero purchased hardware** |
 
 ---
 
 ## How the two pin families work (read this before assembling)
 
-The 7 printed pins divide into two families with different retention
+The 8 printed pins divide into two families with different retention
 mechanisms. Do not confuse them.
 
-### Axle dowels — `pin_A_R`, `pin_B_R`, `pin_B_L` (3 pins)
+### Axle dowels — `pin_A_R`, `pin_A_L`, `pin_B_R`, `pin_B_L` (4 pins)
 
 Plain headed cylinders with a **narrow pilot tip** at the far end. No split
 barb. Retention is purely **geometric sandwich**:
@@ -105,13 +106,14 @@ pin straight out. Pinch, do not pry; the jaws survive many cycles undamaged.
 ### Step 1 — Print prep and snap test
 
 1. Confirm all parts are in the correct material: enclosure, cover, arms,
-   and followers in **PA12-GF** (or ASA/PETG); **finger snap pins (C/D ×4) in
-   PETG-HF**; axle dowels (A_R/B_R/B_L ×3) in PETG or PA12-GF; fingers in
-   **ether-based TPU ~95A**. Never PLA; never TPU for pins (see `UNDERWATER.md`).
-2. **Deburr every pivot bore** — A_R, B_R, B_L back-wall sockets, the four
-   C/D finger mount holes, the cover boss bores, and the back-wall shaft bore
-   — with a hand-spun countersink or deburring blade. Knock the first-layer
-   elephant-foot lip off each bore mouth so pins enter square.
+   followers, and `input_pinion_shaft` in **PA12-GF** (or PETG-HF for test);
+   **finger snap pins (C/D ×4) in PETG-HF**; axle dowels (A_R/A_L/B_R/B_L ×4)
+   in PA12-GF; fingers in **ether-based TPU ~95A**. Never PLA; never TPU for
+   pins (see `UNDERWATER.md`).
+2. **Deburr every pivot bore** — A_R, A_L, B_R, B_L back-wall sockets, the
+   four C/D finger mount holes, the cover boss bores, and the two journal bores
+   in the bottom wall — with a hand-spun countersink or deburring blade. Knock
+   the first-layer elephant-foot lip off each bore mouth so pins enter square.
 3. **Clean the gear flanks** on `drive_arm_R` and `drive_arm_L`: knock down
    layer ridges and seam witness on the teeth.
 4. **Fit-test one finger snap pin** against a scrap counterbored bore coupon
@@ -148,26 +150,43 @@ The enclosure prints **open-front**. The mechanism drops straight in.
 
 1. **Seat `drive_arm_R`:** lower it into the cavity so its A_R axle bore
    rests over the back-wall A_R boss. It is only located, not yet Z-captured.
-2. **Seat `drive_arm_L` (integral shaft):** thread its **integral input shaft
-   tip-first** through the back-wall shaft bore from inside the cavity as you
-   lower the arm, so the gear/arm seats and the rear D-coupler projects behind
-   the flange. The shaft rides in a bare printed bore (flooded, runs wet — no
-   bushing needed). Confirm the shaft turns freely.
+2. **Seat `drive_arm_L`:** lower it into the cavity so its A_L axle bore
+   rests over the back-wall A_L boss. The crown gear face on `drive_arm_L`
+   must face the bottom (−Y) toward the input-pinion position. It is only
+   located, not yet Z-captured.
 3. **Add `follower_R`:** seat one eye over the B_R back-wall boss, the other
    eye aligned with the D_R end of the right crank.
 4. **Add `follower_L`:** same on the left — one eye on B_L boss, one on D_L.
 5. Recheck that the gear mesh is still correctly interleaved and both arms
    swing freely by hand.
 
+### Step 3a — Install the input drive shaft
+
+1. **Drop `input_pinion_shaft` into the bottom-wall journal bores:** lower the
+   shaft down through the upper journal boss bore (2 mm bearing, in the cavity)
+   and into the lower journal bore in the bottom wall (7 mm bearing). The
+   pinion end enters the cavity first and meshes the crown gear on `drive_arm_L`
+   at the −Y (bottom) azimuth.
+2. **Confirm collar seating:** the integral collar (OD 5.8 mm) is larger than
+   the bore and will seat in the housing pocket between the two bore mouths —
+   this is the axial capture. It should drop in freely and sit in the pocket
+   with a small amount of axial play (~0.25 mm each side). No click; no barb.
+   The collar cannot pull out (−Y) or push in (+Y) past either bore shoulder.
+3. The D-profile coupler end exits below the housing bottom, below the mounting
+   flange. The shaft runs in flooded journal bores (no bushing needed); confirm
+   it turns freely.
+4. **Verify the crown/pinion mesh:** rotate the shaft slightly by hand. Both
+   drive arms should move, confirming the crown/pinion stage is engaged.
+
 ---
 
-### Step 4 — Install the 3 axle dowels (BEFORE the cover)
+### Step 4 — Install the 4 axle dowels (BEFORE the cover)
 
 > **Critical order:** axle dowels must go in now, before the cover is snapped
 > on. The cover-boss face is their +Z stop — without the cover they are
 > uncaptured and can lift out.
 
-For each of **A_R**, **B_R**, **B_L**:
+For each of **A_R**, **A_L**, **B_R**, **B_L**:
 
 1. Orient the dowel head-up (head flange toward the open front / cover side).
 2. Drop it **tip-first down through the front-open cavity** through the
@@ -177,7 +196,9 @@ For each of **A_R**, **B_R**, **B_L**:
 3. The head flange sits near the cavity top, waiting for the cover boss.
 4. The arm/follower must still **pivot freely** on its dowel.
 
-Repeat all three. There is **no pin_A_L** — the left arm's shaft is its own axle.
+Repeat all four. **`pin_A_L`** is the axle dowel for `drive_arm_L` — install it
+the same way as `pin_A_R`. The left arm no longer has an integral shaft; it rides
+on its axle dowel like the right arm.
 
 ---
 
@@ -186,7 +207,7 @@ Repeat all three. There is **no pin_A_L** — the left arm's shaft is its own ax
 1. Align `front_cover` over the open front, the 4 hook clips facing the four
    side-wall windows (2 per long side).
 2. **Push it straight on** until all **4 cantilever clips click** into their
-   windows. The cover's inner-face bosses now **cap the 3 axle-dowel heads** —
+   windows. The cover's inner-face bosses now **cap all 4 axle-dowel heads** —
    each dowel is sandwiched between the back-wall bore step and the cover boss
    and **cannot fall out in either direction**. No tools, no fasteners.
 3. Verify: tug each axle-dowel head — it should have essentially no axial slop
@@ -223,12 +244,13 @@ the enclosure top, not through the cover plate. The task-standard order is:
 
 ---
 
-### Step 8 — Couple a waterproof actuator to the rear D-shaft
+### Step 8 — Couple a waterproof actuator to the bottom D-shaft
 
-1. Mate your **waterproof servo / actuator coupling** onto the rear
-   **D-profile coupler** on `drive_arm_L`'s integral shaft (the milled flat
-   keys the coupling so it cannot slip). Coupler dimensions: radius 5.0 mm,
-   D-flat depth 1.4 mm, length 12 mm.
+1. Mate your **waterproof servo / actuator coupling** onto the **bottom
+   D-profile coupler** on `input_pinion_shaft` (the D exits below the housing
+   bottom flange — actuator couples from below). Coupler dimensions: radius
+   5.0 mm, D-flat depth 1.4 mm, length 12 mm. The milled flat keys the
+   coupling so it cannot slip.
 2. Use an IP68/submersible servo, a potted hobby servo, or a sealed/oil-filled
    actuator with a pressure compensator for deeper work. See `UNDERWATER.md`
    §6. The actuator carries the **only** waterproofing burden in the system —
@@ -236,11 +258,11 @@ the enclosure top, not through the cover plate. The task-standard order is:
 
 ---
 
-### Step 9 — Mount via the back flange
+### Step 9 — Mount via the bottom flange
 
-1. The back flange carries **4 × M4 clearance holes** at (±37, −14) and
-   (±37, +8) mm. Attach the gripper to your robot arm or mount with M4 bolts
-   through these holes.
+1. The **bottom flange** carries **5 × M4 clearance holes** positioned around
+   the shaft exit. Attach the gripper to your robot arm or mount with M4 bolts
+   through these holes. The actuator couples below the flange to the D-shaft.
 2. **Galvanic isolation:** if your robot arm is metal, use **nylon or PTFE
    shoulder bushings + isolating washers** on every flange bolt so no
    metal-to-metal contact path exists between the gripper body and the arm
@@ -251,7 +273,7 @@ the enclosure top, not through the cover plate. The task-standard order is:
 
 ## Function test (in air)
 
-1. Rotate the input shaft — turn the actuator or the rear D-coupler directly.
+1. Rotate the input shaft — turn the actuator or the bottom D-coupler directly.
 2. **Both jaws must open and close symmetrically**, splaying ~18° outward as
    they open (funnel mouth) and coming nearly together at closed.
 3. Check the mesh: smooth, low-backlash engagement through the full travel,
@@ -299,9 +321,11 @@ Reverse in order — no tools:
 3. **Axle dowels (A_R, B_R, B_L ×3):** with the cover off, the head is
    uncapped. Lift each dowel straight up out of the front-open cavity. There
    is no barb to compress — it slides free.
-4. **Arms and followers:** lift `follower_R`, `follower_L`, `drive_arm_R` out
-   of the cavity. Withdraw `drive_arm_L`'s integral shaft back through the
-   bore and lift the arm out.
+4. **Input drive:** pull the `input_pinion_shaft` straight up out of the bottom
+   journal bores.
+5. **Arms and followers:** lift `follower_R`, `follower_L`, `drive_arm_R`, and
+   `drive_arm_L` out of the cavity. All four arms ride on axle dowels; none
+   have integral shafts.
 
 Every pin is reusable. The axle dowels lift out freely; the finger snap pins
 are pinched and pulled — neither requires force after releasing its retainer.
@@ -317,9 +341,10 @@ are pinched and pulled — neither requires force after releasing its retainer.
    `+` slot on each finger snap pin; test-flex each barb and clip.
 3. **Fit-test one finger pin** + a scrap counterbored coupon; verify the click
    and that the lip seats in the pocket before committing the remaining 6 pins.
-4. **Assemble in order:** mesh arms → drop into housing → install 3 axle dowels
-   → snap on front cover → place fingers → snap in 4 finger pins.
-5. **Function check:** rotate the shaft; both jaws must open/close symmetrically.
+4. **Assemble in order:** mesh arms → drop into housing → drop `input_pinion_shaft`
+   into bottom journals → install 4 axle dowels → snap on front cover → place
+   fingers → snap in 4 finger pins.
+5. **Function check:** rotate the bottom D-shaft; both jaws must open/close symmetrically.
 6. **Flood check:** submerge, watch bubbles clear, cycle jaws wet.
 7. **Read `UNDERWATER.md`** for material prep and seawater guidance before the
    first dive.

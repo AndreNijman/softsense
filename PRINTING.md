@@ -21,7 +21,8 @@ Companion documents:
 |---|---|---|
 | `enclosure`, `front_cover` | **PA12-GF** (Nylon 12 glass-filled) | PETG-HF |
 | `drive_arm_L`, `drive_arm_R`, `follower` (×2) | **PA12-GF** | PETG-HF |
-| `snap_pin_axle` (×3) | **PA12-GF** | PETG-HF |
+| `input_pinion_shaft` | **PA12-GF** | PETG-HF |
+| `snap_pin_axle` (×4) | **PA12-GF** | PETG-HF |
 | `snap_pin_finger` (×4) | **PETG-HF** (final build) | — (already final material) |
 | `finger_L`, `finger_R` | **TPU ether-based** (~95A Shore) | TPU ether-based (no substitute) |
 
@@ -30,6 +31,8 @@ PA12-GF is rigid and structural throughout; TPU is the compliant jaw.
 must flex repeatedly through the finger-pivot bore; PA12-GF is too brittle and
 would crack the barb. The load-bearing counterbore socket in the PA12-GF enclosure
 carries the structural load — the pin itself only needs ductility, not stiffness.
+`input_pinion_shaft` is PA12-GF: the shaft journals benefit from glass-filled
+stiffness and low creep to stay round under sustained load.
 
 PETG-HF is **not** suitable for the seawater-structural parts (enclosure, cover,
 arms, followers, axle dowels) — see `MATERIALS.md` when available.
@@ -46,7 +49,7 @@ python make_print_plates.py     # print_plates/  (oriented + plated STLs)
 
 Outputs (full layout in `PRINT_PLATES.md`):
 
-- `print_plates/plate_rigid_1.stl` — all 13 rigid parts (PA12-GF or PETG-HF).
+- `print_plates/plate_rigid_1.stl` — all 15 rigid parts (PA12-GF or PETG-HF).
 - `print_plates/plate_tpu_1.stl` — the 2 TPU Fin Ray fingers (separate material).
 - `print_plates/oriented/<part>.stl` — each part alone, already oriented.
 
@@ -138,18 +141,21 @@ The `SNAP_BARB_LIP_T = 1.0 mm` wall runs for the full locking-lip length. Keep
 perimeters at ≥4 (0.4 mm nozzle = 2.5 perimeters minimum; 4 is safer). Do not
 reduce wall count to speed the print.
 
-Snap pins with `drive_arm_L`'s integral shaft: the shaft layers run **transverse
-to the drive-torque axis** in the chosen supportless orientation (gear plate on
-bed, shaft vertical). Compensate with **100% infill + 6 perimeters in the shaft
-region**. Print the shaft segment slow with minimal cooling.
+For `input_pinion_shaft`: print with the shaft axis vertical (shaft pointing up).
+This makes the shaft a self-supporting cylinder with strong layers along the
+torque axis. The pinion and collar print as rings at various heights. Use
+**100% infill + 6 perimeters** throughout. Print slow with minimal cooling at
+the collar and pinion regions. Do not print shaft-horizontal — the cantilever
+overhang would be too large.
 
 #### Supports
 
 **None required.** All orientations are supportless as determined by
 `make_print_plates.py` (see §Supportless orientation table below and
-`PRINT_PLATES.md`). One exception: the `enclosure` back mounting flange may want
-a few support pillars under its outer edge — check the slicer preview; if it
-droops, add 2–3 column supports there only.
+`PRINT_PLATES.md`). One exception: the `enclosure` bottom mounting flange may
+want a few support pillars under its outer edge — check the slicer preview; if it
+droops, add 2–3 column supports there only. Also check the journal-bore overhangs
+in the bottom wall.
 
 #### Optional annealing
 
@@ -319,22 +325,21 @@ import the plate STLs directly and set "no supports" in your slicer.
 
 | Part | Qty | Rotation from export pose | Build height | Support area | Notes |
 |---|---|---|---|---|---|
-| `enclosure` | 1 | None (as-exported) | 40.0 mm | ~1272 mm² (bridges interior ceilings) | Back flange may want 2–3 column supports; check slicer |
+| `enclosure` | 1 | None (as-exported) | 40.0 mm | ~1272 mm² (bridges interior ceilings) | Bottom flange down; check slicer for journal-bore overhangs |
 | `front_cover` | 1 | 180° about X | 18.5 mm | 184 mm² (hook underlips bridge) | Flat outer face on bed; clips point up |
-| `drive_arm_L` | 1 | 180° about X | 40.0 mm | 23 mm² (coupler shoulder) | Gear plate on bed; integral shaft vertical |
+| `drive_arm_L` | 1 | None (as-exported) | 5.0 mm | 0 | Flat plate face-down (no integral shaft; crown ring prints as a ring at the top face) |
 | `drive_arm_R` | 1 | None (as-exported) | 5.0 mm | 0 | Flat plate face-down |
+| `input_pinion_shaft` | 1 | Shaft-axis vertical (coupler down) | ~40–50 mm | ~12 mm² (collar ring bridge) | Shaft as self-supporting vertical cylinder; pinion and collar print as rings; 100% infill, 6 perimeters, slow |
 | `follower` | 2 | None (as-exported) | 5.0 mm | 0 | Flat bar face-down |
-| `snap_pin_axle` | 3 | 180° about X | 23.0 mm | 0 | Head flange on bed; barb tip up |
+| `snap_pin_axle` | 4 | 180° about X | 23.0 mm | 0 | Head flange on bed; barb tip up |
 | `snap_pin_finger` | 4 | 180° about X | 29.1 mm | 12 mm² (0.7 mm barb lip bridge) | Head flange on bed; barb tip up |
 | `finger_R` | 1 | None (as-exported) | 10.0 mm | ~0 | Flat on 28×96 face; Fin Ray cells in build plane |
 | `finger_L` | 1 | None (as-exported) | 10.0 mm | ~0 | Mirror of `finger_R` |
 
-**Note on `drive_arm_L` (supportless vs. torsion):** the supportless orientation
-places the gear plate on the bed and the shaft pointing up. Shaft layers then run
-transverse to the drive-torque axis (the weak direction for interlayer shear).
-Compensate: **100% infill + 6 perimeters in the shaft region, slow speed, minimal
-cooling.** This is the correct orientation; do not flip it shaft-down (that would
-cantilever the 26×50 gear plate in mid-air with 529 mm² of overhang).
+**Note on `drive_arm_L`:** now a flat gear plate like `drive_arm_R` — the crown
+ring is a thin annular feature on its +Z face and prints cleanly face-up at the
+plate surface. No shaft; no tall vertical feature. Same print settings as
+`drive_arm_R`.
 
 ---
 
@@ -342,16 +347,17 @@ cantilever the 26×50 gear plate in mid-air with 529 mm² of overhang).
 
 | Part | Qty | Material | Plate file | Orientation (Z-up in slicer) | Layer ht | Walls | Infill |
 |---|---|---|---|---|---|---|---|
-| `enclosure` | 1 | PA12-GF / PETG-HF | `plate_rigid_1` | Open slot/cavity up, drain floor on bed | 0.20 mm | 4–5 | 15–25% |
+| `enclosure` | 1 | PA12-GF / PETG-HF | `plate_rigid_1` | Bottom-flange face down, cavity up | 0.20 mm | 4–5 | 15–25% |
 | `front_cover` | 1 | PA12-GF / PETG-HF | `plate_rigid_1` | Flat outer face on bed, clips up | 0.20 mm | 4–5 | 30–50% |
-| `drive_arm_L` | 1 | PA12-GF / PETG-HF | `plate_rigid_1` | Gear plate on bed, shaft up | 0.15–0.20 mm | 5–6 (shaft: 6, 100%) | 40–60% (shaft: 100%) |
+| `drive_arm_L` | 1 | PA12-GF / PETG-HF | `plate_rigid_1` | Flat gear+arm plate face-down (crown ring face up) | 0.15–0.20 mm | 5–6 | 40–60% |
 | `drive_arm_R` | 1 | PA12-GF / PETG-HF | `plate_rigid_1` | Flat gear+arm plate face-down | 0.15–0.20 mm | 5–6 | 40–60% |
+| `input_pinion_shaft` | 1 | **PA12-GF** / PETG-HF | `plate_rigid_1` | Shaft-axis vertical, coupler end down | 0.15–0.20 mm | 6, solid | 100% |
 | `follower` | 2 | PA12-GF / PETG-HF | `plate_rigid_1` | Flat bar face-down | 0.20 mm | 5–6 | 30–50% |
-| `snap_pin_axle` | 3 | PA12-GF / PETG-HF | `plate_rigid_1` | Head on bed, barb up | 0.15–0.20 mm | solid | 100% |
+| `snap_pin_axle` | 4 | PA12-GF / PETG-HF | `plate_rigid_1` | Head on bed, barb up | 0.15–0.20 mm | solid | 100% |
 | `snap_pin_finger` | 4 | **PETG-HF** (test + **final**) | `plate_rigid_1` | Head on bed, barb up | 0.15–0.20 mm | solid | 100% |
 | `finger_R` | 1 | TPU ether-based | `plate_tpu_1` | Flat on 28×96 face | 0.15–0.20 mm | 3–4 | ≥80% |
 | `finger_L` | 1 | TPU ether-based | `plate_tpu_1` | Flat on 28×96 face | 0.15–0.20 mm | 3–4 | ≥80% |
-| **Total** | **15** | — | **2 plates** | — | — | — | — |
+| **Total** | **17** | — | **2 plates** | — | — | — | — |
 
 **Nozzle reminder:** 0.4 mm hardened steel/ruby for PA12-GF throughout. Brass 0.4
 mm for PETG-HF and TPU test/production prints.
@@ -361,8 +367,9 @@ mm for PETG-HF and TPU test/production prints.
 The full build splits across three print batches:
 
 **(a) PA12-GF batch** — `enclosure` ×1, `front_cover` ×1, `drive_arm_L` ×1,
-`drive_arm_R` ×1, `follower` ×2, `snap_pin_axle` ×3. Dry spool 80°C/8–12 h,
-0.4 mm hardened nozzle, brim + draft shield on the enclosure.
+`drive_arm_R` ×1, `input_pinion_shaft` ×1, `follower` ×2, `snap_pin_axle` ×4.
+Dry spool 80°C/8–12 h, 0.4 mm hardened nozzle, brim + draft shield on the
+enclosure. Print `input_pinion_shaft` shaft-axis vertical.
 
 **(b) PETG-HF batch** — `snap_pin_finger` ×4. These 4 small finger pins print in
 PETG-HF for the final build (barb ductility — see "Pinned materials" note above).
@@ -461,8 +468,8 @@ See `ASSEMBLY.md` for the full sequence. Brief order:
    the coupler.
 3. Drop drive arms and followers into the enclosure on the `snap_pin_axle` pins.
 4. Push-on the `front_cover` — 4 hooks click; no tools needed.
-5. Function check: rotate `drive_arm_L` input shaft; both fingers open/close
-   symmetrically.
+5. Function check: rotate `input_pinion_shaft` bottom D-coupler; both fingers
+   open/close symmetrically.
 
 ---
 
@@ -491,16 +498,23 @@ See `ASSEMBLY.md` for the full sequence. Brief order:
 1. Calibrate — XY tolerance coupon + pin-in-hole coupon in both filaments.
 2. Fit-tune snap pins — one `snap_pin_finger` + scrap bore coupon; verify click.
 3. Bore coupon in PA12-GF — confirm shrinkage doesn't close Ø5.2 bores.
-4. Enclosure — slot-face up; brim + draft shield; support pillars under flange if needed.
-5. Drive arms ×2 — fine layers, high perimeters; `drive_arm_L` gear plate on bed.
-6. Followers ×2 — flat, high perimeters.
-7. Front cover ×1 — outer face down, clips up.
-8. Snap pins: `snap_pin_axle` ×3 in **PA12-GF** + `snap_pin_finger` ×4 in
+4. Enclosure — bottom-flange down; brim + draft shield; check slicer for
+   journal-bore overhangs; support if needed.
+5. Drive arms ×2 — fine layers, high perimeters; both print flat (gear plate on
+   bed); `drive_arm_L` crown ring faces up.
+6. `input_pinion_shaft` — shaft-axis vertical, 100% infill, 6 perimeters; slow
+   with minimal cooling at the collar and pinion regions.
+7. Followers ×2 — flat, high perimeters.
+8. Front cover ×1 — outer face down, clips up.
+9. Snap pins: `snap_pin_axle` ×4 in **PA12-GF** + `snap_pin_finger` ×4 in
    **PETG-HF** — head-down, barb-up, 100% solid, slow at barb.
-9. Fin Ray fingers ×2 — TPU flat on side face, slow, ≥80% infill.
-10. Post-process — deburr bores, clear slots, test-flex barbs and clips.
-11. (PA12-GF) anneal + condition if desired.
-12. Dry-fit — snap axle pins; arms and followers pivot freely; mesh gears.
-13. Assemble — fingers on C/D pins; mechanism into housing on A/B pins; snap front cover.
-14. Function check — rotate input shaft; both fingers open/close symmetrically.
-15. Read `UNDERWATER.md` before it gets wet.
+10. Fin Ray fingers ×2 — TPU flat on side face, slow, ≥80% infill.
+11. Post-process — deburr bores (including journal bores), clear slots,
+    test-flex barbs and clips.
+12. (PA12-GF) anneal + condition if desired.
+13. Dry-fit — snap axle pins; arms and followers pivot freely; mesh gears;
+    confirm `input_pinion_shaft` drops into journals and collar seats.
+14. Assemble — drop `input_pinion_shaft` into bottom journals; fingers on C/D
+    pins; mechanism into housing on A/B pins; snap front cover.
+15. Function check — rotate bottom D-shaft; both fingers open/close symmetrically.
+16. Read `UNDERWATER.md` before it gets wet.

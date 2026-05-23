@@ -21,8 +21,8 @@ build plates for a common bed.
 - `print_plates/oriented/<part>.stl` — every unique part, **already rotated** to
   its print orientation with min-Z on the bed. Drop a single one in if you only
   need that part.
-- `print_plates/plate_rigid_1.stl` — the 9 **PA12-GF** parts (body, cover, arms,
-  followers, 3 axle dowels), packed.
+- `print_plates/plate_rigid_1.stl` — the 11 **PA12-GF** parts (body, cover, arms,
+  followers, 4 axle dowels, input pinion shaft), packed.
 - `print_plates/plate_petg_1.stl` — the 4 **PETG-HF** finger pins (`snap_pin_finger`),
   on their own plate: the split snap barb needs ductility, so these print in
   PETG-HF, not the brittle glass-filled nylon.
@@ -48,16 +48,17 @@ At 220×220 everything still lands on the same 3 plates (rigid footprint is only
 
 ## Plate layout (256 × 256 mm, 5 mm spacing)
 
-### `plate_rigid_1.stl` — PA12-GF (PETG-HF for test) — **9 parts**, footprint ≈ 240 × 112 × 40 mm
+### `plate_rigid_1.stl` — PA12-GF — **11 parts**, footprint ≈ 240 × 112 × 36 mm
 
 | Part | Qty | Oriented bbox (mm) | Orientation |
 |---|---|---|---|
-| `enclosure` | 1 | 96.0 × 36.0 × 40.0 | open slot/cavity face **+Z up**, drain-floor on bed (as-exported) |
+| `enclosure` | 1 | 96.0 × 41.0 × 36.0 | open slot/cavity face **+Z up**, drain-floor on bed (as-exported) |
 | `front_cover` | 1 | 102.4 × 36.0 × 23.5 | **flip 180° about X**: flat outer face on bed, snap clips point up |
-| `drive_arm_L` | 1 | 26.5 × 51.2 × 40.0 | **flip 180° about X**: gear plate anchored on bed, integral shaft **+Z up** |
+| `drive_arm_L` | 1 | 26.5 × 51.2 × 8.0 | flat plate face-down (as-exported); crown gear on +Z face; no integral shaft |
 | `drive_arm_R` | 1 | 26.6 × 51.2 × 5.0 | flat plate face-down (as-exported) |
 | `follower` | **2** | 11.2 × 40.0 × 5.0 | flat bar face-down (as-exported) |
-| `snap_pin_axle` | **3** | 7.8 × 7.8 × 20.8 | **flip 180° about X**: head on bed, barb up |
+| `snap_pin_axle` | **4** | 7.8 × 7.8 × 20.8 | **flip 180° about X**: head on bed, barb up |
+| `input_pinion_shaft` | 1 | 11.6 × 11.6 × 33.0 | **rotate 90° about X**: shaft-axis vertical, D-coupler/shoulder end on bed, pinion teeth at top |
 
 ### `plate_petg_1.stl` — PETG-HF — **4 parts**, footprint ≈ 51 × 13 × 27 mm
 
@@ -72,31 +73,32 @@ At 220×220 everything still lands on the same 3 plates (rigid footprint is only
 | `finger_R` | 1 | 28.0 × 96.2 × 10.0 | flat on a 28×96 Z-face, build height 10 mm (as-exported) |
 | `finger_L` | 1 | 28.0 × 96.2 × 10.0 | flat on a 28×96 Z-face, build height 10 mm (as-exported) |
 
-## Part quantities (full assembly = 15 printed parts)
+## Part quantities (full assembly = 17 printed parts)
 
 | Part | Qty | Why |
 |---|---|---|
 | enclosure | 1 | one housing |
 | front_cover | 1 | one snap-on cover |
-| drive_arm_L | 1 | left arm, **carries the integral input shaft** |
-| drive_arm_R | 1 | right arm, rides on `snap_pin_axle` |
+| drive_arm_L | 1 | left arm (crown gear on +Z face); rides on `snap_pin_axle` |
+| drive_arm_R | 1 | right arm; rides on `snap_pin_axle` |
 | follower | 2 | one per side (L/R link bars are congruent → same file) |
-| snap_pin_axle | **3** | the 3 internal axle pivots (`pin_A_R`, `pin_B_R`, `pin_B_L`) |
+| snap_pin_axle | **4** | the 4 internal axle pivots (`pin_A_R`, `pin_A_L`, `pin_B_R`, `pin_B_L`) |
 | snap_pin_finger | **4** | the 4 finger-pivot pins (`pin_C_R`, `pin_D_R`, `pin_C_L`, `pin_D_L`) |
 | finger_R | 1 | right Fin Ray finger (chiral) |
 | finger_L | 1 | left Fin Ray finger (chiral mirror) |
-| **Total** | **15** | **2 plates** (1 rigid + 1 TPU) |
+| input_pinion_shaft | 1 | pinion + vertical shaft + capture collar + D-coupler (new right-angle drive) |
+| **Total** | **17** | **3 plates** (1 rigid PA12-GF + 1 PETG-HF + 1 TPU) |
 
-There is **no `pin_A_L`** — the left axle *is* the integral shaft on
-`drive_arm_L`. There is no separate shaft part. Zero bought hardware.
+`pin_A_L` is now a separate snap-pin axle (same geometry as `pin_A_R`) — the
+left arm no longer carries an integral horizontal shaft. The right-angle drive
+input shaft is `input_pinion_shaft`, a separate printed part. Zero bought hardware.
 
 ## Totals & estimates
 
-- **Plates: 2** (1 rigid PETG/ASA, 1 TPU).
-- **Solid material volume: ≈ 98.5 cm³** (geometric solid volume, summed over all
-  15 parts, BEFORE walls/infill — actual filament will be lower for the
-  low-infill housing and higher only if you go 100 % on small parts). At ~1.27
-  g/cm³ for PETG that bounds the rigid mass; the two TPU fingers are ~9 cm³ each.
+- **Plates: 3** (1 rigid PA12-GF, 1 PETG-HF, 1 TPU).
+- **Solid material volume: ≈ 103.1 cm³** (geometric solid volume, summed over all
+  17 parts, BEFORE walls/infill — actual filament will be lower for the
+  low-infill housing and higher only if you go 100 % on small parts).
 - **Print-time estimate: not produced — no slicer CLI was found on PATH.** The
   script auto-detects `prusa-slicer`, `orca-slicer`, `superslicer`, `slic3r`,
   `CuraEngine`; install one and re-run `make_print_plates.py` to get per-plate
@@ -113,8 +115,9 @@ pose (mm² needing support, excluding the first layer):
 | finger_R / finger_L | ~1 mm² (first-layer noise) | supportless |
 | snap_pin_finger | 12 mm² | supportless (barb lip is a 0.7 mm bridge) |
 | front_cover | 184 mm² | supportless (clip hook underlips bridge) |
-| drive_arm_L | 23 mm² | flipped 180° X so the gear plate anchors on the bed, shaft up; only the coupler shoulder bridges — supportless |
-| enclosure | 1272 mm² | mostly bridges (interior floor ceilings); the **back flange** is the one feature that may want a few support pillars / a skirt |
+| drive_arm_L | 21 mm² | as-exported, flat plate on bed; crown gear on +Z face prints as concentric rings — supportless |
+| input_pinion_shaft | 89 mm² | shaft-axis vertical (90° X rot); collar mid-shaft is a ~1.8 mm radial bridge — supportless |
+| enclosure | 1259 mm² | mostly bridges (interior floor ceilings); the **back flange** is the one feature that may want a few support pillars / a skirt |
 
 See `PRINTING.md` → "Supportless orientation table" for the full per-part print
 recipe, and the CONSTRAINTS block at the end of this audit for what the snap-fit

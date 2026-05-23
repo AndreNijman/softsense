@@ -81,17 +81,13 @@ ORIENT = {
              "vertical. Eyes/teeth print as concentric perimeters. Supportless.",
     ),
     "drive_arm_L": dict(
-        # In the EXPORTED pose the shaft tip is at z=0 (on the bed) and the gear
-        # plate floats at z~35 -> the whole 26x50 plate cantilevers off the top
-        # of the Ø8 shaft (unsupportable, 529 mm2). Flip 180 about X so the GEAR
-        # PLATE anchors on the bed (z=0-5) and the shaft points +Z up (vertical
-        # cylinder = self-supporting rings). Only residual overhang is the small
-        # Ø8->Ø10 coupler shoulder at the shaft tip (a ~1 mm radial bridge).
-        rot=[("x", 180)], qty=1, group="rigid",
-        note="flip 180 about X: gear/arm plate flat on bed, integral input shaft "
-             "pointing +Z up (vertical cylinder, self-supporting). SUPPORTLESS "
-             "but layers run TRANSVERSE to drive torque -> see CONSTRAINTS: 100% "
-             "infill + 5-6 perimeters in the shaft for torsional strength.",
+        # drive_arm_L is now a plain gear+arm plate (crown on its +Z face).
+        # No integral shaft -- it rides on a snap-pin axle like drive_arm_R.
+        # As-exported the flat plate face is on the bed (5 mm thick). Supportless.
+        rot=[], qty=1, group="rigid",
+        note="as-exported: flat gear+arm plate (5 mm) face-down, pivot axis "
+             "vertical. Crown gear on +Z face prints as concentric rings. "
+             "No integral shaft. Supportless.",
     ),
     "follower": dict(
         rot=[], qty=2, group="rigid",
@@ -122,10 +118,35 @@ ORIENT = {
         # Exported pose: head disc at +Z (top), barb/lead-in tip at -Z (bottom).
         # Flip 180 about X => head flange on the bed (anchors the print), barb
         # tip points +Z up so the lead-in cone narrows as it rises (printable).
-        rot=[("x", 180)], qty=3, group="rigid",
+        rot=[("x", 180)], qty=4, group="rigid",
         note="flip 180 about X: head flange on bed, barb tip up. Lead-in cone "
              "narrows going up (self-supporting); '+' split slot is vertical. "
-             "Supportless. PETG, slow + low cooling at the barb.",
+             "Supportless. PETG, slow + low cooling at the barb. "
+             "Qty 4: pin_A_R, pin_A_L, pin_B_R, pin_B_L.",
+    ),
+    "input_pinion_shaft": dict(
+        # The part is a vertical shaft (model-Y axis in the assembly) with a pinion
+        # disc at one end (meshes the crown, r_tip=3.72mm), a capture collar
+        # mid-shaft (r=5.8mm), and a D-coupler at the other end (actuator
+        # interface, r=5.0mm shoulder + flat-D cut).
+        # After export & to_origin, the shaft long axis runs along Y (33mm); the
+        # D-coupler/shoulder end is at y=0, the pinion end is at y=33mm.
+        # To print shaft-axis VERTICAL we need to stand it up: rotate 90 about X
+        # so Y -> Z. After this rotation, the D-coupler/shoulder end (r=5.0mm)
+        # lands on the bed -- wider, flatter base than the pinion teeth (r=3.72mm).
+        #   * Shaft cylinder prints as self-supporting concentric rings (33mm tall).
+        #   * Capture collar (r=5.8mm) is a slightly wider annular ring; its
+        #     underside ramps outward ~1.8mm -> bridges 1-2 layers. Supportless.
+        #   * Pinion teeth at the top print as a small-diameter gear crown. Fine.
+        #   * D-flat slot on the bottom is a vertical rectangular cutout; it faces
+        #     upward in the part (bed end) but the flat is a straight vertical wall
+        #     facing inward -> no unsupported overhang on the bed side.
+        rot=[("x", 90)], qty=1, group="rigid",
+        note="rotate 90° about X: shaft-axis VERTICAL, D-coupler/shoulder end on "
+             "bed (r=5.0mm, wider than pinion r=3.72mm), pinion teeth at top. "
+             "Shaft is a 33mm self-supporting cylinder. Collar mid-shaft is a "
+             "~1.8mm radial bridge (1-2 layers). SUPPORTLESS. PA12-GF. "
+             "100% infill + 4+ perimeters for torsional shaft strength.",
     ),
     "snap_pin_finger": dict(
         # PETG-HF (final material): the split snap barb needs ductility; PA12-GF
@@ -140,7 +161,7 @@ ORIENT = {
 
 # print order within a group (so the summary / plate reads logically)
 RIGID_ORDER = ["enclosure", "front_cover", "drive_arm_L", "drive_arm_R",
-               "follower", "snap_pin_axle"]
+               "follower", "snap_pin_axle", "input_pinion_shaft"]
 PETG_ORDER = ["snap_pin_finger"]
 TPU_ORDER = ["finger_R", "finger_L"]
 

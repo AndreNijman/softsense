@@ -10,14 +10,19 @@ see `UNDERWATER.md`).
 
 ## Mechanism (one DOF)
 
-- Two equal **spur gears** mesh on the centreline. The **left gear is driven by
-  the input shaft** (coaxial with the left crank pivot); the mesh counter-rotates
-  the right gear, so one shaft moves both fingers as a mirror pair.
+- Two equal **spur gears** mesh on the centreline. The **left gear (A_L) is
+  driven by a right-angle crown + pinion stage**: a crown gear (radial face teeth)
+  on A_L's +Z face is driven by a small spur **input pinion** whose shaft axis
+  points straight down, so the drive **enters the housing from the bottom** while
+  the fingers point up. The mesh counter-rotates the right gear, so one shaft
+  moves both fingers as a mirror pair.
 - Each gear is the **crank of a non-parallelogram four-bar linkage**; the finger
   is rigid with the coupler. The link lengths give a translate-apart **+ ~18°
   outward splay** over the travel, well clear of any four-bar dead-point.
 - The gears, fixed pivots and lower links live **inside the enclosure**; only the
   upper links, finger pins and the Fin Ray fingers are exposed.
+- The crown/pinion tooth forms are **representative** (straight-flank, like the
+  existing simplified spur gears) and are coupon-tunable for backlash and contact.
 
 Travel: closed (jaw faces ~1.6 mm apart) → open (~60 mm at the base, ~118 mm at
 the fingertips).
@@ -33,12 +38,14 @@ in flexible **TPU** (ether-based for sustained immersion — see `UNDERWATER.md`
 
 ## Enclosure (flooded, underwater)
 
-Hollow gearbox housing: rounded slate body, a back-wall bore where the drive
-shaft exits, and a back **mounting flange with 4× M4 holes**. The two top slots
-are sized to the **measured arm sweep** so the four-bar links never clip the
-case. **Drain/flood holes** (a bottom row + low side holes) let it flood and
-drain in any orientation — no trapped air (buoyancy/crush) and pressure
-equalizes with depth. Material/sealing guidance is in `UNDERWATER.md`.
+Hollow gearbox housing: rounded slate body. The **drive input exits the housing
+bottom** — the vertical input shaft passes through two journal bearings in the
+bottom wall and a bottom mounting flange with **5× M4 bolt holes** surrounds the
+shaft exit. Fingers point up. The two top slots are sized to the **measured arm
+sweep** so the four-bar links never clip the case. **Drain/flood holes** (a
+bottom row around the shaft exit + low side holes) let it flood and drain — no
+trapped air (buoyancy/crush) and pressure equalizes with depth. Material/sealing
+guidance is in `UNDERWATER.md`.
 
 ## Files
 
@@ -79,19 +86,29 @@ EXPLORER_WORKSPACE_ROOT=/home/andre/gripper-cad EXPLORER_ROOT_DIR=. \
 `X` = jaw open/close (right +), `Y` = toward fingertips (up +),
 `Z` = depth = revolute & gear axes. Units: mm.
 
+## Part count
+
+17 printed parts: `enclosure`, `front_cover`, `drive_arm_R`, `drive_arm_L`,
+`follower_R`, `follower_L`, `finger_R`, `finger_L`, **4 axle dowels**
+(`pin_A_R`, `pin_A_L`, `pin_B_R`, `pin_B_L`), **4 finger snap pins**
+(`pin_C_R`, `pin_C_L`, `pin_D_R`, `pin_D_L`), and the new **`input_pinion_shaft`**
+(pinion + vertical shaft + D-coupler + capture collar, one printed part, PA12-GF).
+
 ## Assumptions / caveats
 
 - **Off-centre drive.** A single shaft can only drive both jaws symmetrically if
   the cranks counter-rotate, which needs the two gears to mesh each other (one
-  driven) — so the input sits at the left pivot, not dead-centre. For a literal
-  central input, add an idler between a centre pinion and one crank gear; the
-  finger kinematics don't change.
+  driven) — so the input enters at the left pivot (A_L), not dead-centre. The
+  right-angle crown+pinion stage redirects this to a vertical (bottom-exit) shaft
+  without changing the finger kinematics.
 - **Fin Ray-style, not Festo's patented variant.** This is the generic
   adaptive-compliant triangular finger principle (slanted-rib truss), widely
   used and 3D-printable. Festo's *Fin Ray Effect®* is a specific patented
   tooth-shape variant.
 - Gear teeth are simplified (clean meshing pitch circles, half-tooth phased),
-  not full involute. Pins are plain shoulder pins. Both are representative at
-  this scale. Real compliant grip (wrap-around) is a TPU material behaviour —
-  the CAD shows the undeformed finger; the motion model opens/closes it rigidly.
+  not full involute. The crown/pinion right-angle stage uses the same straight-
+  flank representative form — coupon-tunable before a production run. Pins are
+  plain shoulder pins. Real compliant grip (wrap-around) is a TPU material
+  behaviour — the CAD shows the undeformed finger; the motion model opens/closes
+  it rigidly.
 - Dimensions are inferred from one reference image, not measured hardware.

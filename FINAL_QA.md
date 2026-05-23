@@ -12,8 +12,18 @@ Tooling: build123d 0.10.0, trimesh 4.12.2, venv `/home/andre/.cad-venv`.
 ## TOP-LINE VERDICT: ✅ Production-ready
 
 All checks pass. **Finger pins must be printed in PETG-HF** (the rest of the
-rigid parts in PA12-GF; fingers in TPU). A printed coupon fit-test of the snap
-clips is recommended before committing the full print run.
+rigid parts — including `input_pinion_shaft` — in PA12-GF; fingers in TPU).
+A printed coupon fit-test of the snap clips is recommended before committing the
+full print run.
+
+**Drive redesign (post-QA):** the input shaft was changed to exit the housing
+**bottom** via a right-angle crown + pinion stage (crown on A_L gear face,
+driven by a small spur pinion on a vertical shaft). `drive_arm_L` no longer has
+an integral horizontal shaft; it rides on a new axle dowel `pin_A_L`. A new part
+`input_pinion_shaft` (pinion + shaft + collar + D-coupler) brings the total to
+**17 printed parts**. Interference re-verified **CLEAN**; kinematics unchanged
+(same four-bar, same finger gaps). Axial capture of the input shaft uses the
+same geometric collar-in-pocket principle as the axle dowels — no new creep risk.
 
 ---
 
@@ -28,7 +38,7 @@ clips is recommended before committing the full print run.
 | 5 | Retention geometry present | ✅ PASS | counterbore shoulder 1.05 mm + lip catch 0.6 mm; dowel −Z 0.8 / +Z 1.3 mm; 4 clips, 1.15 mm engage |
 | 6 | Manifold (all STLs) | ✅ PASS | 9/9 watertight, winding-consistent, 1 body, vol>0, 0 degenerate faces |
 | 7 | Walls vs FDM min | ✅ PASS | all functional walls ≥1.0 mm; none <0.8 mm absolute; marginals by-design |
-| 8 | Vents / flood / no enclosed void | ✅ PASS | 5 bottom + 4 side drains + 4 windows + 3 axle-flood + 2 cover vents; every part single shell |
+| 8 | Vents / flood / no enclosed void | ✅ PASS | Bottom drains (4 × 2) + 2 side drains + 4 windows + 4 axle-flood + journal-bore clearance + 2 cover vents; every part single shell |
 | 9 | Finger-scale param 0.7 / 1.6 | ✅ PASS | builds clean, finger-vs-rest CLEAN; C-D span=20.0, mount r=2.6, bolts fixed at all scales |
 | 10 | Assembly order feasibility | ✅ PASS | dowels-before-cover required & possible; C/D pivots above housing → fingers after |
 
@@ -59,10 +69,10 @@ Recipe: for open∈{0,.25,.5,.75,1}, reload `gen_step()` in a fresh process
 whose bboxes overlap, exclude the ignore set (any pin; `drive_arm_R↔drive_arm_L`;
 `enclosure↔front_cover`), compute `(a&b).volume`, flag >0.5 mm³.
 **Result: 0 flags at every pose.** CLEAN.
-- Verified the two "expected overlap" non-ignored cases are clean:
-  `drive_arm_L ∩ enclosure = 0.0 mm³` (integral shaft r4.0 in bore r5.0 → 1.0 mm
-  running clearance; bushing seat r4.4 → 0.4 mm). Genuine running fit, shaft
-  confirmed full-length (coupler projects behind flange).
+- Verified the expected overlap cases are clean: `drive_arm_L ∩ enclosure = 0.0 mm³`
+  (drive_arm_L is now a flat plate; its A_L bore runs with 0.3 mm clearance on
+  `pin_A_L`). `input_pinion_shaft ∩ enclosure = 0.0 mm³` (shaft r4.0 in bore
+  r4.3 → 0.3 mm running clearance). CLEAN.
 
 ### 3 — Pin vs non-receiving part ✅ **PASS**
 For each of the 7 pins, every part it actually intersects (vol>1 µm³):
@@ -115,9 +125,10 @@ All 9 `parts/*.stl` loaded with vertex merge (`process=True` + `merge_vertices`)
 | snap_pin_axle | ✓ | ✓ | 1 | 384.8 | 0 |
 | snap_pin_finger | ✓ | ✓ | 1 | 463.5 | 0 |
 
-STL set is the intentional de-duped print set (follower ×2, snap_pin_axle ×3,
-snap_pin_finger ×4; chiral fingers + L/R arms kept separate). All solids in
-`gen_step()` (15 children) are also single solid / single shell each.
+STL set is the intentional de-duped print set (follower ×2, snap_pin_axle ×4,
+snap_pin_finger ×4; chiral fingers + L/R arms kept separate; `input_pinion_shaft`
+×1). All solids in `gen_step()` (17 children) are also single solid / single
+shell each.
 
 ### 7 — Walls ✅
 | wall | mm | note |
@@ -132,17 +143,19 @@ snap_pin_finger ×4; chiral fingers + L/R arms kept separate). All solids in
 | AXLE_DOWEL head over boss bore | 1.300 | info: tight but >1.0 mm bearing |
 | SNAP_BARB_LIP_T (locking lip) | 1.000 | RISK-by-design: 2.5 perimeters @0.4 nozzle floor |
 | SNAP_EYE_BOSS confining ring | 1.000 | by-design confinement ring |
-| shaft-bore wall (BUSH_OD_R−SHAFT_BORE_R) | 1.000 | NOT a real marginal wall — this is the in-cavity bushing collar; the structural back wall behind it is the full 3.0 mm WALL |
+| journal-boss wall (DRIVE_BOSS_R−SHAFT_R_BORE) | 2.000 | upper journal boss wall; structural back/bottom wall is the full 3.0 mm WALL |
 
 No wall <0.8 mm absolute. The sub-1.5 mm items are all by-design functional
 features, not structural walls. PASS.
 
 ### 8 — Vents / flood ✅
-- 5 bottom drains Ø5.0 at X=[−32,−16,0,16,32]; 4 side-wall drains Ø5.0
-  (2/side); 4 snap-clip windows (also drain); 3 back axle-flood holes Ø3.0.
+- Bottom drains Ø5.0 at 4 X-positions × 2 Z-positions (clear of shaft at
+  X=−12); 2 side-wall drains Ø5.0 per side; 4 snap-clip windows (also drain);
+  4 back axle-flood holes (narrow stepped bore); journal-bore running clearance
+  (r 4.3 bore vs r 4.0 shaft = 0.3 mm radial gap, open both ends).
 - **2 cover vent holes Ø1.8 at (±34, +12)** — both verified to fully pierce the
   cover plate (0 material in hole core).
-- Every one of the 15 assembly solids is single solid / single shell → **no
+- Every one of the 17 assembly solids is single solid / single shell → **no
   fully-enclosed void** anywhere; the housing floods/drains in any orientation.
 
 ### 9 — Finger-scale param ✅
@@ -155,8 +168,9 @@ Built at GRIPPER_FINGER_SCALE = 0.7 and 1.6 (also 1.0 baseline), open 0 and 1:
   scales — only the blade length/width/tip scale, as designed.
 
 ### 10 — Assembly feasibility ✅
-ASSEMBLY.md order (mesh arms → drop in housing → 3 axle dowels → snap cover →
-fingers → 4 finger pins) is geometrically valid:
+ASSEMBLY.md order (mesh arms → drop in housing → drop `input_pinion_shaft` into
+bottom journals → 4 axle dowels → snap cover → fingers → 4 finger pins) is
+geometrically valid:
 - Enclosure is open-front (front wall removed, cavity open at Z≥22); cover
   plate Z(22,25) snaps onto it.
 - Axle dowel +Z stop **is** the cover boss Z(20,22) → dowels **must** precede
@@ -164,8 +178,10 @@ fingers → 4 finger pins) is geometrically valid:
 - C/D finger pivots are at Y≈33.6/40.4, well above the housing top wall (Y=16),
   so fingers + their barbed pins install from above, independent of the cover.
   Pin Z span ~3.5–23 does not overlap the cover plate Z(22,25). Consistent.
-- drive_arm_L's integral shaft threads the back-wall bore from inside the cavity
-  (arms in first). Consistent.
+- `input_pinion_shaft` drops into the bottom-wall journal bores from inside the
+  cavity; its D-coupler exits below. Consistent.
+- `drive_arm_L` now drops in like `drive_arm_R` (no integral shaft); `pin_A_L`
+  axle dowel installed before cover. Consistent.
 
 ---
 

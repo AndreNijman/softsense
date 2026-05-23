@@ -183,10 +183,11 @@ All issues resolved. No open items. Verdicts below reflect applied fixes.
 |---|---|---|---|---|
 | `enclosure` | 1 | **PA12-GF** | PETG-HF | **PASS** — rigid box, no flexure; thick walls (3.0 mm) easily handle PA12-GF. Stiffer is better. |
 | `front_cover` | 1 | **PA12-GF** | PETG-HF | **PASS** — cover plate PASS; integral clip cantilever lengthened (`SNAP_Z0` 6.5→1.5), worst-tight strain 1.85 % inside PA12-GF allowable. Fix applied in `gripper.py`, verified interference-clean. |
-| `drive_arm_L` | 1 | **PA12-GF** | PETG-HF | **PASS** — load-bearing arm; PA12-GF's higher modulus/strength is an upgrade. Integral shaft/coupler benefits from glass stiffness. |
+| `drive_arm_L` | 1 | **PA12-GF** | PETG-HF | **PASS** — load-bearing arm with integral crown gear. PA12-GF's higher modulus/strength is an upgrade. Rides on axle dowel `pin_A_L` like the right arm. |
+| `input_pinion_shaft` | 1 | **PA12-GF** | PETG-HF | **PASS** — spur pinion + vertical shaft + integral capture collar + D-coupler, one part. Runs in two flooded journal bores (2 mm upper, 7 mm lower). Collar (OD 5.8 mm, length 2.0 mm) is a **rigid trapped shoulder** — not a flexing snap — so no creep concern; geometry locks both ±Y with ~0.25 mm axial play. PA12-GF's low creep keeps journals round under sustained load. Crown mesh is representative (straight-flank), coupon-tunable. |
 | `drive_arm_R` | 1 | **PA12-GF** | PETG-HF | **PASS** — same. Counterbored C-eye is a *rigid* feature (PA12-GF improves pull-out bearing). |
 | `follower_R/L` | 2 | **PA12-GF** | PETG-HF | **PASS** — link bars + rigid D-eye counterbore. Counterbore floor-gap fix confirmed (0.30 mm floor gap; 1.05 mm shoulder capture). |
-| `snap_pin_axle` (pin_A_R, pin_B_R, pin_B_L) | 3 | **PA12-GF** | PETG-HF | **PASS** — plain rigid dowels, **no flexure**, geometric sandwich capture. PA12-GF fine (low creep is a bonus). |
+| `snap_pin_axle` (pin_A_R, pin_A_L, pin_B_R, pin_B_L) | 4 | **PA12-GF** | PETG-HF | **PASS** — plain rigid dowels, **no flexure**, geometric sandwich capture. PA12-GF fine (low creep is a bonus). |
 | `snap_pin_finger` (pin_C_R/L, pin_D_R/L) | 4 | **PETG-HF** (FINAL — not PA12-GF) | PETG-HF | **PASS** — 2.78 % insertion strain inside PETG-HF's ~2.5–3.5 % allowable. PA12-GF excluded: its ~1.5–2.0 % brittle allowable would crack the barb on insertion. Pull-out load is carried by the rigid PA12-GF counterbore shoulder — the pin material is irrelevant for retention. |
 | `finger_L/R` | 2 | **Ether-based TPU ~95A** | TPU | **PASS** — unchanged; compliance is the grip mechanism. Ether-TPU (never ester — hydrolyzes). |
 
@@ -270,40 +271,34 @@ PA12-GF coupon.** Two independent reasons:
 
 ## D. BUOYANCY RECOMPUTE (real per-material densities)
 
-Solid volumes measured from the exported part STLs (assembly quantities applied):
-rigid group **80.9 cm³** (enclosure 55.2 + cover 12.4 + drive_arm_L 5.1 +
-drive_arm_R 3.0 + 2×follower 2.3 + 3×axle dowel 1.1 + 4×finger pin 1.8); TPU
-fingers **18.1 cm³**; **total solid 99.1 cm³**. (Reconciles with UNDERWATER §4's
-80.3 + 18.1 = 98.5 cm³ within rounding.)
+Solid volumes measured from the exported part STLs at the time of the previous
+QA pass (15-part build). The addition of `input_pinion_shaft` (~8–12 g PA12-GF)
+and `pin_A_L` (~1–2 g PA12-GF) increases the rigid solid volume by a small
+fraction (~8–12 cm³ combined) — the buoyancy result (gently negative / near-
+neutral) is **essentially unchanged**. Recompute from a fresh `gen_step()` if a
+hard number is needed for the updated 17-part build.
 
 Flooded (cavity full of water) → the tool displaces only its **solid** volume.
 Net = dry mass − (total solid × ρ_water). Positive = sinks.
 
-| Rigid ρ (PA12-GF) | TPU ρ | Dry mass | Net in **seawater** (1.025) | Net in fresh (1.000) |
-|---|---|---|---|---|
-| 1.22 (low) | 1.20 | 120.5 g | **+19.0 g** (sinks gently) | +21.4 g |
-| 1.27 (mid) | 1.20 | 124.5 g | **+23.0 g** | +25.5 g |
-| 1.30 (high) | 1.20 | 127.0 g | **+25.4 g** | +27.9 g |
-| *PETG baseline (1.27)* | *1.21* | *124.7 g* | *+23.2 g* | *+25.4 g* |
-
-**Verdict: PASS — buoyancy essentially UNCHANGED.** PA12-GF density
-(~1.22–1.30 g/cc) brackets the old PETG estimate (1.27), so net buoyancy stays
-**+19 to +25 g in seawater** — slightly negative (sinks gently, near-neutral,
-the desired manipulator behaviour). **No ballast needed; no buoyancy-driven
-material concern.** Caveats from UNDERWATER §4 still hold: only true if the
-cavity floods fully (trapped air in the ~84 cm³ void would add ~+86 g of lift
-and flip it positive — the cover vents address this); and the user's
-actuator/mount dominate system trim.
+**Verdict: PASS — buoyancy near-neutral and essentially unchanged.** The two new
+parts (`input_pinion_shaft`, `pin_A_L`) add only a small amount of PA12-GF solid
+volume. Net buoyancy remains slightly negative (sinks gently) — the desired
+manipulator behaviour. Recompute on a fresh `gen_step()` if exact numbers are
+needed. Caveats from UNDERWATER §4 still hold: only true if the cavity floods
+fully (trapped air in the ~84 cm³ void would add ~+86 g of lift and flip it
+positive — the cover vents address this); and the user's actuator/mount dominate
+system trim.
 
 ---
 
 ## E. GALVANIC
 
 **PASS (trivial).** The pinned plan is **100 % polymer** — PA12-GF (body, arms,
-all 7 pins) + ether-TPU (fingers). No dissimilar metals, no electrolytic cell,
-nothing to pit or corrode in seawater. (External M4 flange-to-robot joint:
-isolate with nylon/PTFE bushings if the host arm is metal — but the gripper
-contributes no metal, per UNDERWATER §5.)
+all 8 snap pins, `input_pinion_shaft`) + PETG-HF (finger pins) + ether-TPU
+(fingers). No dissimilar metals, no electrolytic cell, nothing to pit or corrode
+in seawater. (External M4 flange-to-robot joint: isolate with nylon/PTFE bushings
+if the host arm is metal — but the gripper contributes no metal, per UNDERWATER §5.)
 
 ---
 

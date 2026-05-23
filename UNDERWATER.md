@@ -7,12 +7,14 @@ print it in the right polymers, accept the snap-fit constraints below, and dive
 it **flooded** — there is nothing to seal inside the gripper itself.
 
 > **Scope note.** The gripper is all-polymer and fastener-free: Fin Ray fingers
-> in TPU; 7 printed snap pins (3 barbed axle/finger pins + ... see below); a
-> 4-clip snap-on front cover; flooded enclosure with drain holes; integral
-> printed drive shaft + rear D-flat coupler. **The only metal/sealing burden in
-> the whole system is the user's own waterproof actuator** (see §6). Earlier
-> drafts of this file described a stainless-hardware build (SS pins, M4 bolts,
-> sealed-shaft option) — that version is obsolete and has been removed.
+> in TPU; 8 printed snap pins (4 axle dowels + 4 barbed finger pins); a 4-clip
+> snap-on front cover; flooded enclosure with drain holes; a separate printed
+> `input_pinion_shaft` part (pinion + vertical shaft + collar + bottom D-coupler,
+> exits the housing bottom) driven via a right-angle crown + pinion stage.
+> **The only metal/sealing burden in the whole system is the user's own
+> waterproof actuator** (see §6), which now couples to the bottom D-shaft.
+> Earlier drafts of this file described a stainless-hardware build and a
+> rear/side shaft exit — both obsolete and removed.
 
 This is the **material / seawater** companion to `PRINTING.md` (orientation,
 supports, slicer) and `DFM.md` (printability). Decide *how* to print there;
@@ -28,8 +30,8 @@ decide *what to print it in* and how to run it wet here.
 | 2 | Creep at load-bearing snap interfaces | **RESOLVED** (was FAIL as drawn) | Fixed: finger-pin lips now snap into a **rigid counterbore pocket** that radially confines them (creep relaxes them *outward*) and bears load on a solid shoulder; `SNAP_BARB_SEAT` 0.30→1.2 mm. Axle dowels captured between a back-bore step and the cover boss. Capture is now **geometric**, not preload. Measured numbers in `ENGAGEMENT.md`. See §2 + CONSTRAINTS (now satisfied). |
 | 3 | Flooded-correctness (no trapped air) | **PASS** (1 RISK) | **Every part is a single solid, 1 shell each → no sealed internal pocket anywhere** (cells, cross-slots, sockets, shaft bore all vent to exterior). 5 bottom drains + 4 side drains + 4 snap windows + 2 top slots + back bores. Floods/drains fingers-up, fingers-down, back-up. **RISK:** front-up (+Z up) vents only via the slot/cover corner — add a cover vent (see §3). |
 | 4 | Net buoyancy | **PASS** | Solid vol **98.5 cm³**, dry mass ~**124 g** (PETG+TPU, 100% infill). Flooded → displaces solid vol only → **net ≈ +23 g in seawater (sinks gently, near-neutral)**. No ballast needed. See §4. |
-| 5 | Galvanic corrosion | **PASS** | **Zero metal in the gripper.** All 7 pins printed, snap-clip cover, no fasteners. No dissimilar-metal pair exists. See §5. |
-| 6 | Drive coupler / actuator | **FLAG (user)** | Rear D-flat coupler (`SHAFT_COUPLER_R = 5.0`, `SHAFT_DFLAT = 1.4`) needs a **user-supplied waterproof actuator** (IP68/sealed/flooded servo, potted servo, or magnetically-coupled drive). The gripper does NOT provide this. See §6. |
+| 5 | Galvanic corrosion | **PASS** | **Zero metal in the gripper.** All 8 pins and `input_pinion_shaft` are printed, snap-clip cover, no fasteners. No dissimilar-metal pair exists. See §5. |
+| 6 | Drive coupler / actuator | **FLAG (user)** | Bottom D-flat coupler on `input_pinion_shaft` (`SHAFT_COUPLER_R = 5.0`, `SHAFT_DFLAT = 1.4`, length 12 mm) needs a **user-supplied waterproof actuator** (IP68/sealed/flooded servo, potted servo, or magnetically-coupled drive) coupling from below. The gripper does NOT provide this. See §6. |
 
 ---
 
@@ -43,10 +45,10 @@ Seawater is the hard case. The committed per-part picks (all printable on a
 | `enclosure` (flooded housing) | **PETG** default; **ASA** for topside/UV; **glass-filled nylon (PA-GF) or acetal/POM** for deep/long/warm dives | Low water uptake, **no hydrolysis**. **Never PLA.** Avoid **untreated cast nylon** (PA6/PA12 absorb 1–3 %+ water, swell, soften, drift dimensionally) — only **glass-filled** nylon is dimensionally acceptable. PETG-CF is fine. |
 | `front_cover` (snap-on, 4 clips) | Same as enclosure | The 4 cantilever snap clips must stay springy — see creep note §2. |
 | `drive_arm_R` / `drive_arm_L` (gear+arm) | **PETG**, or **acetal/POM** / PA-GF for real torque | Self-lubricating teeth run dry flooded; water is coolant. POM is the best wet gear polymer. |
-| Integral input shaft (part of `drive_arm_L`) | **PETG** light duty; **PA-GF or POM** for torque | Printed shaft runs in a bare flooded bore (no bushing, no seal). |
+| `input_pinion_shaft` (separate printed part) | **PA12-GF** | Vertical shaft, pinion, and D-coupler in one part. Runs in two flooded journal bores in the bottom wall (upper 2 mm alignment bore, lower 7 mm load bore) — no bushing, no seal. Integral collar geometrically trapped in housing pocket (creep-proof axial capture). PA12-GF's low creep keeps journals round. |
 | `follower` ×2 | PETG / ASA / PA-GF | Symmetric link, same part both sides. |
 | `finger_R` / `finger_L` (Fin Ray) | **Ether-based TPU ~95A** (e.g. NinjaFlex, BASF ether grades) | **Reject ester-based TPU** — it hydrolyzes in sustained/warm immersion and crumbles. Ether-TPU is hydrolysis-stable. TPU absorbs a little water and softens slightly (re-check grip force if tuned tight). |
-| 7 snap pins (3 barbed + ... ) | **PETG** default; **ASA / PA-GF** stiffer alternatives | Pins are pivots **and** retainers — must resist creep (§2). **TPU is wrong here** (it would creep and wallow the bore). |
+| 8 snap pins (4 axle dowels + 4 barbed finger pins) | **PA12-GF** (axle dowels); **PETG-HF** (finger pins) | Axle dowels are plain rigid sandwiched dowels. Finger pins must flex their barb — PETG-HF for ductility. **TPU is wrong for any pin** (creeps, wallows the bore). |
 
 **Rejected picks (do not use underwater):**
 
@@ -125,7 +127,7 @@ material) is in the constraints block.
 ## 3. Flooded-correctness — floods AND drains, no trapped air
 
 **Geometry-level proof:** building the assembly and counting shells, **every
-one of the 15 parts is a single solid with exactly 1 shell** — i.e. there is
+one of the 17 parts is a single solid with exactly 1 shell** — i.e. there is
 **no fully enclosed internal void anywhere in the model.** Every feature that
 could trap air is open to the exterior:
 
@@ -135,33 +137,43 @@ could trap air is open to the exterior:
   (through to the **back exterior**, back face at −12) and the cover bore runs
   Z 20…25 (through to the **front exterior**), with a 0.3 mm annular gap around
   the 2.3 mm dowel. Open both ends → floods/drains.
-- **Shaft bore** — `SHAFT_BORE_R = 5.0` / `BUSH_BORE_R = 4.4` around the 4.0 mm
-  shaft (0.4 mm gap), open through the back wall. Vents.
+- **Input-shaft journal bores** — upper bore (r 4.3, len 2 mm in the cavity
+  boss) and lower bore (r 4.3, len 7 mm through the bottom wall) around the
+  Ø8 mm shaft (0.3 mm radial gap). Both bores are open both ends → floods and
+  drains freely. The bearing clearance doubles as a flood path; the shaft's
+  flooded running surface needs no seal.
 - **Finger rib cells** — the Fin Ray cavity and ribs are 2.5-D extrusions
   through the **full 10 mm Z depth**: each cell is an **open channel** on both
   the front and back faces of the finger, not a sealed pocket. Single-shell
   confirmed. Floods/drains.
 
-**Enclosure cavity openings** (so the housing floods/drains by orientation):
+**Enclosure cavity openings** (so the housing floods/drains by orientation).
+With model −Y = world-DOWN (shaft exits bottom), the model −Y wall is the
+low point in the deployed orientation:
 
-- **5 bottom drains** Ø5 mm at X = −32, −16, 0, +16, +32.
-- **4 low side drains** Ø5 mm (2 per side wall).
+- **Bottom drains:** 4 X-positions × 2 Z-positions = 8 Ø5 mm holes through the
+  bottom wall and flange, around the shaft exit.
+- **Low side-wall drains** Ø5 mm (2 per side wall).
 - **4 snap-clip windows** in the side walls (double as drains).
-- **2 wide top slots** where the arms/fingers emerge (open to the +Y exterior).
-- **3 axle bores + 1 shaft bore** through the back wall.
+- **2 wide top slots** where the arms/fingers emerge (open to the world +Z
+  exterior when fingers are up).
+- **4 axle bores** through the back wall (A_R, A_L, B_R, B_L — all stepped,
+  flood via the narrow pilot hole).
+- **Journal bores** through the bottom wall (upper + lower — double as flood
+  paths via the running clearance).
 
 **Air-trap by orientation** (air rises to the highest point):
 
-- **Fingers up:** highest point = the open top slots → vents. **PASS.**
-- **Fingers down:** highest point = the 5 bottom drains → vents. **PASS.**
-- **Back up:** highest point = back wall = shaft + 3 axle bores → vents. **PASS.**
-- **Front up (+Z up):** the cover plate (Z 22…25) becomes the ceiling. The only
-  openings reaching that plane are the top slots' front-top corners (slot Z
-  spans 0…22), so a bubble must migrate along the cover/slot junction to escape
-  out the +Y slot. The path **exists** but is indirect. **RISK** — see fix
-  below. The internal void is ~84 cm³; if it ever held air instead of water that
-  is **+86 g of buoyancy** (flips the tool strongly positive) **and** an
-  unequalized crush load on the wall — so guaranteeing the flood matters.
+- **Fingers up (deployed):** highest point = the open top slots → vents.
+  **PASS.**
+- **Fingers down:** highest point = the bottom drains → vents. **PASS.**
+- **Back up:** highest point = back wall = 4 axle bores → vents. **PASS.**
+- **Front up (+Z up in model / fingers-horizontal):** the cover plate becomes
+  the ceiling. The only openings reaching that plane are the top slots'
+  front-top corners; a bubble must migrate along the cover/slot junction to
+  escape. The path **exists** but is indirect. **RISK** — see fix below. The
+  internal void is ~84 cm³; if it held air that is **+86 g of buoyancy** and an
+  unequalized crush load — so guaranteeing the flood matters.
 
 **Recommended fix for the front-up case (constraint for the cover/snap agent):**
 add **2 vent holes (≥1.5 mm dia) through the front cover plate** at the +Y
@@ -197,10 +209,11 @@ for them separately.
 
 ## 5. Galvanic corrosion
 
-**PASS — not applicable.** The gripper is **100 % polymer**: all 7 pivot pins
-are printed snap pins, the front cover latches with 4 integral printed clips,
-and there are no screws, nuts, bushings, or inserts. With no dissimilar-metal
-contact there is **no galvanic cell, no anode to drive, nothing to pit or rust.**
+**PASS — not applicable.** The gripper is **100 % polymer**: all 8 snap pins
+(4 axle dowels + 4 finger pins) are printed, `input_pinion_shaft` is printed PA12-GF,
+the front cover latches with 4 integral printed clips, and there are no screws, nuts,
+bushings, or inserts. With no dissimilar-metal contact there is **no galvanic cell,
+no anode to drive, nothing to pit or rust.**
 
 The only galvanic consideration is **external**: the M4 flange holes pass
 through to the user's robot arm. If that arm is metal, isolate the bolted joint
@@ -211,9 +224,10 @@ itself contributes no metal to that joint.
 
 ## 6. Drive coupler & actuator — FLAG for the user
 
-The rear **D-flat coupler** is integral to `drive_arm_L` (`SHAFT_COUPLER_R =
-5.0 mm`, `SHAFT_DFLAT = 1.4 mm`, `SHAFT_COUPLER_LEN = 12 mm`). It transmits all
-drive torque and is the **only interface that needs a waterproof actuator**.
+The **bottom D-flat coupler** on `input_pinion_shaft` (`SHAFT_COUPLER_R = 5.0 mm`,
+`SHAFT_DFLAT = 1.4 mm`, `SHAFT_COUPLER_LEN = 12 mm`) exits below the housing
+bottom flange. It transmits all drive torque and is the **only interface that
+needs a waterproof actuator**. The actuator couples from below.
 
 **FLAG (you must supply this — the gripper does not):** drive the coupler with
 one of:
@@ -225,7 +239,7 @@ one of:
   deep work).
 
 The flooded gripper has **no shaft seal and no dry cavity** — the printed shaft
-turns wet in a bare flooded bore. **Do not** drive the coupler with a bare
+turns wet in flooded journal bores. **Do not** drive the coupler with a bare
 unsealed servo; that servo will flood and die. Match the actuator's depth rating
 to your dive — the actuator, not the gripper, sets the system depth limit.
 
@@ -238,9 +252,9 @@ to your dive — the actuator, not the gripper, sets the system depth limit.
 - Confirm material: no PLA, no ester-TPU, no unfilled nylon anywhere.
 - Confirm snap pins meet the creep constraint (§2 / CONSTRAINTS) — geometric
   capture, adequate seat. Tug-test every pin and the cover before diving.
-- Confirm all drains/slots/windows are clear; confirm cavity floods (submerge,
-  watch bubbles fully clear in your dive orientation; add the cover vent if you
-  dive front-up).
+- Confirm all drains/slots/windows/journal bores are clear; confirm cavity floods
+  (submerge, watch bubbles fully clear in your dive orientation; add the cover vent
+  if you dive front-up).
 - Cycle open↔close in air; check smooth mesh, full travel, cover stays latched.
 - Confirm the actuator is sealed and rated for depth.
 - Verify buoyancy trim with the gripper + actuator fitted.
@@ -257,9 +271,10 @@ to your dive — the actuator, not the gripper, sets the system depth limit.
 
 ## What's in the CAD vs. what you choose at fabrication
 
-**In `gripper.py` already:** flooded geometry (slots + drains + windows + back
-bores), all-polymer zero-hardware assembly, single-shell parts (no sealed
-pockets), TPU Fin Ray fingers, the rear D-flat coupler.
+**In `gripper.py` already:** flooded geometry (slots + bottom drains + windows +
+back axle bores + journal bores), all-polymer zero-hardware assembly, single-shell
+parts (no sealed pockets), TPU Fin Ray fingers, the bottom D-flat coupler on
+`input_pinion_shaft`.
 
 **You choose at fabrication:** the per-part polymer (§1 — never PLA/ester-TPU/
 unfilled nylon), infill (≥40 % for predictable flooding/buoyancy), and the

@@ -26,15 +26,16 @@ this manifest is printed.
 ------------------------------------------------------------------------------
 De-duplication logic (LABEL-based)
 ------------------------------------------------------------------------------
-gen_step() returns 15 labelled leaf solids in assembled world coordinates:
+gen_step() returns 17 labelled leaf solids in assembled world coordinates:
 
     enclosure
     drive_arm_R, drive_arm_L
     follower_R,  follower_L
     finger_R,    finger_L
-    pin_A_R, pin_B_R, pin_B_L          (internal axle SNAP PINS)
-    pin_C_R, pin_D_R, pin_C_L, pin_D_L (finger-pivot SNAP PINS)
-    front_cover                        (integral snap clips)
+    pin_A_R, pin_A_L, pin_B_R, pin_B_L  (internal axle SNAP PINS)
+    pin_C_R, pin_D_R, pin_C_L, pin_D_L  (finger-pivot SNAP PINS)
+    front_cover                          (integral snap clips)
+    input_pinion_shaft                   (pinion + shaft + collar + D-coupler)
 
 We collapse duplicates by the part LABEL via an explicit map (LABEL_TO_NAME),
 NOT by a geometric/bounding-box fingerprint. The old fingerprint approach broke
@@ -43,13 +44,13 @@ have almost identical bounding boxes (Z ~30.1 vs ~29.1 mm), so a height-based
 classifier put BOTH groups under one name ("pin_finger") and one file silently
 overwrote the other. Mapping by label is unambiguous and never collides.
 
-Grouping (15 children -> 9 unique part files):
+Grouping (17 children -> 10 unique part files):
 
   * follower_R / follower_L -> one file `follower`, qty 2. A follower is a
     symmetric link bar; left and right are congruent.
 
-  * The 3 internal axle snap pins (pin_A_R, pin_B_R, pin_B_L) are one geometry
-    -> `snap_pin_axle`, qty 3.
+  * The 4 internal axle snap pins (pin_A_R, pin_A_L, pin_B_R, pin_B_L) are one
+    geometry -> `snap_pin_axle`, qty 4.
 
   * The 4 finger-pivot snap pins (pin_C_R, pin_D_R, pin_C_L, pin_D_L) are one
     geometry -> `snap_pin_finger`, qty 4.
@@ -57,10 +58,11 @@ Grouping (15 children -> 9 unique part files):
   * finger_R / finger_L stay SEPARATE (chiral Fin Ray ribs all slant the same
     way within a finger; a mirror flips the slant -> not superimposable).
 
-  * drive_arm_R / drive_arm_L stay SEPARATE (the L arm carries the integral
-    input shaft + D-coupler; the R arm rides on a separate axle snap pin).
+  * drive_arm_R / drive_arm_L stay SEPARATE (both are plain gear+arm plates that
+    ride on snap-pin axles; drive_arm_L carries the crown gear on its +Z face but
+    has no integral shaft).
 
-  * enclosure qty 1, front_cover qty 1.
+  * enclosure qty 1, front_cover qty 1, input_pinion_shaft qty 1.
 
 Any label not in the map falls back to its own name (qty 1) so a newly-added
 part is still exported and listed instead of being dropped.
@@ -104,7 +106,8 @@ LABEL_TO_NAME = {
     "follower_L": "follower",
     "finger_R": "finger_R",          # chiral -> kept separate
     "finger_L": "finger_L",          # chiral -> kept separate
-    "pin_A_R": "snap_pin_axle",      # internal axle snap pins x3
+    "pin_A_R": "snap_pin_axle",      # internal axle snap pins x4
+    "pin_A_L": "snap_pin_axle",
     "pin_B_R": "snap_pin_axle",
     "pin_B_L": "snap_pin_axle",
     "pin_C_R": "snap_pin_finger",    # finger-pivot snap pins x4
@@ -112,6 +115,7 @@ LABEL_TO_NAME = {
     "pin_C_L": "snap_pin_finger",
     "pin_D_L": "snap_pin_finger",
     "front_cover": "front_cover",
+    "input_pinion_shaft": "input_pinion_shaft",  # pinion + shaft + collar + D-coupler
 }
 
 
@@ -142,14 +146,16 @@ def part_meta(name: str):
                 "outer face DOWN on the bed, snap clips pointing UP; the clips "
                 "print as unsupported cantilevers off the inner face -- no "
                 "supports needed.")
-    if name == "drive_arm_L":
-        return ("PETG / Nylon",
-                "REORIENT MANUALLY: the integral input shaft sticks out along "
-                "+Z; lay the shaft HORIZONTAL so the flat gear/arm face is on "
-                "the bed.")
+    if name == "input_pinion_shaft":
+        return ("PA12-GF",
+                "print shaft-axis VERTICAL: rotate 90 about X so the shaft stands "
+                "up; D-coupler/shoulder end DOWN on the bed (r=5.0mm, wider base), "
+                "pinion teeth UP. Shaft cylinder = self-supporting rings. Collar "
+                "mid-shaft bridges ~1.8mm radially (1-2 layers). SUPPORTLESS.")
     if name.startswith("drive_arm"):
-        return ("PETG / Nylon",
-                "lay the flat gear+arm plate face-down on the bed (5 mm thick).")
+        return ("PA12-GF",
+                "lay the flat gear+arm plate face-down on the bed (5 mm thick). "
+                "Both arms ride on snap-pin axles (no integral shaft).")
     if name.startswith("follower"):
         return ("PETG / Nylon",
                 "lay the flat link bar face-down on the bed (5 mm thick).")
@@ -325,12 +331,15 @@ def main():
                  "Print in TPU, ridge side down.")
     lines.append("- **Followers are identical.** A follower is a symmetric link "
                  "bar; left and right are the same part -> one file, qty 2.")
-    lines.append("- **Drive arms differ.** `drive_arm_L` carries the integral "
-                 "input shaft + D-coupler; `drive_arm_R` rides on a separate "
-                 "axle snap pin. Two distinct parts.")
-    lines.append("- **drive_arm_L needs manual reorientation** for printing "
-                 "(shaft sticks out along Z in the exported pose; lay it "
-                 "horizontal).")
+    lines.append("- **Drive arms differ.** `drive_arm_L` carries the crown gear "
+                 "on its +Z face (right-angle stage); `drive_arm_R` is a plain "
+                 "gear+arm plate. Both arms ride on snap-pin axles -- neither "
+                 "has an integral shaft. The input shaft is a separate part: "
+                 "`input_pinion_shaft`.")
+    lines.append("- **input_pinion_shaft** (pinion + vertical shaft + capture "
+                 "collar + D-coupler) prints shaft-axis VERTICAL (rotate 90° "
+                 "about X from exported pose): D-coupler/shoulder end on bed "
+                 "(r=5.0 mm, wider base), pinion teeth up. Supportless.")
     manifest.write_text("\n".join(lines) + "\n")
     print("Wrote {}".format(manifest))
 

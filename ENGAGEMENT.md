@@ -43,7 +43,41 @@ Capture proof (model-measured): at nominal the pin lip sits in the void pocket
 (0 mm³ interference); raise the pin 0.5 mm and the lip clashes the rigid
 shoulder (4.26 mm³) — the shoulder physically blocks pull-out.
 
-### 1b. Axle dowels (`pin_A_R`, `pin_B_R`, `pin_B_L`) — sandwich, zero slop
+### 1b. Input-shaft axial capture (`input_pinion_shaft`) — collar in pocket
+
+The vertical input shaft is a separate printed part (`input_pinion_shaft`,
+PA12-GF). Its axis runs along model −Y (world-down). Axial capture uses the same
+rigid geometric principle as the axle dowels:
+
+- **Two journal bearings** in the housing, bore radius `SHAFT_R_BORE = 4.3 mm`
+  (running clearance 0.3 mm around the 4.0 mm shaft radius):
+  - **Upper journal:** `DRIVE_UBORE_Y = (−15.5, −13.5)` → **2.0 mm** long,
+    in a boss standing up from the inside of the bottom wall. Alignment guide.
+  - **Lower journal:** `DRIVE_LBORE_Y = (−25.0, −18.0)` → **7.0 mm** long,
+    through the bottom wall and flange. Load-bearing exit bore.
+
+- **Integral capture collar** between the two journals:
+  - Collar OD: `SHAFT_COLLAR_R = 5.8 mm` (= `SHAFT_R + 1.8`) — wider than the
+    4.3 mm bore by **1.5 mm each side** (the rigid shoulder catch).
+  - Collar length: `SHAFT_COLLAR_T = 2.0 mm`, centred in a pocket of height
+    `DRIVE_POCKET_Y` span = 2.5 mm → **~0.25 mm axial play each side**.
+  - The pocket radius `POCKET_R = 6.0 mm` keeps a 0.2 mm radial clearance so
+    the collar spins freely.
+  - The two bore-mouth shoulders (where the bore narrows from pocket radius back
+    to journal radius) are the **rigid axial stops**: one prevents −Y pull-out,
+    the other prevents +Y push-in. No barb; no elastic preload; **geometric
+    capture** immune to creep relaxation.
+
+- **Redundant shoulder** just below the flange (`SHAFT_SHOULDER_R = 5.8 mm`,
+  `SHAFT_SHOULDER_T = 2.0 mm`) provides a second +Y push-in stop and a clean
+  land for the D-coupler.
+
+**Net axial play:** ~0.25 mm each side of the collar in the pocket — small
+enough to prevent wobble, large enough to assemble and disassemble without
+pressing. The shaft cannot pull out (−Y) or be pushed in (+Y) past either bore
+mouth shoulder.
+
+### 1d. Axle dowels (`pin_A_R`, `pin_A_L`, `pin_B_R`, `pin_B_L`) — sandwich, zero slop
 
 These were over-long (head poked 0.8 mm INTO the cover boss, an interference)
 and had ~17 mm of axial slop. They are now **sandwiched with no slop** between:
@@ -62,7 +96,7 @@ Capture proof (model-measured): nominal dowel-vs-enclosure interference 0 mm³;
 push −0.5 Z and the flat shank end clashes the step (4.8 mm³); push +Z and the
 head clashes the cover boss (6.2 mm³). Trapped both ways.
 
-### 1c. Constants changed in `gripper.py`
+### 1e. Constants changed in `gripper.py`
 
 | Constant | Old | New | Why |
 |---|---|---|---|
@@ -141,7 +175,7 @@ as an order-of-magnitude check; calibrate on a single printed pin per
 
 - **Self-check** (`python gripper.py`): runs; kinematics **unchanged**
   (base/tip gap and finger-rotation table identical to phase-1 HEAD).
-- **Builds**: `GRIPPER_OPEN = 0.0 / 0.5 / 1.0` all build, 15 children each, all
+- **Builds**: `GRIPPER_OPEN = 0.0 / 0.5 / 1.0` all build, 17 children each, all
   children `is_valid`.
 - **Interference** (project recipe; ignores pin-vs-anything,
   drive_arm_R↔drive_arm_L, enclosure↔front_cover; flags >0.5 mm³):
@@ -150,8 +184,9 @@ as an order-of-magnitude check; calibrate on a single printed pin per
   set and now intentionally engage their bores): **CLEAN at 0.0, 0.5, 1.0** —
   the new counterbore/lip/boss geometry does not make any pin clash with a part
   it is not meant to engage.
-- **Single valid solids**: `pin_C_R`, `pin_D_R` (finger snap pins) and
-  `pin_A_R`, `pin_B_R` (axle dowels) each build as **1 solid, `is_valid` True**.
+- **Single valid solids**: `pin_C_R`, `pin_D_R` (finger snap pins),
+  `pin_A_R`, `pin_B_R` (axle dowels), and `input_pinion_shaft` each build as
+  **1 solid, `is_valid` True**.
 - **Finger-vs-finger at closed**: `finger_R & finger_L = 0 mm³` (centerline trim
   preserved — fingers never collide closed).
 
