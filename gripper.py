@@ -41,6 +41,7 @@ from build123d import (
     Box,
     Color,
     Compound,
+    Cone,
     Cylinder,
     GeomType,
     Location,
@@ -48,6 +49,7 @@ from build123d import (
     Polyline,
     Pos,
     Rotation,
+    chamfer,
     extrude,
     fillet,
     make_face,
@@ -102,6 +104,17 @@ SHAFT_COUPLER_R = 5.0 # rear coupler radius (D-profile for a servo/motor)
 SHAFT_COUPLER_LEN = 12.0
 SHAFT_DFLAT = 1.4     # D-flat depth on the coupler
 
+# --- 3D-printed snap-pin geometry (replaces ALL metal pivot pins) ---
+SNAP_HEAD_R = PIN_R + 1.6        # flange that stops pull-through
+SNAP_HEAD_T = 1.8                # flange thickness (sits OUTSIDE the near face)
+SNAP_BARB_PROUD = 0.7            # lip sticks this far past PIN_R (-> r ~3.0)
+SNAP_BARB_LIP_T = 1.0            # axial length of the flat locking-lip face
+SNAP_BARB_LEAD = 3.0             # length of the tapered lead-in cone
+SNAP_TIP_R = 1.0                 # small flat at the very tip (printable)
+SNAP_SLOT_W = 1.0                # split-slot width (lets the tip flex)
+SNAP_SLOT_LEN = 7.0             # slot depth, measured back from the tip
+SNAP_BARB_SEAT = 0.30          # catch face sits this far PAST the far face
+
 GEAR_TEETH = 16
 GEAR_TOOTH_H = 3.0    # radial tooth height
 GEAR_SECTOR_DEG = 150.0   # gears are sectors, not full discs
@@ -126,6 +139,11 @@ FR_GRIP_Y0_FRAC = 0.15  # texture starts at this fraction of the blade length
 FR_GRIP_Y1_FRAC = 0.95  # texture ends at this fraction of the blade length
 FR_GRIP_ROOT_IN = 0.2   # tooth root sits this far INTO the body from the face
 FR_GRIP_FLAT = 0.4      # flat valley between teeth (mm)
+# print-friendly rounding (FDM TPU, prints flat on the z0 face)
+FR_BASE_CHAMFER = 0.5    # bottom-edge (bed face) chamfer: kills elephant-foot
+FR_CELL_FILLET = 0.8     # fillet radius on internal rib-cell / spar corners
+FR_TIP_FILLET = 1.5      # round the blade tip apex
+FR_GRIP_TIP_FLAT = 0.2   # half-height of the flat at each grip-tooth tip
 
 # --------------------------------------------------------------------------
 # Colours (clean industrial: dark slate body, matte-black TPU jaws, steel)
@@ -320,18 +338,104 @@ def pin(p, label, visible):
     return c
 
 
+def snap_pin(p, z0, z1, head_at="z0", label="snap_pin", color=PIN_COLOR,
+             shank_r=PIN_R):
+    """Fully 3D-printed push-to-snap pivot pin (no fasteners). Built in the
+    authored frame at XY point p, shank +Z from z0..z1. One end is a HEAD
+    flange (stop); the other is a SPLIT, BARBED compliant tip that squeezes
+    going in and springs out PAST the far bore face to lock. head_at="z0" ->
+    head at low-Z, barb beyond z1; "z1" -> head at high-Z, barb beyond z0."""
+    x, y = p
+    L = z1 - z0
+    barb_max_r = shank_r + SNAP_BARB_PROUD
+
+    head = Cylinder(radius=SNAP_HEAD_R, height=SNAP_HEAD_T).moved(
+        Location((0, 0, -SNAP_HEAD_T / 2.0)))
+    shank = Cylinder(radius=shank_r, height=L).moved(Location((0, 0, L / 2.0)))
+
+    lip_back_z = L + SNAP_BARB_SEAT
+    lip_front_z = lip_back_z + SNAP_BARB_LIP_T
+    tip_z = lip_front_z + SNAP_BARB_LEAD
+    stub = Cylinder(radius=shank_r, height=(lip_back_z - L) + 0.01).moved(
+        Location((0, 0, (L + lip_back_z) / 2.0)))
+    lip = Cylinder(radius=barb_max_r, height=SNAP_BARB_LIP_T).moved(
+        Location((0, 0, (lip_back_z + lip_front_z) / 2.0)))
+    lead = Cone(bottom_radius=barb_max_r, top_radius=SNAP_TIP_R,
+                height=SNAP_BARB_LEAD).moved(
+        Location((0, 0, (lip_front_z + tip_z) / 2.0)))
+
+    body = head + shank + stub + lip + lead
+
+    # '+' cross slot confined to the barb end (bearing shank stays solid)
+    slot_root_z = max(tip_z - SNAP_SLOT_LEN, L + 0.6)
+    slot_h = (tip_z - slot_root_z) + 1.0
+    slot_zc = (slot_root_z + tip_z + 1.0) / 2.0
+    slot_a = Box(SNAP_SLOT_W, 4 * barb_max_r, slot_h).moved(Location((0, 0, slot_zc)))
+    slot_b = Box(4 * barb_max_r, SNAP_SLOT_W, slot_h).moved(Location((0, 0, slot_zc)))
+    relief = Cylinder(radius=SNAP_SLOT_W * 0.7, height=SNAP_SLOT_W * 2).moved(
+        Location((0, 0, slot_root_z)))
+    body = body - slot_a - slot_b - relief
+
+    if head_at == "z0":
+        body = body.moved(Location((0, 0, z0)))
+    else:
+        body = body.moved(Location((0, 0, 0), (1, 0, 0), 180.0))
+        body = body.moved(Location((0, 0, z1)))
+    body = body.moved(Location((x, y, 0)))
+    body.label = label
+    body.color = color
+    return body
+
+
 # --------------------------------------------------------------------------
 # Fin Ray-style compliant finger (TPU) — defined in world @ CLOSED pose,
 # then rigid-moved with the coupler. The triangular truss of same-direction
 # slanted ribs makes the tip curl AROUND a grasped object.
 # --------------------------------------------------------------------------
+def _safe_round(part, edges, radius, op):
+    """Robustly fillet/chamfer a set of edges. build123d's fillet/chamfer are
+    free functions: op(edges, radius) -> NEW Part. They are fragile on complex
+    booleans -- a bulk call fails if ANY edge is unroundable. Try bulk first;
+    on failure fall back to per-edge, re-resolving each target by (center,
+    length) against the live part. One bad edge can't abort the build."""
+    if not edges:
+        return part
+    try:
+        return op(edges, radius)
+    except Exception:
+        pass
+    targets = [(e.center(), e.length) for e in edges]
+    for (tc, tl) in targets:
+        best, best_d = None, 0.5
+        for e in part.edges():
+            try:
+                if abs(e.length - tl) > 0.4:
+                    continue
+                c = e.center()
+                d = ((c.X - tc.X) ** 2 + (c.Y - tc.Y) ** 2 + (c.Z - tc.Z) ** 2) ** 0.5
+                if d < best_d:
+                    best_d, best = d, e
+            except Exception:
+                pass
+        if best is None:
+            continue
+        try:
+            part = op([best], radius)
+        except Exception:
+            pass
+    return part
+
+
 def finray_finger_closed(C0, D0, inner_dir, z0, thickness):
     """Fin Ray-style compliant finger as a build123d solid in world coords at
     the CLOSED pose. C0, D0 are the mounting-pin centres; the finger points
     +Y with its CONTACT face on the inner side (toward the centreline):
       inner_dir = -1 -> right finger (contact faces -X)
       inner_dir = +1 -> left finger  (contact faces +X)
-    Mount holes (MOUNT_HOLE_R) at C0/D0; extruded in Z from z0."""
+    Mount holes (MOUNT_HOLE_R) at C0/D0; extruded in Z from z0.
+    Print-friendly rounding (FDM TPU): base chamfer kills elephant-foot,
+    internal rib-cell corners filleted (TPU stress relief), grip-tooth tips and
+    blade apex rounded. 2.5D extrusion -> no Z-direction overhang added."""
     contact_x = -inner_dir * FR_CONTACT_OFFSET
     spine_base_x = contact_x - inner_dir * FR_BASE_WIDTH
     base_y = max(C0[1], D0[1]) - FR_BASE_DROP
@@ -417,7 +521,11 @@ def finray_finger_closed(C0, D0, inner_dir, z0, thickness):
         yflat = yb + FR_GRIP_FLAT
         ypeak = yb + 0.5 * (FR_GRIP_PITCH + FR_GRIP_FLAT)
         ytop = yb + FR_GRIP_PITCH
-        quad = [(grip_root_x, yflat), (grip_tip_x, ypeak), (grip_root_x, ytop)]
+        # blunt the apex into a small flat (4-pt trapezoid, not a knife-edge)
+        quad = [(grip_root_x, yflat),
+                (grip_tip_x, ypeak - FR_GRIP_TIP_FLAT),
+                (grip_tip_x, ypeak + FR_GRIP_TIP_FLAT),
+                (grip_root_x, ytop)]
         try:
             teeth.append(_poly_solid(quad, z0, thickness))
         except Exception:
@@ -443,6 +551,56 @@ def finray_finger_closed(C0, D0, inner_dir, z0, thickness):
     for hp in (C0, D0):
         finger -= Cylinder(radius=MOUNT_HOLE_R, height=thickness * 3).moved(
             Location((hp[0], hp[1], z0 + thickness / 2.0)))
+
+    # ---- print-friendly fillets & chamfers (applied last, after booleans) ----
+    # Fillet internal rib-cell / spar-junction corners (where TPU cracks).
+    cell_edges = []
+    for e in finger.edges().filter_by(Axis.Z):
+        try:
+            if abs(e.length - thickness) > 0.25:
+                continue
+            c = e.center()
+            yy = c.Y
+            if not (y_cav_lo - 0.5 < yy < y_cav_hi + 0.5):
+                continue
+            xin = (c.X - cav_contact_x) * into
+            xout = (cav_spine_x(yy) - c.X) * into
+            if xin < -0.5 or xout < -0.5:
+                continue
+            if any(math.hypot(c.X - hp[0], c.Y - hp[1]) < MOUNT_HOLE_R + 0.6
+                   for hp in (C0, D0)):
+                continue
+            cell_edges.append(e)
+        except Exception:
+            pass
+    finger = _safe_round(finger, cell_edges, FR_CELL_FILLET, fillet)
+
+    # Round the blade tip apex (two vertical edges at the blunt tip corners).
+    tip_pts = [(contact_x, tip_y), (spine_tip_x, tip_y)]
+    tip_edges = []
+    for e in finger.edges().filter_by(Axis.Z):
+        try:
+            if abs(e.length - thickness) > 0.25:
+                continue
+            c = e.center()
+            if any(math.hypot(c.X - px, c.Y - py) < 1.0 for (px, py) in tip_pts):
+                tip_edges.append(e)
+        except Exception:
+            pass
+    finger = _safe_round(finger, tip_edges, FR_TIP_FILLET, fillet)
+
+    # Chamfer the bottom (bed) face edges at Z=z0 to kill elephant-foot.
+    bottom_edges = []
+    for e in finger.edges():
+        try:
+            if e.length < FR_BASE_CHAMFER * 1.5:
+                continue
+            if abs(e.center().Z - z0) < 1e-3:
+                bottom_edges.append(e)
+        except Exception:
+            pass
+    finger = _safe_round(finger, bottom_edges, FR_BASE_CHAMFER, chamfer)
+
     return finger
 
 
@@ -511,8 +669,26 @@ CORNER_XY = [(-43.0, -15.0), (43.0, -15.0), (-43.0, 13.0), (43.0, 13.0)]
 CORNER_BOSS_R = 3.0                     # screw-boss outer radius
 CORNER_TAP_R = 1.35                    # M3 tap (self-tap into body column)
 CORNER_CLEAR_R = 1.7                   # M3 clearance hole in the cover
-CORNER_BOSS_Z = (-2.0, 22.0)           # full-height column: back wall -> cover seat
+CORNER_BOSS_Z = (-2.0, 22.0)           # (legacy; replaced by snap clips)
 COVER_Z = (22.0, 25.0)                 # bolt-on cover plate
+
+# --- snap-clip front cover (tool-free, zero hardware) -------------------
+SNAP_Y = [-9.0, 7.0]                 # clip y-centres on each side wall
+SNAP_ARM_W = 9.0                     # clip width along Y (flexing beam width)
+SNAP_ARM_T = 2.8                     # arm radial thickness (X)
+SNAP_GAP = 0.40                      # standoff: arm inner face clears wall outer
+SNAP_Z0 = 6.5                        # arm root region near hook (back end)
+SNAP_HOOK_Z = (7.0, 10.0)            # hook lip Z-span
+SNAP_HOOK_ENGAGE = 1.5               # how far the hook reaches inward into wall
+SNAP_CLEAR = 0.35                    # engagement clearance
+SNAP_LEADIN = 2.0                    # lead-in chamfer run at the hook back end
+SNAP_WIN_Z = (SNAP_HOOK_Z[0] - SNAP_CLEAR, SNAP_HOOK_Z[1] + SNAP_CLEAR)
+SNAP_WIN_DY = 11.0                   # window length along Y (clears arm width)
+_WALL_OUT_R = ENC_X[1]               # +48 outer face of right wall
+_ARM_IN_R = _WALL_OUT_R + SNAP_GAP   # inner face of the arm
+_ARM_OUT_R = _ARM_IN_R + SNAP_ARM_T  # outer face of the arm
+_HOOK_TIP_R = ENC_X[1] - SNAP_HOOK_ENGAGE   # hook tip (clear of cavity)
+SNAP_ARM_Z1 = COVER_Z[0] + 1.0       # arm overlaps INTO the cover so it fuses
 
 
 def _box_between(x0, x1, y0, y1, z0, z1):
@@ -520,19 +696,52 @@ def _box_between(x0, x1, y0, y1, z0, z1):
         Location(((x0 + x1) / 2.0, (y0 + y1) / 2.0, (z0 + z1) / 2.0)))
 
 
+def _one_clip(side, yc):
+    """One cantilever snap clip (arm + hook) for one side & y-centre, world
+    coords. side=+1 right wall (hook points -X inward); side=-1 mirror."""
+    s = side
+    arm_in = s * _ARM_IN_R
+    arm_out = s * _ARM_OUT_R
+    x_lo, x_hi = sorted((arm_in, arm_out))
+    arm = _box_between(x_lo, x_hi, yc - SNAP_ARM_W / 2.0, yc + SNAP_ARM_W / 2.0,
+                       SNAP_Z0, COVER_Z[0])
+    root_in = s * ENC_X[1]
+    rx_lo, rx_hi = sorted((root_in, arm_out))
+    root = _box_between(rx_lo, rx_hi, yc - SNAP_ARM_W / 2.0, yc + SNAP_ARM_W / 2.0,
+                        COVER_Z[0] - 3.0, SNAP_ARM_Z1)
+    arm = arm + root
+    tip = s * _HOOK_TIP_R
+    hx_lo, hx_hi = sorted((arm_in, tip))
+    hook = _box_between(hx_lo, hx_hi, yc - SNAP_ARM_W / 2.0, yc + SNAP_ARM_W / 2.0,
+                        SNAP_HOOK_Z[0], SNAP_HOOK_Z[1])
+    clip = arm + hook
+    try:
+        edges = clip.edges().filter_by(Axis.Y).group_by(Axis.Z)[0]
+        inner_edge = sorted(edges, key=lambda e: abs(e.center().X))[0]
+        clip = fillet([inner_edge], radius=min(SNAP_LEADIN, SNAP_HOOK_ENGAGE - 0.2))
+    except Exception:
+        pass
+    clip.label = f"snap_clip_{'R' if side > 0 else 'L'}_{yc:+.0f}"
+    clip.color = COVER_COLOR
+    return clip
+
+
+def _all_snap_clips():
+    return [_one_clip(side, yc) for side in (+1, -1) for yc in SNAP_Y]
+
+
 def build_enclosure():
-    """Hollow flooded gearbox housing (underwater), SPLIT for assembly: the
-    FRONT wall is removed (open front) so the gear/linkage mechanism drops in
-    and the bolt-on front cover supports the far axle ends. Keeps the cavity,
-    two top slots, back mounting flange + M4 holes, the A_L shaft bore, and all
-    the drain/flood holes. Adds captured-axle bosses (A_R/B_R/B_L), a shaft
-    bushing seat at A_L, and 4 corner screw bosses for the cover."""
+    """Hollow flooded gearbox housing (underwater), SPLIT for assembly: open
+    front so the mechanism drops in; the snap-clip cover supports the far axle
+    ends. Keeps the cavity, two top slots, back flange + M4 holes, A_L shaft
+    bore + bushing seat, captured-axle bosses, and all drain/flood holes. The
+    4 corner screw bosses are REPLACED by snap-clip catch windows in the long
+    side walls (zero hardware, tool-free cover)."""
     body = _box_between(*ENC_X, *ENC_Y, *ENC_Z)
     body = fillet(body.edges().filter_by(Axis.Y), radius=R_VERT)
     top_edges = body.edges().filter_by(Axis.Y, reverse=True).group_by(Axis.Y)[-1]
     body = fillet(top_edges, radius=R_TOP)
     body -= _box_between(*CAV_X, *CAV_Y, *CAV_Z)
-    # OPEN FRONT: remove the solid front wall over the cavity footprint
     body -= _box_between(CAV_X[0], CAV_X[1], CAV_Y[0], CAV_Y[1],
                          FRONT_WALL_Z[0] - 0.5, ENC_Z[1] + 1.0)
     body -= _box_between(SLOT_R[0], SLOT_R[1], TOP_WALL_Y0 - 1.0, ENC_Y[1] + 1.0,
@@ -543,19 +752,12 @@ def build_enclosure():
     flange = fillet(flange.edges().filter_by(Axis.Z), radius=R_VERT)
     body += flange
 
-    # captured-axle bosses on the BACK wall at A_R, B_R, B_L
     for (px, py) in AXLE_PIVOTS:
         body += Cylinder(radius=BOSS_OD_R, height=(BACK_BOSS_Z[1] - BACK_BOSS_Z[0])).moved(
             Location((px, py, (BACK_BOSS_Z[0] + BACK_BOSS_Z[1]) / 2.0)))
-    # shaft bushing seat at A_L
     body += Cylinder(radius=BUSH_OD_R, height=(BUSH_BOSS_Z[1] - BUSH_BOSS_Z[0])).moved(
         Location((SHAFT_C[0], SHAFT_C[1], (BUSH_BOSS_Z[0] + BUSH_BOSS_Z[1]) / 2.0)))
-    # corner screw bosses (full-height columns) for the cover
-    for (cx, cy) in CORNER_XY:
-        body += Cylinder(radius=CORNER_BOSS_R, height=(CORNER_BOSS_Z[1] - CORNER_BOSS_Z[0])).moved(
-            Location((cx, cy, (CORNER_BOSS_Z[0] + CORNER_BOSS_Z[1]) / 2.0)))
 
-    # fillet boss roots at the back-wall inner face for the clean look
     for e in body.edges().filter_by(GeomType.CIRCLE):
         if abs(e.center().Z - CAV_Z[0]) < 0.05:
             try:
@@ -563,29 +765,30 @@ def build_enclosure():
             except Exception:
                 pass
 
-    # drive-shaft bore through the BACK WALL only (behind flange -> cavity face)
     bz0, bz1 = FLANGE_Z[0] - 2.0, CAV_Z[0]
     body -= Cylinder(radius=SHAFT_BORE_R, height=(bz1 - bz0)).moved(
         Location((SHAFT_C[0], SHAFT_C[1], (bz0 + bz1) / 2.0)))
-    # bushing seat: neck the A_L collar to BUSH_BORE_R (overlaps the bore)
     body -= Cylinder(radius=BUSH_BORE_R, height=(BUSH_BOSS_Z[1] - CAV_Z[0]) + 4.0).moved(
         Location((SHAFT_C[0], SHAFT_C[1], (CAV_Z[0] - 2.0 + BUSH_BOSS_Z[1]) / 2.0)))
 
-    # axle screw holes through the back-wall bosses (insert from behind)
     for (px, py) in AXLE_PIVOTS:
         body -= Cylinder(radius=AXLE_SCREW_R, height=(BACK_BOSS_Z[1] - ENC_Z[0]) + 6.0).moved(
             Location((px, py, (ENC_Z[0] - 3.0 + BACK_BOSS_Z[1]) / 2.0)))
-    # corner tap holes (drilled down from the cover seat)
-    for (cx, cy) in CORNER_XY:
-        body -= Cylinder(radius=CORNER_TAP_R, height=14.0).moved(
-            Location((cx, cy, CORNER_BOSS_Z[1] - 14.0 / 2.0 + 0.5)))
 
-    # M4 flange bolt holes
+    # snap-clip catch windows: a through-window in each long side wall so the
+    # cover's hook latches behind the window's top edge (also act as drains).
+    for side in (+1, -1):
+        for yc in SNAP_Y:
+            wx_lo, wx_hi = sorted((side * (ENC_X[1] - WALL - 2.0),
+                                   side * (ENC_X[1] + 2.0)))
+            body -= _box_between(wx_lo, wx_hi,
+                                 yc - SNAP_WIN_DY / 2.0, yc + SNAP_WIN_DY / 2.0,
+                                 SNAP_WIN_Z[0], SNAP_WIN_Z[1])
+
     for (bx, by) in BOLT_XY:
         body -= Cylinder(radius=BOLT_R, height=(FLANGE_Z[1] - FLANGE_Z[0]) + 4.0).moved(
             Location((bx, by, (FLANGE_Z[0] + FLANGE_Z[1]) / 2.0)))
 
-    # underwater drainage / flood holes
     for dx in DRAIN_BOTTOM_X:
         body -= Cylinder(radius=DRAIN_R, height=(WALL + 6.0)).moved(
             Location((dx, ENC_Y[0] + WALL / 2.0, 10.0), (1, 0, 0), 90.0))
@@ -600,11 +803,19 @@ def build_enclosure():
 
 
 def build_front_cover():
-    """Bolt-on FRONT cover that closes the open front and supports the far ends
-    of the axles. Plate over the footprint at Z=22..25 with matching axle bosses
-    at A_R/B_R/B_L and 4 corner M3 clearance holes aligned to the body columns."""
+    """Tool-free SNAP-ON front cover: closes the open front, supports the far
+    axle ends (bosses at A_R/B_R/B_L), and carries 4 integral cantilever snap
+    clips (2 per long side) that hook into the body side-wall windows. No
+    screws. Push on (cams in + clicks); flex the 4 hooks outward to release."""
     plate = _box_between(*ENC_X, *ENC_Y, *COVER_Z)
-    plate = fillet(plate.edges().filter_by(Axis.Z), radius=R_VERT)
+    z_lo, z_hi = COVER_Z
+    for e in plate.edges().filter_by(Axis.Z):
+        c = e.center()
+        if abs(c.X) > ENC_X[1] - 1.0 and z_lo - 0.1 <= c.Z <= z_hi + 0.1:
+            try:
+                plate = fillet([e], radius=R_VERT)
+            except Exception:
+                pass
     for (px, py) in AXLE_PIVOTS:
         plate += Cylinder(radius=BOSS_OD_R, height=(COVER_BOSS_Z[1] - COVER_BOSS_Z[0])).moved(
             Location((px, py, (COVER_BOSS_Z[0] + COVER_BOSS_Z[1]) / 2.0)))
@@ -617,9 +828,8 @@ def build_front_cover():
     for (px, py) in AXLE_PIVOTS:
         plate -= Cylinder(radius=AXLE_SCREW_R, height=(COVER_Z[1] - COVER_BOSS_Z[0]) + 4.0).moved(
             Location((px, py, (COVER_BOSS_Z[0] + COVER_Z[1]) / 2.0)))
-    for (cx, cy) in CORNER_XY:
-        plate -= Cylinder(radius=CORNER_CLEAR_R, height=(COVER_Z[1] - COVER_Z[0]) + 4.0).moved(
-            Location((cx, cy, (COVER_Z[0] + COVER_Z[1]) / 2.0)))
+    for clip in _all_snap_clips():
+        plate += clip
     plate.label = "front_cover"
     plate.color = COVER_COLOR
     return plate
@@ -678,7 +888,11 @@ def gen_step():
     for tag, pose, joints in (("R", R, ("A", "B", "C", "D")),
                               ("L", L, ("B", "C", "D"))):
         for j in joints:
-            parts.append(pin(pose[j], f"pin_{j}_{tag}", visible=(j in ("C", "D"))))
+            lbl = f"pin_{j}_{tag}"
+            if j in ("C", "D"):    # finger pins: head caps above the finger
+                parts.append(snap_pin(pose[j], 0.0, 23.0, head_at="z1", label=lbl))
+            else:                  # internal axles: head at back, barb at cover
+                parts.append(snap_pin(pose[j], -2.0, 22.0, head_at="z0", label=lbl))
 
     # bolt-on front cover LAST so existing occurrence ids stay stable
     parts.append(build_front_cover())
