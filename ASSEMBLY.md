@@ -104,8 +104,9 @@ pin straight out. Pinch, do not pry; the jaws survive many cycles undamaged.
 
 ### Step 1 — Print prep and snap test
 
-1. Confirm all parts are in the correct material: rigid parts (enclosure,
-   cover, arms, followers, all 7 pins) in **PETG** (or ASA/PA-GF); fingers in
+1. Confirm all parts are in the correct material: enclosure, cover, arms,
+   and followers in **PA12-GF** (or ASA/PETG); **finger snap pins (C/D ×4) in
+   PETG-HF**; axle dowels (A_R/B_R/B_L ×3) in PETG or PA12-GF; fingers in
    **ether-based TPU ~95A**. Never PLA; never TPU for pins (see `UNDERWATER.md`).
 2. **Deburr every pivot bore** — A_R, B_R, B_L back-wall sockets, the four
    C/D finger mount holes, the cover boss bores, and the back-wall shaft bore
@@ -130,13 +131,13 @@ This is the one step requiring care. The two 16-tooth sector gears must
 **interleave with a half-tooth offset** so both jaws move symmetrically.
 
 1. Hold the pair at the **closed pose**: `drive_arm_L` crank points up and
-   slightly inboard (~104° from +X); `drive_arm_R` is its mirror.
+   slightly inboard (~102° from +X); `drive_arm_R` is its mirror.
 2. Bring the sectors together so their pitch circles touch on the centreline.
    **Before teeth engage, rotate one arm by half a tooth:** 360° ÷ 16 ÷ 2 =
    **11.25°** — so a tooth of one gear drops into the valley of the other
    (teeth interleave, not tip-to-tip).
 3. The cranks should now be a true mirror pair. **Check:** at closed, the
-   C-pin base gap is small (~1.6 mm). If jaws come out lopsided after
+   C-pin base gap is ~9.86 mm. If jaws come out lopsided after
    assembly, the mesh is off by one tooth — separate, re-offset 11.25°, re-engage.
 
 ---

@@ -58,15 +58,24 @@ from build123d import (
 # --------------------------------------------------------------------------
 # Drive parameter
 # --------------------------------------------------------------------------
-OPEN_NORM = float(os.environ.get("GRIPPER_OPEN", "0.5"))
-OPEN_NORM = max(0.0, min(1.0, OPEN_NORM))
+def _env_float(var, default, lo, hi):
+    """Read a float from env var `var`, clamp to [lo, hi]. On a non-numeric
+    value warn and fall back to `default` instead of crashing the build."""
+    try:
+        return max(lo, min(hi, float(os.environ.get(var, str(default)))))
+    except ValueError:
+        import warnings
+        warnings.warn(f"{var}={os.environ.get(var)!r} not a float; using {default}")
+        return default
+
+
+OPEN_NORM = _env_float("GRIPPER_OPEN", 0.5, 0.0, 1.0)
 
 # Finger size scale factor (GRIPPER_FINGER_SCALE env var). Scales the FINGER
 # blade in-plane (length, width, tip) only; the mount interface (pin bores,
 # C/D spacing), wall thickness, clearances and grip-tooth size stay FIXED so
 # the fingers still bolt onto the linkage and stay printable at any scale.
-FINGER_SCALE = float(os.environ.get("GRIPPER_FINGER_SCALE", "1.0"))
-FINGER_SCALE = max(0.6, min(2.5, FINGER_SCALE))
+FINGER_SCALE = _env_float("GRIPPER_FINGER_SCALE", 1.0, 0.6, 2.5)
 
 # --------------------------------------------------------------------------
 # Kinematic parameters (mm, deg)  -- locked
@@ -81,24 +90,27 @@ R_CRANK = 34.0    # |A->C|  crank (gear arm) length
 R_FOLLOW = 32.0   # |B->D|  follower length
 R_COUPLER = 20.0  # |C->D|  coupler length (finger base bracket span)
 
-THETA_CLOSED = 104.0   # crank up & slightly inward: jaws nearly touch closed
+THETA_CLOSED = 102.0   # crank up & slightly inward: jaws nearly touch closed
+                       # (was 104.0; lowered 2deg so the closed C/D mount pins
+                       # sit far enough apart that the pin heads/shanks clear at
+                       # open=0.0 -- base_gap 7.55 was < 2*SNAP_HEAD_R 7.80. The
+                       # blade contact face is anchored to FR_CONTACT_OFFSET so
+                       # grip closure is preserved.)
 OPEN_TRAVEL = 46.0     # crank rotates this many deg from closed to full open
 
 # --------------------------------------------------------------------------
 # Geometry parameters (mm)
 # --------------------------------------------------------------------------
 # Z layers (back -> front) so moving parts never share a plane
-Z_BASE0, Z_BASE1 = -6.0, 0.0          # base plate slab
 T_CRANK = 5.0
 Z_CRANK0 = 1.0                        # crank + gear layer
 T_FOLLOW = 5.0
 Z_FOLLOW0 = 7.0                       # follower layer
 T_FINGER = 10.0                      # Fin Ray finger depth in Z (z 13..23)
 Z_FINGER0 = 13.0                      # finger layer
-Z_PIN0, Z_PIN1 = -6.0, 25.0          # pins span the stack (stay inside housing)
 SHAFT_BACK = -34.0                   # input shaft extends to here (behind)
 
-LINK_W = 7.0          # link bar half-look width
+LINK_W = 7.0          # link bar half-lobe width
 PIN_R = 2.3           # pivot pin radius
 PIN_HEAD_R = 3.6      # socket-head cap radius
 PIN_HEAD_T = 1.2      # cap height (sits ~flush in a counterbore)
@@ -271,7 +283,7 @@ def _poly_solid(pts, z0, thickness):
 # Pocket depth of the lip-confining counterbore (rigid, cut into the eye exit
 # face). Deep enough to swallow the full locking lip plus a small floor gap:
 SNAP_CB_DEPTH = SNAP_BARB_LIP_T + SNAP_CB_FLOOR_CLEAR   # 1.0 + 0.30 = 1.30 mm
-SNAP_CB_R = (PIN_R + SNAP_BARB_PROUD) + SNAP_CB_RCLEAR  # pocket radius (3.2+0.3)
+SNAP_CB_R = (PIN_R + SNAP_BARB_PROUD) + SNAP_CB_RCLEAR  # pocket radius (3.2 + 0.45 = 3.65)
 
 
 def _counterbore_cut(p, z_face, depth, into_plus_z):
@@ -330,12 +342,10 @@ def link_bar(p0, p1, width, z0, thickness, label, color, counterbores=None):
     if counterbores:
         for (cp, zf, depth, into_pz) in counterbores:
             bar -= _counterbore_cut(cp, zf, depth, into_pz)
-    # DFM: break the top & bottom face edges (no sharp edges; bore lead-ins)
-    try:
-        zf = bar.edges().group_by(Axis.Z)
-        bar = chamfer(zf[0] + zf[-1], DFM_EDGE)
-    except Exception:
-        pass
+    # DFM: break the top & bottom face edges (no sharp edges; bore lead-ins).
+    # Use _safe_round so one unchamferable edge can't abort the whole bar.
+    zf = bar.edges().group_by(Axis.Z)
+    bar = _safe_round(bar, zf[0] + zf[-1], DFM_EDGE, chamfer)
     bar.label = label
     bar.color = color
     return bar
@@ -476,7 +486,8 @@ def snap_pin(p, z0, z1, head_at="z0", label="snap_pin", color=PIN_COLOR,
 
     # DFM edge-break: soften the head-flange rim (handled during insertion). The
     # barb catch face is deliberately left crisp so the lock stays positive.
-    hd = [e for e in body.edges() if e.length > 20.0 and e.center().Z < 0.05]
+    hd = [e for e in body.edges().filter_by(GeomType.CIRCLE)
+          if abs(e.center().Z) < 0.05]
     body = _safe_round(body, hd, min(DFM_EDGE, SNAP_HEAD_T * 0.5), chamfer)
 
     if head_at == "z0":
@@ -748,7 +759,7 @@ CAV_Z = (-2.0, 22.0)
 SLOT_Z = (0.0, 22.0)         # slots cut the full cavity depth in Z
 SLOT_R = (2.5, 41.0)         # right top slot x-span (WIDENED so arms clear)
 SLOT_L = (-41.0, -2.5)       # left top slot x-span  (WIDENED so arms clear)
-SHAFT_C = (-12.0, 0.0)       # shaft bore centre (= A_L)
+SHAFT_C = mirror_x(A_R)      # shaft bore centre (= A_L; (-12, 0))
 SHAFT_BORE_R = 5.0
 FLANGE_Z = (-16.0, -12.0)    # raised back mounting flange
 FLANGE_X = (-42.0, 42.0)
@@ -811,7 +822,11 @@ SNAP_Y = [-9.0, 7.0]                 # clip y-centres on each side wall
 SNAP_ARM_W = 9.0                     # clip width along Y (flexing beam width)
 SNAP_ARM_T = 2.8                     # arm radial thickness (X)
 SNAP_GAP = 0.40                      # standoff: arm inner face clears wall outer
-SNAP_Z0 = 6.5                        # arm root region near hook (back end)
+SNAP_Z0 = 1.5                        # arm root region near hook (back end)
+                                     # (was 6.5; lowered to lengthen the clip
+                                     # cantilever -> bending strain drops from
+                                     # ~3.32% to ~1.9% so PA12-GF (brittle,
+                                     # allowable ~1.5-2.0%) survives insertion.)
 SNAP_HOOK_Z = (7.0, 10.0)            # hook lip Z-span
 SNAP_HOOK_ENGAGE = 1.5               # how far the hook reaches inward into wall
 SNAP_CLEAR = 0.35                    # engagement clearance
@@ -981,25 +996,6 @@ def build_front_cover():
     return plate
 
 
-# --------------------------------------------------------------------------
-# Drive shaft (coaxial with the LEFT crank pivot A_L; the input you rotate)
-# --------------------------------------------------------------------------
-def drive_shaft():
-    aL = mirror_x(A_R)
-    shaft = Cylinder(radius=PIN_R + 1.2, height=(Z_CRANK0 + T_CRANK) - SHAFT_BACK)
-    zc = (SHAFT_BACK + (Z_CRANK0 + T_CRANK)) / 2.0
-    shaft = shaft.moved(Location((aL[0], aL[1], zc)))
-    # knurl-ish drive knob at the back
-    knob = Cylinder(radius=6.0, height=8.0).moved(
-        Location((aL[0], aL[1], SHAFT_BACK + 4.0)))
-    # flat on the knob to signal "rotate here"
-    knob -= Box(2.0, 14, 10).moved(Location((aL[0] + 4.0, aL[1], SHAFT_BACK + 4.0)))
-    s = shaft + knob
-    s.label = "drive_shaft"
-    s.color = DARK
-    return s
-
-
 # ==========================================================================
 # Assembly
 # ==========================================================================
@@ -1039,11 +1035,22 @@ def gen_step():
         for j in joints:
             lbl = f"pin_{j}_{tag}"
             if j in ("C", "D"):    # finger pins: barbed, head caps above finger.
-                # z0 = the receiving eye's EXIT (bottom) face + pocket depth + seat,
-                # so the locking lip seats flush in the rigid confining counterbore
-                # cut into that eye (C -> crank eye @Z_CRANK0; D -> follower @Z_FOLLOW0).
+                # The locking lip drops into the rigid confining counterbore cut
+                # into the receiving eye's EXIT (bottom) face (C -> crank eye
+                # @Z_CRANK0; D -> follower @Z_FOLLOW0). Place the pin so the lip
+                # BACK (pull-out) face seats SNAP_CB_FLOOR_CLEAR (0.30 mm) BELOW
+                # the pocket shoulder (the wide->narrow step at far+SNAP_CB_DEPTH)
+                # -- a real breathing gap so the lip does not bottom out on the
+                # shoulder before the shank seats, while the lip still overlaps
+                # the shoulder ring (SNAP_CB_R - AXLE_BORE_R wide) for capture.
+                #   lip_back(world) = pin_z1 - (L + SEAT) = z1 - ((z1-pin_z0)+SEAT)
+                #                   = pin_z0 - SEAT
+                #   want lip_back = shoulder - FLOOR_CLEAR = (far+CB_DEPTH) - FLOOR_CLEAR
+                #   CB_DEPTH = LIP_T + FLOOR_CLEAR  =>  lip_back = far + LIP_T
+                #   so pin_z0 = lip_back + SEAT = far + SNAP_BARB_LIP_T + SNAP_BARB_SEAT
+                # (was far + SNAP_CB_DEPTH + SNAP_BARB_SEAT, which left 0 gap.)
                 far = Z_CRANK0 if j == "C" else Z_FOLLOW0
-                pin_z0 = far + SNAP_CB_DEPTH + SNAP_BARB_SEAT
+                pin_z0 = far + SNAP_BARB_LIP_T + SNAP_BARB_SEAT
                 parts.append(snap_pin(pose[j], pin_z0, 23.0, head_at="z1", label=lbl))
             else:                  # axles: plain dowels dropped in from the front,
                                    # SANDWICHED with no slop between the back boss

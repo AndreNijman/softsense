@@ -7,15 +7,16 @@ use). This is the *what-to-print* list — and for this revision that is the
 `UNDERWATER.md` for material chemistry in seawater, and `ASSEMBLY.md` for the
 tool-free snap-together sequence.
 
-> # ZERO bought hardware. No screws, no nuts, no bolts, no bushings.
-> **Every part is 3D-printed and snaps or slides together by hand — tool-free
+> # ZERO bought hardware inside the gripper. No screws, no nuts, no bolts, no bushings.
+> **Every gripper part is 3D-printed and snaps or slides together by hand — tool-free
 > assembly.** The 3 axle pins are plain headed dowels captured geometrically
 > between the back-wall bore step and the front-cover boss. The 4 finger pins
 > are barbed push-to-snap pins with rigid counterbore capture. The front cover
 > is held by 4 integral printed cantilever snap clips. The input shaft turns in
 > a bare printed bore — no bushing. The **only** non-printed items in the whole
-> system are the user's waterproof actuator and, at the robot-arm interface, the
-> user's mount bolts (with galvanic-isolating hardware per `UNDERWATER.md` §5).
+> system are the user's waterproof actuator (rear D-shaft) and, at the robot-arm
+> interface, the user's M4 mount bolts + nylon/PTFE galvanic-isolating washers
+> (per `UNDERWATER.md` §5).
 
 Headline build target: **flooded, all-polymer, fastener-free.** Nothing to seal,
 nothing to buy inside the gripper, and no metal anywhere in the gripper.
@@ -30,27 +31,39 @@ its drain holes; the mechanism drops in; the axle dowels are captured between
 back-wall step and cover boss; the finger snap pins latch in rigid counterbore
 pockets; the cover snaps on. Done.
 
-| Part | Qty | Material (seawater pick) | Rough filament | Role / key detail |
-|---|---|---|---|---|
-| `enclosure` | 1 | **PETG** (default); **ASA** for topside/UV; **glass-filled nylon (PA-GF)** for deep/long/warm dives | ~80–110 g | Flooded gearbox body. Open front, back mounting flange (4 × M4 holes), top link slots, A_L shaft bore + integral bare-bore bushing seat, 3 back-wall axle bosses + stepped bores (wide running bore + narrow flood hole), 5 bottom drains, 4 side drains, 4 snap-clip catch windows in the long side walls. Never PLA. |
-| `front_cover` | 1 | Same as enclosure (PETG / ASA / PA-GF) | ~20–30 g | Closes the open front; 3 inner-face bosses cap the axle-dowel heads (+Z dowel stop); **4 integral cantilever snap clips** (2 per long side) latch into body side-wall windows — no screws; **2 × Ø1.8 mm vent holes** at (±34, +12) let trapped air escape front-up. Push on to click; flex 4 hooks outward to release. |
-| `drive_arm_R` | 1 | **PETG** (or ASA / PA-GF) | ~12–18 g | Right gear sector + crank arm. Clearance-bored at A_R (rides on axle dowel `pin_A_R`). Counterbored C-eye exit (−Z face) for `pin_C_R` geometric capture. Flat plate; prints face-down. |
-| `drive_arm_L` | 1 | **PETG** (or ASA / PA-GF) | ~14–20 g | Left gear sector + crank arm + **integral input shaft + rear D-profile coupler** (r 5.0, D-flat depth 1.4, length 12 mm). The shaft **is** the left axle — there is no separate A_L pin. Counterbored C-eye for `pin_C_L`. Print shaft-vertical for support-free strong layers. |
-| `follower_R` | 1 | **PETG** (or ASA / PA-GF) | ~6–9 g | Right B→D link bar. Counterbored D-eye exit (−Z face) for `pin_D_R` geometric capture. Flat plate; prints face-down. |
-| `follower_L` | 1 | **PETG** (or ASA / PA-GF) | ~6–9 g | Left B→D link bar. Counterbored D-eye exit (−Z face) for `pin_D_L`. Same geometry as `follower_R` (mirrored in gen_step). |
-| `finger_R` | 1 | **Ether-based TPU ~95A** (e.g. NinjaFlex / suitable BASF grade) — **not** ester-based | ~25–35 g | Right Fin Ray compliant jaw. Grip ridges on contact face; internal slanted-rib truss; mount holes at C_R and D_R. Must flex — print in TPU only. |
-| `finger_L` | 1 | **Ether-based TPU ~95A** | ~25–35 g | Left Fin Ray compliant jaw (chiral mirror of `finger_R`). |
-| `pin_A_R` | 1 | **PETG** | ~1–2 g | **Axle dowel** for right drive-arm pivot. Plain head + shank + narrow pilot tip. Head toward cover (+Z); pilot enters back-wall flood hole; flat shank shoulder bottoms on stepped-bore step (−Z stop). Sandwiched, no barb. |
-| `pin_B_R` | 1 | **PETG** | ~1–2 g | **Axle dowel** for right follower pivot. Same geometry as `pin_A_R`. |
-| `pin_B_L` | 1 | **PETG** | ~1–2 g | **Axle dowel** for left follower pivot. Same geometry as `pin_A_R`. |
-| `pin_C_R` | 1 | **PETG** | ~1–2 g | **Finger snap pin** for right crank-coupler joint (C_R). Barbed split tip; head above finger; lip locks in rigid counterbore pocket in the crank-arm C-eye. |
-| `pin_D_R` | 1 | **PETG** | ~1–2 g | **Finger snap pin** for right follower-coupler joint (D_R). Barbed; lip locks in follower D-eye counterbore pocket. |
-| `pin_C_L` | 1 | **PETG** | ~1–2 g | **Finger snap pin** for left crank-coupler joint (C_L). |
-| `pin_D_L` | 1 | **PETG** | ~1–2 g | **Finger snap pin** for left follower-coupler joint (D_L). |
+**Material legend:** FINAL = production print material. TEST = test-print material.
+The 4 finger snap pins are the sole exception to the otherwise all-PA12-GF rigid
+build — see note below the table.
+
+| Part | Qty | **FINAL material** | Test-print | Rough filament | Role / key detail |
+|---|---|---|---|---|---|
+| `enclosure` | 1 | **PA12-GF (Nylon 12 glass-filled)** | PETG-HF | ~80–110 g | Flooded gearbox body. Open front, back mounting flange (4 × M4 holes), top link slots, A_L shaft bore + integral bare-bore bushing seat, 3 back-wall axle bosses + stepped bores (wide running bore + narrow flood hole), 5 bottom drains, 4 side drains, 4 snap-clip catch windows in the long side walls. Never PLA. |
+| `front_cover` | 1 | **PA12-GF** | PETG-HF | ~20–30 g | Closes the open front; 3 inner-face bosses cap the axle-dowel heads (+Z dowel stop); **4 integral cantilever snap clips** (2 per long side, `SNAP_Z0=1.5` — lengthened arm, 1.85 % worst-tight strain, within PA12-GF allowable) latch into body side-wall windows; **2 × Ø1.8 mm vent holes** at (±34, +12). Push on to click; flex 4 hooks outward to release. |
+| `drive_arm_R` | 1 | **PA12-GF** | PETG-HF | ~12–18 g | Right gear sector + crank arm. Clearance-bored at A_R (rides on axle dowel `pin_A_R`). Counterbored C-eye exit (−Z face) for `pin_C_R` geometric capture. Flat plate; prints face-down. |
+| `drive_arm_L` | 1 | **PA12-GF** | PETG-HF | ~14–20 g | Left gear sector + crank arm + **integral input shaft + rear D-profile coupler** (r 5.0, D-flat depth 1.4, length 12 mm). The shaft **is** the left axle — there is no separate A_L pin. Counterbored C-eye for `pin_C_L`. Print shaft-vertical for support-free strong layers. |
+| `follower_R` | 1 | **PA12-GF** | PETG-HF | ~6–9 g | Right B→D link bar. Counterbored D-eye exit (−Z face) for `pin_D_R` geometric capture. Flat plate; prints face-down. |
+| `follower_L` | 1 | **PA12-GF** | PETG-HF | ~6–9 g | Left B→D link bar. Counterbored D-eye exit (−Z face) for `pin_D_L`. Same geometry as `follower_R` (mirrored in gen_step). |
+| `finger_R` | 1 | **Ether-based TPU ~95A** — NOT ester-based | TPU | ~25–35 g | Right Fin Ray compliant jaw. Grip ridges on contact face; internal slanted-rib truss; mount holes at C_R and D_R. Must flex — print in TPU only. |
+| `finger_L` | 1 | **Ether-based TPU ~95A** | TPU | ~25–35 g | Left Fin Ray compliant jaw (chiral mirror of `finger_R`). |
+| `pin_A_R` | 1 | **PA12-GF** | PETG-HF | ~1–2 g | **Axle dowel** for right drive-arm pivot. Plain head + shank + narrow pilot tip. No barb — rigid geometric sandwich (head vs cover boss; shoulder vs stepped bore step). |
+| `pin_B_R` | 1 | **PA12-GF** | PETG-HF | ~1–2 g | **Axle dowel** for right follower pivot. Same geometry as `pin_A_R`. |
+| `pin_B_L` | 1 | **PA12-GF** | PETG-HF | ~1–2 g | **Axle dowel** for left follower pivot. Same geometry as `pin_A_R`. |
+| `pin_C_R` | 1 | **PETG-HF** ★ | PETG-HF | ~1–2 g | **Finger snap pin** for right crank-coupler joint (C_R). Barbed split tip; head above finger; lip locks in rigid PA12-GF counterbore pocket in the crank-arm C-eye. |
+| `pin_D_R` | 1 | **PETG-HF** ★ | PETG-HF | ~1–2 g | **Finger snap pin** for right follower-coupler joint (D_R). Barbed; lip locks in PA12-GF follower D-eye counterbore pocket. |
+| `pin_C_L` | 1 | **PETG-HF** ★ | PETG-HF | ~1–2 g | **Finger snap pin** for left crank-coupler joint (C_L). |
+| `pin_D_L` | 1 | **PETG-HF** ★ | PETG-HF | ~1–2 g | **Finger snap pin** for left follower-coupler joint (D_L). |
+
+★ **Finger snap pins (pin_C_R/L, pin_D_R/L) — PETG-HF in the final build, not PA12-GF.**
+The split snap barb reaches ~2.78 % insertion strain on worst-tight tolerance.
+PA12-GF's allowable is ~1.5–2.0 % (brittle glass-filled grade, no yield plateau) — it
+would crack on insertion. PETG-HF's allowable is ~2.5–3.5 % — 2.78 % is inside the
+band. Pull-out load is carried entirely by the **rigid PA12-GF counterbore shoulder** in
+the receiving arm/follower eye, not by the pin material — so a tougher PETG-HF pin is
+structurally equivalent for retention. (Verified in `MATERIALS.md` §3 / Fix 2A.)
 
 \* Rough single-piece estimates at recommended walls/infill (`PRINTING.md`).
-**Total filament: roughly ~140–200 g rigid (PETG/ASA/nylon) + ~50–70 g
-ether-TPU.** The 7 snap pins together add only a few grams.
+**Total filament: roughly ~110–160 g PA12-GF + ~50–70 g ether-TPU + ~4–8 g PETG-HF
+(finger pins).** The 7 snap pins together add only a few grams.
 
 ---
 
@@ -83,16 +96,27 @@ exits below the link eye.
 
 ---
 
-### 1.2 Material rationale (seawater picks)
+### 1.2 Material rationale (final build picks)
 
-- **Structural parts and all pins → PETG (default), or ASA / PA-GF.**
-  PETG has very low water uptake, does not hydrolyze (unlike PLA), holds
-  dimension under the modest loads of a flooded passive gripper, and has the
-  elasticity the snap-pin barbs need. **ASA** adds UV stability for topside
-  work. **Glass-filled nylon** for deep/long dives where creep and hydrostatic
-  load matter. All are polymer → no galvanic concern. **Never PLA** (hydrolyzes
-  underwater). **Never TPU for pins** (creeps under sustained load, wallows
-  bores, loses snap retention).
+- **Structural / rigid parts → PA12-GF (Nylon 12 glass-filled), FINAL.**
+  PA12 is the lowest-uptake engineering nylon (~0.7–1.2 % saturated; glass fill
+  reduces it further). It does not hydrolyze and holds tight dimensions under
+  sustained immersion. Glass fill gives ~3.5–5.5 GPa modulus and low creep —
+  ideal for gearbox bodies, arms, link bars, and axle dowels. **PETG-HF** is
+  used for test prints: same geometry fidelity, faster to iterate. **Never PLA**
+  (hydrolyzes); no ester-based materials; no raw PA6/PA66 (high swell).
+
+- **Axle dowels (pin_A_R, pin_B_R, pin_B_L) → PA12-GF.** Plain rigid sandwich
+  dowels — nothing flexes. PA12-GF's low creep is a bonus for sustained axial
+  retention; stiffness irrelevant to the barb-free geometry.
+
+- **Finger snap pins (pin_C_R/L, pin_D_R/L) → PETG-HF even in the final build.**
+  The split barb reaches ~2.78 % insertion strain, which exceeds PA12-GF's
+  ~1.5–2.0 % brittle allowable (would crack on insert). PETG-HF's 2.5–3.5 %
+  allowable passes with margin. Pull-out retention is taken by the rigid PA12-GF
+  counterbore shoulder in the arm/follower — the pin material carries no pull-out
+  load. **Never TPU for any pin** (creeps under sustained load, wallows bores,
+  loses snap retention).
 
 - **Fingers → ether-based TPU ~95A.** The Fin Ray grip principle is material
   compliance — the fingers must flex to wrap around an object. **Ether-based**
@@ -103,12 +127,13 @@ exits below the link eye.
 
 ---
 
-## 2. Zero bought hardware — what this revision eliminated
+## 2. Zero bought hardware inside the gripper — what this revision eliminated
 
-**This is a fully 3D-printed, zero-hardware gripper.** No screws, no nuts, no
-bolts, no washers, no bushings. Assembly is tool-free: drop in the printed
-axle dowels, snap on the cover, push in the barbed finger pins. Disassembly
-reverses in kind — flex the cover clips and lift out the pins.
+**This is a fully 3D-printed, zero-hardware gripper interior.** No screws, no
+nuts, no bolts, no washers, no bushings inside the gripper body. Assembly is
+tool-free: drop in the printed axle dowels, snap on the cover, push in the
+barbed finger pins. Disassembly reverses in kind — flex the cover clips and
+lift out the pins.
 
 | Obsolete metal item (previous version) | Count | Replaced by |
 |---|---|---|
@@ -146,26 +171,28 @@ a fresh-water rinse.
 
 ## 5. Printed-part count summary
 
-| Group | Qty |
-|---|---|
-| `enclosure` | 1 |
-| `front_cover` (4 integral clips + 2 vent holes) | 1 |
-| `drive_arm_R` | 1 |
-| `drive_arm_L` (integral shaft + D-coupler) | 1 |
-| `follower_R` | 1 |
-| `follower_L` | 1 |
-| `finger_R` (TPU) | 1 |
-| `finger_L` (TPU) | 1 |
-| `pin_A_R` (axle dowel) | 1 |
-| `pin_B_R` (axle dowel) | 1 |
-| `pin_B_L` (axle dowel) | 1 |
-| `pin_C_R` (finger snap pin) | 1 |
-| `pin_D_R` (finger snap pin) | 1 |
-| `pin_C_L` (finger snap pin) | 1 |
-| `pin_D_L` (finger snap pin) | 1 |
-| **Total printed parts** | **15** |
-| Bought hardware (screws/nuts/bolts/bushings) | **0** |
-| User-supplied | Waterproof servo + coupling; M4 flange bolts + galvanic isolators |
+| Group | Qty | Material (FINAL) |
+|---|---|---|
+| `enclosure` | 1 | PA12-GF |
+| `front_cover` (4 integral clips + 2 vent holes) | 1 | PA12-GF |
+| `drive_arm_R` | 1 | PA12-GF |
+| `drive_arm_L` (integral shaft + D-coupler) | 1 | PA12-GF |
+| `follower_R` | 1 | PA12-GF |
+| `follower_L` | 1 | PA12-GF |
+| `finger_R` | 1 | Ether-based TPU ~95A |
+| `finger_L` | 1 | Ether-based TPU ~95A |
+| `pin_A_R` (axle dowel) | 1 | PA12-GF |
+| `pin_B_R` (axle dowel) | 1 | PA12-GF |
+| `pin_B_L` (axle dowel) | 1 | PA12-GF |
+| `pin_C_R` (finger snap pin ★) | 1 | **PETG-HF** |
+| `pin_D_R` (finger snap pin ★) | 1 | **PETG-HF** |
+| `pin_C_L` (finger snap pin ★) | 1 | **PETG-HF** |
+| `pin_D_L` (finger snap pin ★) | 1 | **PETG-HF** |
+| **Total printed parts** | **15** | — |
+| Bought hardware inside gripper (screws/nuts/bolts/bushings) | **0** | — |
+| User-supplied (outside gripper) | Waterproof actuator + D-shaft coupling; M4 flange bolts + nylon/PTFE galvanic-isolating washers | — |
+
+★ Finger snap pins in PETG-HF (final build) — see §1.2 rationale.
 
 ---
 
@@ -177,17 +204,18 @@ seawater. The previous version maintained all metal in one stainless family
 (316/A4) to avoid an internal galvanic pair; this revision deletes the problem
 at the root by deleting the metal.
 
-With no screws, nuts, bolts, pins, or bushings:
+With no screws, nuts, bolts, pins, or bushings inside the gripper:
 
 - **No dissimilar-metal contact, no anode, no pitting, nothing to rust.**
-- Structural parts in PETG/ASA/PA-GF: low water uptake, no hydrolysis, holds
-  dimension over months of immersion.
-- Pivot pins in PETG: stiff enough to keep snap retention positive, tough
-  enough to flex on insertion without cracking.
+- Structural parts in PA12-GF: low water uptake (~0.7–1.2 % saturated, further
+  reduced by glass fill), no hydrolysis, holds dimension over months of immersion.
+- Axle dowels in PA12-GF: rigid sandwich geometry, low creep — snap retention stays
+  positive with zero elastic degradation.
+- Finger snap pins in PETG-HF: tough enough to flex the split barb on insertion
+  without cracking; pull-out load taken by the PA12-GF counterbore shoulder.
 - Fingers in ether-based TPU: does not hydrolyze in sustained immersion.
 - Housing flooded: internal and external pressure equalize through drain holes
-  and vent holes — the thin printed wall sees no differential, nothing to
-  crush.
+  and vent holes — the thin printed wall sees no differential, nothing to crush.
 - Shaft runs in a bare flooded bore: flushes clean, no sealed race to trap grit,
   no Oilite to leach oil, no seal to fail.
 

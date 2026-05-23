@@ -12,9 +12,10 @@ What it does
    single part to `print_plates/oriented/<part>.stl`.
 3. Replicates each part by its print QUANTITY and SHELF-PACKS the instances onto
    build plates for a common bed (default 256 x 256 mm, ~5 mm spacing),
-   grouping RIGID parts and TPU parts on SEPARATE plates (different material).
+   grouping by MATERIAL on SEPARATE plates: rigid (PA12-GF), petg (PETG-HF
+   finger pins), tpu (flexible fingers).
 4. Writes each plate as one combined STL: print_plates/plate_rigid_N.stl,
-   print_plates/plate_tpu_N.stl.
+   print_plates/plate_petg_N.stl, print_plates/plate_tpu_N.stl.
 5. Prints a summary: which part on which plate, per-part oriented bbox, count,
    overhang/support area in the chosen orientation, and (if a slicer CLI is on
    PATH) est. time + filament per plate.
@@ -127,16 +128,20 @@ ORIENT = {
              "Supportless. PETG, slow + low cooling at the barb.",
     ),
     "snap_pin_finger": dict(
-        rot=[("x", 180)], qty=4, group="rigid",
+        # PETG-HF (final material): the split snap barb needs ductility; PA12-GF
+        # is too brittle and would crack on insertion. Pull-out load is carried
+        # by the PA12-GF counterbore shoulder, not the pin -> separate PETG plate.
+        rot=[("x", 180)], qty=4, group="petg",
         note="flip 180 about X: head flange on bed, barb tip up. Locking lip is "
              "a ~0.7 mm bridge the printer spans in 1-2 layers. Supportless. "
-             "PETG, slow + low cooling at the barb.",
+             "PETG-HF (NOT PA12-GF -- barb must flex), slow + low cooling at the barb.",
     ),
 }
 
 # print order within a group (so the summary / plate reads logically)
 RIGID_ORDER = ["enclosure", "front_cover", "drive_arm_L", "drive_arm_R",
-               "follower", "snap_pin_axle", "snap_pin_finger"]
+               "follower", "snap_pin_axle"]
+PETG_ORDER = ["snap_pin_finger"]
 TPU_ORDER = ["finger_R", "finger_L"]
 
 
@@ -297,7 +302,7 @@ def main():
 
     # 2. orient each unique part, write oriented single STL, gather per-part data
     per_part = {}
-    items_by_group = {"rigid": [], "tpu": []}
+    items_by_group = {"rigid": [], "petg": [], "tpu": []}
     for name in needed:
         m = oriented_mesh(name)
         trimesh.exchange.export.export_mesh(m, str(ORIENTED_DIR / f"{name}.stl"))
@@ -315,7 +320,7 @@ def main():
 
     # 3. pack each group onto plates
     group_plates = {}
-    for group in ("rigid", "tpu"):
+    for group in ("rigid", "petg", "tpu"):
         if items_by_group[group]:
             group_plates[group] = shelf_pack(
                 items_by_group[group], bed_x, bed_y, args.spacing)
@@ -324,7 +329,7 @@ def main():
 
     # 4. write combined plate STLs
     plate_files = []  # (label, path, placements)
-    for group in ("rigid", "tpu"):
+    for group in ("rigid", "petg", "tpu"):
         for i, plate in enumerate(group_plates[group], 1):
             label = f"plate_{group}_{i}"
             path = OUT_DIR / f"{label}.stl"
@@ -348,7 +353,7 @@ def main():
         "PART", "QTY", "GROUP", "ORIENTED BBOX (mm)", "SUPPORT mm2")
     print(hdr)
     print("-" * len(hdr))
-    for group, order in (("rigid", RIGID_ORDER), ("tpu", TPU_ORDER)):
+    for group, order in (("rigid", RIGID_ORDER), ("petg", PETG_ORDER), ("tpu", TPU_ORDER)):
         for name in order:
             if name not in per_part:
                 continue

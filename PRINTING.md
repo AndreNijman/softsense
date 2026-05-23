@@ -1,34 +1,42 @@
 # 3D-printing guide
 
 How to print the geared four-bar / Fin Ray gripper (`gripper.py`, `README.md`).
-This gripper is now **fully 3D-printed with ZERO hardware** — no screws, no
-bolts, no metal dowels. Every pivot is a printed snap pin and the front cover
-clicks on with integral cantilever clips. Covers per-part orientation,
-supports, material, and the print settings that matter, plus how the built-in
-clearances behave and how to tune them.
+This gripper is **fully 3D-printed with ZERO hardware** — no screws, no bolts, no
+metal dowels. Every pivot is a printed snap pin and the front cover clicks on with
+integral cantilever clips. This guide covers material profiles, per-part settings,
+supportless orientations, and the fit-tuning workflow.
 
-This is the **fabrication** companion to `UNDERWATER.md` (which covers material
-*chemistry* for seawater). Pick orientation and settings here; pick the exact
-filament grade there.
+Companion documents:
+- `UNDERWATER.md` — material chemistry and seawater prep.
+- `ASSEMBLY.md` — assembly order and snap-fit insertion.
+- `PRINT_PLATES.md` — plate layout, regeneration commands, bbox table.
+- `MATERIALS.md` — when it exists: full material comparison, creep/UV/salt
+  performance data. PETG-HF test prints defer long-term performance to that doc.
 
-## Parts list (what comes out of `gripper.py`)
+---
 
-`gen_step()` emits, in world coords, one `enclosure`, two drive arms
-(`drive_arm_R`, `drive_arm_L`), two followers (`follower_R/L`), two Fin Ray
-fingers (`finger_R/L`), one `front_cover`, and **seven 3D-printed snap pins**
-(`pin_A_R`, `pin_B_R`, `pin_C_R`, `pin_D_R`, `pin_B_L`, `pin_C_L`, `pin_D_L`).
-The **input shaft is integral to `drive_arm_L`** (it *is* the left axle, hence
-no `pin_A_L`) — there is no separate shaft part to print.
+## Pinned materials (final build)
 
-**Everything in the queue is printed. There is no hardware to buy.** The print
-queue is: enclosure, 2 drive arms, 2 followers, 2 fingers, front cover, and the
-7 snap pins (3 hidden axle pins + 4 visible finger pins).
+| Part(s) | Final material | Test-print substitute |
+|---|---|---|
+| `enclosure`, `front_cover` | **PA12-GF** (Nylon 12 glass-filled) | PETG-HF |
+| `drive_arm_L`, `drive_arm_R`, `follower` (×2) | **PA12-GF** | PETG-HF |
+| `snap_pin_axle` (×3) | **PA12-GF** | PETG-HF |
+| `snap_pin_finger` (×4) | **PETG-HF** (final build) | — (already final material) |
+| `finger_L`, `finger_R` | **TPU ether-based** (~95A Shore) | TPU ether-based (no substitute) |
+
+PA12-GF is rigid and structural throughout; TPU is the compliant jaw.
+`snap_pin_finger` is **PETG-HF in both test and final builds**: the snap barb
+must flex repeatedly through the finger-pivot bore; PA12-GF is too brittle and
+would crack the barb. The load-bearing counterbore socket in the PA12-GF enclosure
+carries the structural load — the pin itself only needs ductility, not stiffness.
+
+PETG-HF is **not** suitable for the seawater-structural parts (enclosure, cover,
+arms, followers, axle dowels) — see `MATERIALS.md` when available.
+
+---
 
 ## Drop-into-slicer plates (start here)
-
-The fastest path to a print is the **pre-oriented, pre-packed plates** produced
-by `make_print_plates.py`. They rotate every part to its supportless orientation
-and arrange them on a common bed for you:
 
 ```bash
 source /home/andre/.cad-venv/bin/activate
@@ -36,460 +44,463 @@ python export_parts.py          # parts/*.stl  (CLOSED pose, from gripper.py)
 python make_print_plates.py     # print_plates/  (oriented + plated STLs)
 ```
 
-Outputs (see `PRINT_PLATES.md` for the full layout):
+Outputs (full layout in `PRINT_PLATES.md`):
 
-- `print_plates/plate_rigid_1.stl` — all 13 rigid parts (PETG/ASA/Nylon).
+- `print_plates/plate_rigid_1.stl` — all 13 rigid parts (PA12-GF or PETG-HF).
 - `print_plates/plate_tpu_1.stl` — the 2 TPU Fin Ray fingers (separate material).
 - `print_plates/oriented/<part>.stl` — each part alone, already oriented.
 
-> The plates are a **derived artifact**: re-run `export_parts.py` *then*
-> `make_print_plates.py` after ANY change to `gripper.py` geometry. The script
-> wipes and rebuilds `print_plates/` each run.
+> **REGENERATE after any `gripper.py` geometry change:** `python export_parts.py
+> && python make_print_plates.py`. The script wipes `print_plates/` on every run.
 
-## Supportless orientation table (audited)
+---
 
-Every part below was mesh-audited for supportless printing (down-facing surface
-steeper than 45° from horizontal). The "support" column is the residual
-overhang area in the chosen orientation. **The whole set prints supportless**
-with two caveats called out below.
+## Material profiles
 
-| Part | Qty | Print orientation (from `gen_step()` export pose) | Support? |
+### 1. PA12-GF — Nylon 12 glass-filled (final build: structural rigid parts)
+
+PA12-GF is stiff, dimensionally stable, low creep, seawater-compatible and
+pressure-cycle resistant. It is also hygroscopic and abrasive.
+
+#### Nozzle — HARDENED STEEL OR RUBY IS MANDATORY
+
+Glass fibre destroys brass nozzles within a few hundred grams. A brass nozzle is
+not optional-upgrade territory; it will fail mid-print. Use a hardened-steel or
+ruby-tipped nozzle.
+
+**Critical: use a 0.4 mm hardened nozzle specifically for the axle snap pins.**
+`SNAP_BARB_LIP_T = 1.0 mm` — the locking-lip axial wall is exactly 1.0 mm (see
+`gripper.py` comment: "FLOOR: 2.5 perimeters @ 0.4 nozzle — do NOT reduce"). At
+a 0.5 mm hardened nozzle this wall falls to 2.0 perimeters; at 0.6 mm it is only
+1.67 perimeters. **The 0.4 mm hardened nozzle is required to keep the `snap_pin_axle`
+lip wall robustly printed.** You may use a 0.4 mm hardened for the whole PA12-GF
+rigid plate, or switch to it specifically for the `snap_pin_axle` oriented STLs.
+(`snap_pin_finger` prints in PETG-HF with a brass 0.4 mm nozzle — same 0.4 mm
+constraint applies, but brass is fine for non-abrasive PETG-HF.)
+
+#### Filament drying — MANDATORY
+
+PA12-GF is very hygroscopic. Wet filament causes:
+- Stringing, bubbles, and poor layer adhesion (weakens snap barbs and clip roots).
+- Dimensional errors that tighten bores (creep-proofing the snap fit depends on
+  tight tolerances; wet PA12-GF drifts them).
+
+**Drying protocol:**
+- Dry all spools at **80°C for 8–12 hours** before printing (a convection oven or
+  dedicated filament dryer; a food dehydrator at 80°C works).
+- If your print runs more than 6–8 hours, run the spool live from a **dry box
+  (desiccant box)** to maintain low moisture during the print.
+- After drying: load into the dry box, begin printing within ~2 hours. Nylon
+  re-saturates quickly in humid air.
+
+#### Temperature and bed
+
+| Parameter | Range | Notes |
+|---|---|---|
+| Nozzle | 270–290°C | Start at 275°C; raise to 290°C for better layer adhesion at the barb/clip region |
+| Bed | 70–90°C | PEI textured sheet is reliable; or use Magigoo PA / glue stick on bare glass |
+| Enclosure / chamber | 40–50°C | An enclosed chamber reduces warping significantly; if you have an open printer, a draft shield is required |
+| Cooling fan | 10–20% max | High cooling causes layer delamination and warping; keep it minimal |
+
+#### Warping mitigation
+
+PA12-GF has higher shrinkage (~0.6–1.0%) than PETG (~0.3–0.5%) and warps if
+the bed environment is uncontrolled.
+
+- **Brim: 5–8 mm on all parts.** Mandatory on `enclosure` (large footprint),
+  `front_cover` (wide), and the snap pins (tall, narrow).
+- **Draft shield:** use a 2–3 layer draft shield on the enclosure; it reduces
+  the in-print ambient temperature gradient around the large housing.
+- **First layer:** slow (20–25 mm/s), slight over-extrusion (1.0–1.05 flow).
+  A well-adhered first layer is the single most important warp-reduction step.
+- **Don't open the chamber mid-print** on the large parts.
+
+#### Shrinkage and bore calibration
+
+Because PA12-GF shrinks ~0.6–1.0%, bores may print tighter than the PETG test
+prints. **Before printing the full plate, print one `snap_pin_axle` and a scrap
+bore coupon** (through-hole at nominal AXLE_BORE_R = 2.6 mm → Ø5.2 mm, matching
+the real bore length). If the coupon bore is tight, increase `PRINT_CLEAR` to
+0.35–0.40 in `gripper.py` and regenerate. Do this coupon test in PA12-GF
+specifically — PETG-HF coupon results do not transfer.
+
+#### Layer height, walls, infill
+
+| Setting | Snap pins | Drive arms / followers | Enclosure / cover |
 |---|---|---|---|
-| `enclosure` | 1 | **No rotation.** Open slot/cavity face **+Z up**, solid floor (drain bores) on bed. Drains print as vertical bores; clip-catch windows print as vertical wall slots. | ~1272 mm² — interior floor ceilings mostly bridge; **back flange (+Y) may want a few support pillars / a small skirt** |
-| `front_cover` | 1 | **Rotate 180° about X.** Flat outer face on bed, 4 snap clips point **+Z up** (self-supporting beams). | 184 mm² — hook underlips bridge; no support |
-| `drive_arm_L` | 1 | **Rotate 180° about X.** Gear/arm plate anchored flat on the bed, integral input shaft pointing **+Z up** (vertical cylinder = self-supporting rings). | 23 mm² — only the Ø8→Ø10 coupler shoulder at the shaft tip bridges; **see torsion note below** |
-| `drive_arm_R` | 1 | **No rotation.** Flat 5 mm plate face-down, pivot axis vertical. | 0 |
-| `follower` | 2 | **No rotation.** Flat 5 mm bar face-down. | 0 |
-| `snap_pin_axle` | 3 | **Rotate 180° about X.** Head flange on bed, barb tip **up** (lead-in cone narrows going up). | 0 |
-| `snap_pin_finger` | 4 | **Rotate 180° about X.** Head flange on bed, barb tip **up**. | 12 mm² — 0.7 mm locking-lip bridge; no support |
-| `finger_R` | 1 | **No rotation.** Lying flat on a 28×96 Z-face, build height 10 mm; Fin Ray cells in the build plane. | ~0 |
-| `finger_L` | 1 | **No rotation.** Same as `finger_R` (chiral mirror). | ~0 |
+| Layer height | 0.15–0.20 mm | 0.15–0.20 mm (0.15 for gear teeth) | 0.20 mm |
+| Perimeters/walls | **Solid (100%)** | **5–6** (shaft region: 6) | 4–5 |
+| Infill | **100%** | 40–60% (shaft: 100%) | 15–25% (flange area: 25%) |
+| Speed | Slow at barb: 20–25 mm/s | 40–50 mm/s | 40–50 mm/s |
+| Cooling | Off at barb region | 10–20% | 10–20% |
 
-**Two orientation facts the older prose got slightly wrong, now corrected:**
+The `SNAP_BARB_LIP_T = 1.0 mm` wall runs for the full locking-lip length. Keep
+perimeters at ≥4 (0.4 mm nozzle = 2.5 perimeters minimum; 4 is safer). Do not
+reduce wall count to speed the print.
 
-1. **The snap pins and the front cover must be FLIPPED 180° about X** relative to
-   the `gen_step()` export pose. In the *exported* STL the pin head (Ø7.8 flange)
-   sits at **+Z (top)** and the barb at the bottom; the front-cover clips hang
-   **downward**. `make_print_plates.py` applies the 180° flip so the head/outer
-   face lands on the bed and the barb/clips point up — the supportless direction.
-   If you orient the raw `parts/*.stl` by hand, do the flip yourself.
-2. **The finger grip ridges are on the −X *contact* face, which is vertical** when
-   the finger lies flat (it is not a top/bottom face). The ridge grooves run up
-   the 10 mm build height as in-plane perimeters — so "ridge side down" from the
-   old notes is moot for the flat-on-Z-face orientation; either Z face on the bed
-   works. What matters is keeping the 28×96 cell plane horizontal so the truss
-   self-supports.
+Snap pins with `drive_arm_L`'s integral shaft: the shaft layers run **transverse
+to the drive-torque axis** in the chosen supportless orientation (gear plate on
+bed, shaft vertical). Compensate with **100% infill + 6 perimeters in the shaft
+region**. Print the shaft segment slow with minimal cooling.
 
-### drive_arm_L — supportless vs. torsion (the one real trade-off)
+#### Supports
 
-The audited supportless orientation flips the part **180° about X** so the
-**gear plate anchors on the bed and the shaft stands vertical** (no support under
-the shaft; only the Ø8→Ø10 coupler shoulder at the shaft tip bridges, ~23 mm²).
-Printing it the *other* way — shaft tip on the bed, gear plate at the top —
-cantilevers the whole 26×50 plate in mid-air (529 mm² of support); don't. The
-cost of the correct orientation is that the shaft's layers run **transverse to
-the drive-torque axis**, the weak direction for interlayer shear. To keep it
-supportless *and* strong:
+**None required.** All orientations are supportless as determined by
+`make_print_plates.py` (see §Supportless orientation table below and
+`PRINT_PLATES.md`). One exception: the `enclosure` back mounting flange may want
+a few support pillars under its outer edge — check the slicer preview; if it
+droops, add 2–3 column supports there only.
 
-- **100 % infill + 5–6 perimeters in the shaft region.**
-- Print PETG hot for max interlayer fusion; slow on the shaft.
-- If you will drive the gripper hard, the optional metal-shaft upgrade in
-  "Integral shaft on `drive_arm_L`" below trades zero-hardware for strength.
+#### Optional annealing
 
-(The older "lay the shaft horizontal" hint from `export_parts.py` is
-geometrically impossible — the shaft is perpendicular to the plate; you choose
-plate-flat/shaft-up *or* shaft-down, not both flat at once.)
+After printing, PA12-GF parts can be annealed at 80°C for 4 hours (free-air,
+supported on a flat surface or packed in sand/cornstarch to prevent distortion).
+Annealing relieves internal stress and raises crystallinity, improving stiffness
+and creep resistance. Recommended for the drive arms and snap pins that will see
+sustained load. Check dimensions after annealing — enclosure bore centres may
+shift slightly; ream bores if needed.
 
-### Clearance constant note (read before tuning)
+#### Post-print moisture conditioning
 
-The live value in `gripper.py` is **`PRINT_CLEAR = 0.3 mm`** (confirmed in
-`DFM.md`), giving pivot bores of **Ø5.2 mm** (`AXLE_BORE_R = PIN_R + 0.3 = 2.6`,
-shank Ø4.6). Some prose further down still says "0.25 mm / Ø4.9–5.1" — that is
-**stale**; trust 0.3 mm / Ø5.2. `SNAP_CLEAR = 0.35`, `SNAP_BARB_PROUD = 0.7`,
-`SNAP_BARB_SEAT = 0.3` are current.
+Paradoxically, dry PA12-GF (just off the dryer) is slightly more brittle than
+conditioned PA12-GF. Nylon reaches peak toughness after it has re-absorbed
+~2–3% ambient moisture (equilibrium at ~50% RH). For the snap pins and cover
+clips, where flex-fatigue is the failure mode, leave parts to condition at room
+humidity for 24–48 hours before assembly or mechanical testing. Seawater
+immersion will drive conditioning further; this is expected and beneficial.
 
-## Per-part print recommendations
+---
 
-Orientations are described in the **printed/Z-up** frame (`gen_step()` rotates
-the model so fingers point +Z and the shaft exits horizontally). "On the bed"
-means that face is the first layer.
+### 2. PETG-HF — High-flow PETG (test prints + final `snap_pin_finger`)
 
-| Part | Material | Orientation on bed | Supports | Layer height | Walls / perimeters | Infill |
-|---|---|---|---|---|---|---|
-| `finger_R` / `finger_L` (Fin Ray) | **TPU 95A** | **Flat on a Z side face** (finger lying on its side, ribs/cells in the build plane) | **No** | 0.15–0.20 mm | 3–4 perimeters (spars print as solid wall) | 100% (or ≥80%) |
-| `drive_arm_R` | PETG / ASA / Nylon | **Flat** (gear+arm pad-down, axis vertical) | No | **0.12–0.16 mm** (fine, for the teeth) | **5–6 perimeters** (solid eyes + teeth) | 40–60% |
-| `drive_arm_L` (integral shaft) | PETG / ASA / Nylon | **Shaft vertical** (see Integral shaft) | Yes (gear/arm fan above shaft) | 0.12–0.16 mm | 5–6 perimeters | 60–80% |
-| `follower_R` / `follower_L` | PETG / ASA / Nylon | **Flat** | No | 0.16–0.20 mm | **5–6 perimeters** (load goes through the pivot eyes) | 30–50% |
-| `enclosure` | PETG / ASA / Nylon | **Bottom (drain-hole face) on bed, open slot face up** | Mostly no (see notes) | 0.20–0.24 mm | 3–4 perimeters | 15–25% |
-| `front_cover` (snap-clip) | PETG / ASA / Nylon | **Outer face on bed, clips pointing up** | **No** | 0.16–0.20 mm | 4–5 perimeters (clips need solid walls) | 30–50% |
-| `pin_A_R` / `pin_B_R` / `pin_B_L` (hidden axle pins) | **PETG** | **Head-down, axis vertical, barb up** | **No** | 0.12–0.16 mm | 100% / solid | 100% |
-| `pin_C_R` / `pin_D_R` / `pin_C_L` / `pin_D_L` (finger snap pins) | **PETG** | **Head-down, axis vertical, barb up** | **No** | 0.12–0.16 mm | 100% / solid | 100% |
+PETG-HF is used for **fit testing, bore calibration, and assembly dry-runs** for
+most parts, and is also the **final production material for the 4 `snap_pin_finger`
+pins**. It prints fast, requires no special nozzle, and tolerates humidity.
 
-### Fin Ray fingers — `finger_R` / `finger_L` (TPU)
+**PETG-HF does NOT substitute for PA12-GF in the structural underwater parts.**
+PETG creeps under sustained load, has poor UV resistance, and is not seawater-rated
+for long-term submersion in a load-bearing role. The `snap_pin_finger` exception is
+intentional: the barb must flex without cracking; PA12-GF is too brittle for that
+snap-fit cycling, and the rigid PA12-GF counterbore socket handles the structural
+load. All long-term performance data, creep margins, and underwater life for the
+housing and drive parts are based on the PA12-GF parts. See `MATERIALS.md` once it
+exists.
 
-These are the part that makes the gripper grip, so they get the most care.
+#### Temperature and bed
 
-- **Material: flexible TPU, ~95A shore.** The whole Fin Ray principle is
-  *material compliance* — the slanted-rib triangular truss lets the tip curl and
-  wrap around an object when the contact face is loaded. A rigid print of this
-  finger doesn't grip adaptively; it has to flex. 95A is a good default: soft
-  enough to conform, stiff enough to hold force. Go softer (85A) for delicate /
-  light objects, stiffer (98A) for more grip force.
-- **Orientation: lay the finger flat on one of its Z side faces** so the layers
-  run *across* the finger thickness and the ribs/cells lie in the build plane.
-  Printed this way the triangular cells, ribs and the hollow interior are all
-  self-supporting — **no supports needed inside the cells**, which you could
-  never cleanly remove from a flexible part anyway. (Printing it "standing up"
-  tip-toward-the-sky would put the rib overhangs in mid-air and bury supports in
-  the compliant truss — avoid.)
-- **Layer adhesion is the failure mode for flexible parts under repeated flex.**
-  Laying the finger flat on its side puts the bending stress *along* the layers
-  (in-plane), which is the strong direction — flex cycles don't peel layers
-  apart. Print slow (20–30 mm/s), high-ish temp for good fusion, and turn part
-  cooling down for TPU.
-- **Walls: print the spars solid.** With 3–4 perimeters at the wall thickness in
-  the model (`FR_WALL = 2.8 mm`), the contact spar, spine and ribs come out as
-  solid extruded walls. Use **100% (or ≥80%) infill** so the floor/cap insets
-  and any thicker sections are dense — a hollow spar is squishy in the wrong way.
-- Keep the grip ridges on the contact face (≈2.2 mm pitch) — printed flat-on-side
-  they reproduce cleanly as little teeth running across the finger depth.
+| Parameter | Range | Notes |
+|---|---|---|
+| Nozzle | 235–260°C | High-flow grades need the upper end (245–260°C) to keep up with print speed |
+| Bed | 70–85°C | PEI textured or smooth glass with light hair-spray; PETG tends to over-stick to bare PEI — a release agent helps |
+| Cooling | 30–60% | More than PA12-GF; PETG bridges better with cooling |
+| Enclosure | Open OK | PETG does not warp badly at room temperature |
 
-#### Why the fingers now have fillets & chamfers (new — print-friendly TPU)
+#### Nozzle for test prints
 
-The finger geometry now bakes in rounded corners specifically so TPU prints
-cleaner and doesn't crack in service. These are applied last, after all the
-booleans, so they round real edges of the finished truss:
+Standard brass 0.4 mm nozzle is fine — PETG is not abrasive.
+**Exception:** if you are printing test snap pins to verify the `SNAP_BARB_LIP_T`
+lip geometry, use 0.4 mm specifically so the wall count matches the final print
+condition (0.4 mm for both the PETG-HF finger pins and the PA12-GF axle pins).
+A 0.5 mm test-pin barb behaves differently from a 0.4 mm final pin.
 
-- **`FR_CELL_FILLET = 0.8 mm` — fillet on every internal rib-cell / spar-junction
-  corner.** TPU fatigue cracks *start* at sharp interior re-entrant corners,
-  where each flex cycle concentrates stress. Rounding those corners removes the
-  stress riser, so the truss survives many times more open/close cycles before a
-  rib tears. It also gives the nozzle a smooth interior path instead of a hard
-  inside corner that leaves a void.
-- **`FR_BASE_CHAMFER = 0.5 mm` — chamfer on the bottom (bed-face) edges.**
-  Because the finger prints flat on its Z side face, that bottom face is where
-  **elephant's foot** (first-layer squish bulge) appears. A 0.5 mm chamfer gives
-  the squish somewhere to go, so the bottom edge stays dimensionally true and the
-  finger doesn't rock or bind on its bulged base.
-- **`FR_TIP_FILLET = 1.5 mm` (blade apex) + `FR_GRIP_TIP_FLAT = 0.2 mm` (grip
-  tooth tips).** A knife-edge in TPU prints as a single fragile bead that
-  delaminates; rounding the apex and putting a tiny flat on each grip-tooth tip
-  makes those features print as multi-perimeter geometry that holds together and
-  doesn't peel.
+#### Speed and layer height
 
-Net: the fingers print with cleaner walls, no elephant-foot, and far better
-flex-fatigue life. Don't "simplify" them back to sharp corners.
+PETG-HF can run faster than standard PETG. Use:
+- Layer height: 0.2 mm (fast test); drop to 0.15 mm for gear-teeth test prints
+  where you want realistic tooth-flank geometry.
+- Speed: 60–80 mm/s perimeters, 100+ mm/s infill.
+- Barb region: still slow to 25–30 mm/s and reduce cooling to 20–30% — a
+  delaminated barb in the test print is a false failure signal.
 
-### Drive arms & followers — `drive_arm_R/L`, `follower_R/L`
+#### Brim
 
-- **Material: PETG, ASA, or nylon** (or PETG-CF / nylon-CF for stiffness). These
-  are the rigid load path from the shaft to the fingers. PLA is fine for a dry
-  bench prototype but **not for underwater** (see `UNDERWATER.md`).
-- **Print flat** (the main face on the bed, pivot axis vertical). Flat keeps the
-  pivot **eyes** strong: the bore walls are then concentric rings of perimeter,
-  and the pin load is carried in-plane rather than trying to split layers.
-- **High perimeter count (5–6) at the eyes.** The eyes and the meshing teeth are
-  the stressed features; perimeters carry that load far better than infill, so
-  bias walls up and infill down. Followers see pin-to-pin tension/compression —
-  perimeters along the bar handle it.
-- **Gear teeth want fine layers (0.12–0.16 mm).** The drive-arm teeth mesh on the
-  centreline; coarse layers leave a stair-stepped flank that meshes roughly and
-  loses backlash control. Finer layers + a clean seam (below) give a smoother
-  mesh. A small chamfer/deburr on the tooth tips after printing helps.
+A 3–5 mm brim is sufficient for PETG-HF (less warping than PA12-GF). Still use a
+brim on the snap pins and enclosure for adhesion.
 
-### Snap pins — `pin_A_R/B_R/B_L` (axle) & `pin_C_R/D_R/C_L/D_L` (finger)
+#### What to verify with PETG-HF test prints
 
-**All seven pivots are now 3D-printed push-to-snap pins — no metal dowels, no
-fasteners.** Each pin has a HEAD flange at one end (a stop that can't pull
-through) and a SPLIT, BARBED compliant tip at the other: a `+` cross-slot lets
-the tip squeeze inward as it's pushed through the bore, then a locking lip
-springs back out *past* the far bore face to lock the pin in place. A tapered
-lead-in cone at the very tip starts the insertion.
+1. **Snap-pin click** — print one `snap_pin_finger` + bore coupon. Confirm: inserts
+   with moderate force, barb clicks past far face, resists pull-out. Tune
+   `PRINT_CLEAR` here. Note: `snap_pin_finger` is **final build PETG-HF**, so a
+   passing PETG-HF test pin is a valid final pin. For the `snap_pin_axle` pins
+   (which are PA12-GF in the final build), also run a separate PA12-GF coupon
+   — PA12-GF shrinks more and may need a higher `PRINT_CLEAR`.
+2. **Cover snap engagement** — print `front_cover` in PETG-HF and snap it onto the
+   PETG-HF enclosure. Check the four hooks seat positively and the cover removes
+   without permanent deformation.
+3. **Pivot clearance** — assemble drive arms / followers on snap pins and confirm
+   they pivot freely without excessive slop.
+4. **Finger fit** — snap the TPU fingers onto their pin pairs (these are the final
+   TPU; print them once, skip PETG-HF substitution for fingers).
 
-- **Material: PETG** (or nylon). The snap tip must flex without snapping — PETG
-  has the toughness/elongation for a living-hinge-style barb. **Avoid PLA**: it's
-  too brittle, the barb fingers crack off on the first insertion.
-- **Orientation: print HEAD-DOWN, axis VERTICAL, barb pointing UP — no supports.**
-  This is correct for the geometry and it prints supportlessly:
-  - The **lead-in cone** tapers from wide (`barb_max_r ≈ 3.0 mm`) at its base up
-    to a small flat tip (`SNAP_TIP_R = 1.0`). Printed point-up, a cone narrows as
-    Z rises — that's the printable direction, every layer sits on a slightly
-    larger one below. No support under the cone.
-  - The **locking lip** is only `SNAP_BARB_PROUD = 0.7 mm` proud of the shank; the
-    step out to the lip is a tiny ~0.7 mm horizontal overhang the printer bridges
-    in a layer or two. No support needed.
-  - The **`+` split slot runs vertically** (parallel to the print axis), so it's
-    just two empty channels the nozzle walks around — it never traps support.
-  - The **head flange** is the first thing on the bed: a flat, well-adhered disc
-    that anchors the print.
-- **Layer adhesion is the load-bearing caution for snap pins.** When you push the
-  pin through a bore, the split tip fingers **flex outward/inward**, and that
-  bending puts tension *across* the layer boundaries on the outer fibre of each
-  finger. Printed axis-vertical, the layers stack across the flex direction — so:
-  print **PETG at the high end of its temperature range** for maximum interlayer
-  fusion, **slow down** through the barb region, and **reduce/turn off part
-  cooling at the barb** so the thin split fingers fuse fully. A poorly-fused barb
-  shears off on first insertion. (The plain bearing shank below the slot stays
-  solid and just needs to be round — that's the part the link actually pivots on.)
-- **Print 100% solid.** These are small structural pins; there's no room for
-  infill and you want maximum strength. Fine layers (0.12–0.16 mm) keep the shank
-  round so the joint turns smoothly.
-- **Two kinds, same print orientation, different assembly:**
-  - **3 hidden axle pins** — `pin_A_R`, `pin_B_R`, `pin_B_L` (head at the back
-    wall, barb snapping into the front cover boss). These are the fixed pivots
-    buried inside the housing.
-  - **4 visible finger pins** — `pin_C_R`, `pin_D_R`, `pin_C_L`, `pin_D_L` (head
-    as a small cap above the finger top, barb at the bottom). These carry the
-    Fin Ray fingers on the coupler.
-  Both kinds print the same way (head-down, barb-up, no supports); only where they
-  go in the assembly differs.
-- **Tuning fit** — see the [Fit tuning](#fit-tuning-do-this-first) section. In
-  short: too tight to push in → loosen the bore (`PRINT_CLEAR`) or ream it; barb
-  won't lock / pin pulls back out → the lip isn't clearing the far face, raise
-  `SNAP_BARB_PROUD` and/or `SNAP_BARB_SEAT`; pin too hard to ever remove → lower
-  `SNAP_BARB_PROUD`.
+---
 
-### Front cover — `front_cover` (snap-clip, tool-free)
+### 3. TPU ether-based — ~95A Shore (fingers, final material)
 
-**The front cover now snaps on with 4 integral cantilever clips (2 per long side
-wall) — no screws.** It also closes the open front of the housing and carries
-the bosses that support the far end of the three internal axle pins. Push it on
-(the hooks cam in over the lead-in and click into the side-wall windows); to
-remove, flex the four hooks outward.
+The Fin Ray fingers are the compliance elements of the grip. They must flex
+repeatedly without fatigue cracking. Use **ether-based** TPU (not ester-based) —
+ether-based grades resist hydrolysis in seawater; ester-based grades degrade.
+There is no test-print substitute: print the fingers in final TPU from the start.
 
-- **Orientation: print the OUTER face on the bed, so the clips point UP — no
-  supports.** The four cantilever snap clips stand up off the cover's inner face
-  as ~15 mm-tall vertical beams. With the cover's flat outer face down, those
-  clips grow straight up in the build direction and print as self-supporting
-  walls. (Print it the other way — inner face down — and the clips would
-  cantilever sideways in mid-air and demand support that's a nightmare to clean
-  out of the hooks.)
-- **The hook lead-in chamfer (`SNAP_LEADIN = 2.0 mm`) prints as part of the
-  upward clip** and is what cams the hook over the housing's catch edge during
-  push-on. Don't sand it flat — it's the ramp that makes the snap work.
-- **Same layer-adhesion caution as the snap pins.** The clips flex outward every
-  time you snap the cover on/off, putting tension across the layers at the clip
-  root. Print PETG hot, solid walls (4–5 perimeters so the clip beam is mostly
-  perimeter), and slow at the clip roots.
+#### Direct drive is required, not optional
 
-### Enclosure body — `enclosure`
+High-retraction Bowden setups cannot handle TPU reliably at the wall thicknesses
+and infill densities needed. The `FR_WALL = 2.8 mm` ribs and the `FR_GRIP_DEPTH =
+0.6 mm` grip teeth require consistent extrusion control that only a direct-drive
+extruder provides.
 
-- **Print open-slot-face up, drain-hole face on the bed.** After the Z-up
-  rotation the two wide arm slots are on top; printing that face upward means the
-  housing is essentially open at the top and needs **no internal supports** for
-  the cavity. The only solid spanning the top is the narrow central bridge
-  between the slots, which is short enough to bridge.
-- **Drains print as clean vertical bores.** With the bottom (drain-row) face on
-  the bed, the bottom-row flood/drain holes run straight up as vertical
-  cylinders — they print round and dimensionally true with no support.
-- **The snap-clip catch windows** are through-windows in each long side wall (they
-  double as side drains). They're vertical slots in the walls, so they print
-  cleanly with the housing on its base; just deburr the top edge of each window —
-  that's the lip the cover hook latches behind, so it needs to be crisp.
-- **The back mounting flange overhangs sideways.** It sticks out at the rear and
-  may need a **small support skirt / a few support pillars** under its outer edge,
-  or print it bridge-able by keeping the overhang modest. Check the slice — it's
-  the one feature on this part that might want support.
-- Walls 3–4 perimeters, infill 15–25% — it's a housing, not a load member; the
-  flange bolt area benefits from the higher end.
+#### Temperature and bed
 
-## Integral shaft on `drive_arm_L` — orientation trade-off
+| Parameter | Range | Notes |
+|---|---|---|
+| Nozzle | 220–235°C | Start at 225°C; raise if under-extrusion in the thin ribs |
+| Bed | 30–50°C | Textured PEI, unheated also works; lightly wipe with IPA |
+| Cooling | Off or 10% max | TPU needs interlayer adhesion; high cooling causes delamination at flex cycles |
 
-`drive_arm_L` carries the **input shaft** as one rigid piece with the gear and
-crank arm; that shaft transmits **all the drive torque**, so its print
-orientation is a real strength decision. Both options below are **fully printed**
-(this gripper has zero hardware):
+#### Retraction
 
-- **Recommended: print the arm with the shaft vertical** (shaft pointing up off
-  the bed, the gear/arm at the top). The shaft is then a stack of full-perimeter
-  rings, so torsion and bending load it *along* the layers — the strong
-  direction. The cost is that the gear/arm fans out above the shaft and needs
-  **support** under that overhang; use easy-to-remove support and clean up the
-  tooth flanks afterward.
-- **The alternative — arm flat, shaft lying down — is support-free but weak:** the
-  shaft's layers then run *across* its axis, so drive torque tries to shear one
-  layer off the next. For anything but a light bench test this is the wrong way.
-- **Optional non-default upgrade (departs from zero-hardware):** if you'll drive
-  the gripper hard, you *can* print the arm flat (support-free, strong eyes/teeth)
-  and bond/pin a Ø8 mm metal shaft into a relieved hub instead of the printed
-  shaft — a metal-strength input shaft with an easy print. This adds hardware, so
-  it's outside the all-printed default; mentioned only as an option for high-load
-  use, and it pairs with the marine-grade hardware in `UNDERWATER.md`.
+Use **0–1 mm retraction** (0.5 mm is a safe starting point). More retraction pulls
+the soft filament back into the heatbreak and causes jams. If stringing is a
+concern, manage it with temperature and print speed rather than retraction.
 
-## General settings
+#### Print speed
 
-### Clearances: joints (0.25 mm) and snaps (0.35 mm)
+**20–30 mm/s for all moves.** TPU requires slow, consistent extrusion. Faster
+speeds cause inconsistent walls and poor rib-to-spar adhesion, which is the
+fatigue failure origin. Infill can go slightly faster (30–40 mm/s) but keep
+perimeters slow.
 
-The model bakes in **four independent clearance/fit knobs**. Know which one drives
-which feature — they are *not* interchangeable:
+#### Layer height, walls, infill
 
-| Constant | Value | Controls | Symptom it fixes |
-|---|---|---|---|
-| `PRINT_CLEAR` | 0.25 mm/side | pin-in-bore turning fit (link/arm/gear rides on its pin) | pivots too tight or too sloppy |
-| `SNAP_CLEAR` | 0.35 mm | front-cover **clip** hook vs side-wall window engagement | cover won't click / cover rattles |
-| `SNAP_BARB_PROUD` | 0.7 mm | snap-**pin** locking-lip protrusion (retention force) | pin pulls back out / pin won't ever come out |
-| `SNAP_BARB_SEAT` | 0.30 mm | how far the snap-pin lip seats past the far bore face | weak/no "click", pin loose along its axis |
+| Setting | Value |
+|---|---|
+| Layer height | 0.15–0.20 mm |
+| Perimeters | 3–4 (at `FR_WALL = 2.8 mm` and 0.4 mm nozzle: 3 perimeters = 1.2 mm each side → solid wall) |
+| Infill | ≥80% (100% preferred: the Fin Ray cells and grip-ridge insets must be dense) |
+| Seam | Rear/aligned; keep off the grip-ridge face |
 
-- **Bores ride on `PRINT_CLEAR`.** Links/gears ride on their pins via
-  `AXLE_BORE_R = PIN_R + 0.25`; the finger mount holes and link-bar eyes use a
-  slightly tighter `+0.15`. Net effect: pin shanks are ~Ø4.6 mm, bores are
-  ~Ø4.9–5.1 mm, giving a free-but-not-sloppy pivot.
-- **`SNAP_CLEAR` (0.35 mm) is the cover clip's engagement gap**, set by the window
-  cut `SNAP_WIN_Z`. It's a *different feature* from the pins — adjust it only for
-  cover-click feel, not for pivot fit.
-- **`SNAP_BARB_PROUD` and `SNAP_BARB_SEAT` are the snap-pin retention knobs.** The
-  lip stands 0.7 mm proud and seats 0.30 mm past the far face — that overhang is
-  what locks the pin and gives the click. More PROUD = harder to remove; more
-  SEAT = more positive click but needs the bore length to match.
-- **First, calibrate your printer.** Print an XY tolerance test and a small
-  pin-in-hole coupon in your actual filament before committing; PETG and TPU each
-  oversize holes differently. The 0.25 mm value assumes a typical FDM machine
-  holding ±0.1–0.15 mm.
+The Fin Ray truss prints flat on its 28×96 Z-face (build height = 10 mm, cells in
+the build plane). This orientation is self-supporting: the triangular cells,
+ribs, and hollow interior need no supports — there are none to remove from the
+flexible truss anyway.
 
-#### Adjusting the fit
+The bending stress runs **along the layers** (in-plane) in this orientation — the
+strong direction for fatigue. Do not rotate the fingers to print them standing up;
+the rib overhangs would require internal supports that are impossible to extract
+cleanly from a compliant part.
 
-- **Pivot too tight (link won't turn on its pin):** don't reprint first — **ream
-  the bore one drill size up**, or run the pin in once to wear it free. Permanent
-  fix: raise `PRINT_CLEAR` (and the `+0.15` bores) and regenerate.
-- **Pivot too loose / sloppy:** lower `PRINT_CLEAR` (e.g. 0.15–0.20), regenerate
-  and reprint the link/arm/gear.
-- **Snap pin too tight to push through:** that's a *bore* problem — loosen
-  `PRINT_CLEAR` or ream the bore; don't touch the barb.
-- **Snap pin won't lock / springs back out:** the lip isn't clearing the far face.
-  Raise `SNAP_BARB_PROUD` (more lip) and/or `SNAP_BARB_SEAT` (seat further past
-  the face). Check the bore depth actually lets the lip emerge.
-- **Snap pin impossible to remove (or barb shears installing it):** lower
-  `SNAP_BARB_PROUD` so the lip flexes in more easily; also check the layer-adhesion
-  print settings above — a brittle barb shears instead of flexing.
-- **Cover won't click / pops off:** adjust `SNAP_CLEAR` (smaller = tighter latch)
-  and/or check the side-wall window's top edge is crisply deburred.
-- **To regenerate after changing any clearance:**
-  ```bash
-  source /home/andre/.cad-venv/bin/activate
-  STEP=/home/andre/.claude/skills/cad/scripts/step
-  python $STEP gripper.py -o gripper_closed.step          # default pose
-  # (gripper.py is read-only here — edit a copy if you need to change clearances)
-  ```
+#### Brim and first layer
 
-### First layer
+- **Brim: 3–5 mm.** TPU has moderate bed adhesion; a brim prevents the narrow
+  finger from peeling during the print.
+- **First-layer squish:** moderate squish on a textured PEI. Avoid over-squish —
+  it closes up the bottom grip ridges and the `FR_BASE_CHAMFER = 0.5 mm` chamfer
+  is there to give elephant's foot somewhere to go, but it has limits.
+- **No heated bed above 50°C** — excessive bed heat makes TPU too tacky and the
+  part is hard to remove without stretching.
 
-- Use a deliberate first layer: slightly squished, slower speed. **TPU
-  especially** benefits from a clean, well-adhered first layer (it's the
-  flat-on-side face of the finger). A textured/PEI bed and no extra adhesion is
-  usually enough; avoid over-squish that closes up the bottom grip ridges.
-- The `FR_BASE_CHAMFER = 0.5 mm` on the finger already gives the first layer room,
-  but still mind elephant's foot on the **bore eyes** and on the **snap-pin head**
-  — squish there can pinch a bore or fatten the head so the cover won't seat. A
-  small chamfer or -0.1 mm first-layer horizontal expansion keeps them true.
+#### Print-friendly geometry already in the model
 
-### Seam placement
+Do not simplify these features:
+- `FR_CELL_FILLET = 0.8 mm` — rounds interior rib-cell corners to eliminate
+  fatigue-crack stress risers; also smooths the nozzle path.
+- `FR_BASE_CHAMFER = 0.5 mm` — gives elephant's foot a relief on the bed face.
+- `FR_TIP_FILLET = 1.5 mm` — rounds the blade apex so it prints as multi-bead
+  geometry, not a single fragile line.
+- `FR_GRIP_TIP_FLAT = 0.2 mm` — gives each grip tooth a printable flat tip.
 
-- **Move the Z-seam off the gear tooth flanks.** A seam blob on a meshing flank
-  adds backlash and roughness. In the slicer set seam to **Rear/Aligned** (or
-  paint the seam onto a non-meshing back edge of the gear) so the visible seam
-  lands away from the engaged teeth. Keep the same setting on both arms so they
-  mesh symmetrically.
-- **On the snap pins, put the seam on the head, not the barb fingers.** A seam
-  witness on a split-tip finger is a crack starter; align the seam to the head
-  flange or the solid shank.
+---
 
-### Post-processing
+## Supportless orientation table
 
-- **Deburr the pivot bores** so the snap pins seat. Lightly chamfer/ream every pin
-  bore (a countersink bit spun by hand is enough) and break the edge — a burr or
-  elephant-foot lip at the bore mouth stops the snap-pin lead-in cone from
-  starting, or shaves the barb on the way through.
-- **Clean the gear flanks.** Knock down layer ridges and any seam witness on the
-  teeth; cycle the mesh by hand and sand any tight spots.
-- **Snap pins & clips:** trim any stringing in the `+` slot, make sure the slot is
-  fully open (a fused-shut slot won't flex), and test-flex each barb/clip gently
-  before final assembly.
-- **TPU fingers:** trim stringing, check the grip ridges are crisp, flex the
-  finger a few times to confirm the cells move and the layers hold.
+All orientations were mesh-audited by `make_print_plates.py` (45° threshold).
+The oriented STLs in `print_plates/oriented/` have these rotations pre-applied;
+import the plate STLs directly and set "no supports" in your slicer.
+
+| Part | Qty | Rotation from export pose | Build height | Support area | Notes |
+|---|---|---|---|---|---|
+| `enclosure` | 1 | None (as-exported) | 40.0 mm | ~1272 mm² (bridges interior ceilings) | Back flange may want 2–3 column supports; check slicer |
+| `front_cover` | 1 | 180° about X | 18.5 mm | 184 mm² (hook underlips bridge) | Flat outer face on bed; clips point up |
+| `drive_arm_L` | 1 | 180° about X | 40.0 mm | 23 mm² (coupler shoulder) | Gear plate on bed; integral shaft vertical |
+| `drive_arm_R` | 1 | None (as-exported) | 5.0 mm | 0 | Flat plate face-down |
+| `follower` | 2 | None (as-exported) | 5.0 mm | 0 | Flat bar face-down |
+| `snap_pin_axle` | 3 | 180° about X | 23.0 mm | 0 | Head flange on bed; barb tip up |
+| `snap_pin_finger` | 4 | 180° about X | 29.1 mm | 12 mm² (0.7 mm barb lip bridge) | Head flange on bed; barb tip up |
+| `finger_R` | 1 | None (as-exported) | 10.0 mm | ~0 | Flat on 28×96 face; Fin Ray cells in build plane |
+| `finger_L` | 1 | None (as-exported) | 10.0 mm | ~0 | Mirror of `finger_R` |
+
+**Note on `drive_arm_L` (supportless vs. torsion):** the supportless orientation
+places the gear plate on the bed and the shaft pointing up. Shaft layers then run
+transverse to the drive-torque axis (the weak direction for interlayer shear).
+Compensate: **100% infill + 6 perimeters in the shaft region, slow speed, minimal
+cooling.** This is the correct orientation; do not flip it shaft-down (that would
+cantilever the 26×50 gear plate in mid-air with 529 mm² of overhang).
+
+---
+
+## Per-part quick-reference table
+
+| Part | Qty | Material | Plate file | Orientation (Z-up in slicer) | Layer ht | Walls | Infill |
+|---|---|---|---|---|---|---|---|
+| `enclosure` | 1 | PA12-GF / PETG-HF | `plate_rigid_1` | Open slot/cavity up, drain floor on bed | 0.20 mm | 4–5 | 15–25% |
+| `front_cover` | 1 | PA12-GF / PETG-HF | `plate_rigid_1` | Flat outer face on bed, clips up | 0.20 mm | 4–5 | 30–50% |
+| `drive_arm_L` | 1 | PA12-GF / PETG-HF | `plate_rigid_1` | Gear plate on bed, shaft up | 0.15–0.20 mm | 5–6 (shaft: 6, 100%) | 40–60% (shaft: 100%) |
+| `drive_arm_R` | 1 | PA12-GF / PETG-HF | `plate_rigid_1` | Flat gear+arm plate face-down | 0.15–0.20 mm | 5–6 | 40–60% |
+| `follower` | 2 | PA12-GF / PETG-HF | `plate_rigid_1` | Flat bar face-down | 0.20 mm | 5–6 | 30–50% |
+| `snap_pin_axle` | 3 | PA12-GF / PETG-HF | `plate_rigid_1` | Head on bed, barb up | 0.15–0.20 mm | solid | 100% |
+| `snap_pin_finger` | 4 | **PETG-HF** (test + **final**) | `plate_rigid_1` | Head on bed, barb up | 0.15–0.20 mm | solid | 100% |
+| `finger_R` | 1 | TPU ether-based | `plate_tpu_1` | Flat on 28×96 face | 0.15–0.20 mm | 3–4 | ≥80% |
+| `finger_L` | 1 | TPU ether-based | `plate_tpu_1` | Flat on 28×96 face | 0.15–0.20 mm | 3–4 | ≥80% |
+| **Total** | **15** | — | **2 plates** | — | — | — | — |
+
+**Nozzle reminder:** 0.4 mm hardened steel/ruby for PA12-GF throughout. Brass 0.4
+mm for PETG-HF and TPU test/production prints.
+
+### Final-build material batches
+
+The full build splits across three print batches:
+
+**(a) PA12-GF batch** — `enclosure` ×1, `front_cover` ×1, `drive_arm_L` ×1,
+`drive_arm_R` ×1, `follower` ×2, `snap_pin_axle` ×3. Dry spool 80°C/8–12 h,
+0.4 mm hardened nozzle, brim + draft shield on the enclosure.
+
+**(b) PETG-HF batch** — `snap_pin_finger` ×4. These 4 small finger pins print in
+PETG-HF for the final build (barb ductility — see "Pinned materials" note above).
+Because PETG-HF is already loaded for the test set, the finger pins can be added
+to the PETG-HF test-print run as a small separate batch; no material change-over needed.
+
+**(c) TPU batch** — `finger_L` ×1, `finger_R` ×1. Print once; reuse from test
+set if test-print fingers passed fit check.
+
+---
+
+## Current clearance constants (from `gripper.py`)
+
+These are the live values. Earlier prose versions of this doc had stale numbers;
+trust the table below and `gripper.py` lines 107–133.
+
+| Constant | Value | Controls |
+|---|---|---|
+| `PRINT_CLEAR` | **0.3 mm/side** | Pin-in-bore turning fit (pivot bore vs shank): `AXLE_BORE_R = 2.6 mm` → bore **Ø5.2 mm**, shank **Ø4.6 mm** |
+| `SNAP_CLEAR` | 0.35 mm | Front-cover clip hook vs side-wall window engagement |
+| `SNAP_BARB_PROUD` | **0.9 mm** | Snap-pin locking-lip protrusion past PIN_R (retention force) |
+| `SNAP_BARB_LIP_T` | **1.0 mm** | Axial length of the locking-lip face — **2.5 perimeters @ 0.4 mm nozzle; do not reduce** |
+| `SNAP_BARB_SEAT` | **1.2 mm** | Axial capture overlap of lip past far bore face |
+| `SNAP_CB_RCLEAR` | 0.45 mm | Radial gap: counterbore pocket wall to lip |
+| `SNAP_CB_FLOOR_CLEAR` | 0.30 mm | Axial gap: lip front face to pocket floor |
+
+---
 
 ## Fit tuning — do this first
 
-**Before printing the whole set of 7 snap pins, print ONE and verify the click.**
-Snap fit is the highest-risk feature of an all-printed assembly; calibrate it on
-a single pin and a scrap coupon before you commit filament to six more.
+**Print ONE snap pin and a scrap bore coupon before printing the full sets.**
 
-1. **Print one snap pin** (any of the 7 — they print identically: head-down,
-   axis-vertical, barb-up, no supports, PETG, solid, slow at the barb).
-2. **Print a scrap bore coupon** — a small block with one through-hole at the
-   real bore size (`AXLE_BORE_R = PIN_R + 0.25`, so ~Ø4.9 mm). Match the bore
-   *length* to the real joint stack so the lip emerges where it should.
-3. **Push the pin through and feel for the click.** You want: it pushes in with
-   moderate force, the barb flexes, then **clicks** as the lip springs out past
-   the far face, and it won't pull straight back out.
-   - No click / pulls out → raise `SNAP_BARB_PROUD` / `SNAP_BARB_SEAT`.
-   - Too tight to push / barb shears → loosen the bore (`PRINT_CLEAR`) or fix
-     barb layer adhesion (hotter, slower, less cooling).
-   - Locks but impossible to remove → lower `SNAP_BARB_PROUD`.
-4. **Only once the single pin clicks cleanly**, print the remaining 6 (and the
-   front cover, whose clips use the same flex principle — dry-snap it once to
-   confirm before final assembly).
+1. Print one `snap_pin_finger` in **PETG-HF** (brass 0.4 mm nozzle; head-down,
+   axis-vertical, barb-up, 100% solid, slow at the barb). This is both a fit test
+   and a valid final-build pin — `snap_pin_finger` stays in PETG-HF for the final
+   build.
+2. Print a scrap bore coupon: a small block with one through-hole at `AXLE_BORE_R =
+   2.6 mm` → **Ø5.2 mm**. Match the bore length to the real joint stack so the
+   lip emerges at the correct depth.
+3. Push the pin through and feel for the click. You want: moderate insertion force,
+   barb flexes and compresses, **audible/tactile click** as the lip springs into the
+   counterbore pocket, and the pin resists pull-back.
+   - No click / pulls out → raise `SNAP_BARB_PROUD` and/or `SNAP_BARB_SEAT`.
+   - Too tight / barb shears → loosen `PRINT_CLEAR` or fix barb layer adhesion
+     (hotter, slower, less cooling at the barb region).
+   - Clicks but impossible to remove → lower `SNAP_BARB_PROUD`.
+4. **For `snap_pin_axle` (PA12-GF final)**: run a separate coupon in PA12-GF.
+   PA12-GF shrinks 0.6–1.0% vs PETG's 0.3–0.5%; bores will likely be tighter. If
+   the coupon bore is tight, bump `PRINT_CLEAR` to 0.35–0.40 in `gripper.py` and
+   regenerate before printing the full plate. PETG-HF coupon results do not
+   transfer to PA12-GF axle pins.
+5. Only once the single pin clicks cleanly, print the remaining 6 (and the
+   `front_cover`, whose clips use the same flex principle).
+
+---
 
 ## Quick start — print then assemble
 
-**Print (2 plates, no supports):**
+### Step 1: PETG-HF test set (fit verification)
 
-```bash
-source /home/andre/.cad-venv/bin/activate
-python export_parts.py && python make_print_plates.py
-```
+1. Generate plates:
+   ```bash
+   source /home/andre/.cad-venv/bin/activate
+   python export_parts.py && python make_print_plates.py
+   ```
+2. Print `plate_rigid_1.stl` in **PETG-HF** (brass 0.4 mm nozzle, 0.2 mm layers,
+   no supports, 3–5 mm brim).
+3. Print `plate_tpu_1.stl` in **TPU ether-based** (direct drive, 0.15–0.20 mm, slow).
+4. Run the fit-tuning checklist: snap-pin click, cover snap, pivot clearances.
+5. Adjust `PRINT_CLEAR` / `SNAP_BARB_PROUD` if needed, then regenerate.
 
-1. **Calibrate once** — XY tolerance + a pin-in-hole coupon in BOTH filaments
-   (rigid + TPU). Confirm a printed Ø5.2 bore accepts the snap-pin Ø4.6 shank and
-   turns freely.
-2. **Fit-tune ONE snap pin** + a scrap bore coupon; verify the click before
-   committing the other six (see Fit tuning below).
-3. **Slice `plate_rigid_1.stl`** — PETG/ASA, 0.2 mm (0.12–0.16 mm for the gear
-   teeth if your slicer lets you vary by object), no supports, brim on the tall
-   skinny pins and the enclosure. Add a few **support pillars under the enclosure
-   back flange** if the preview shows it drooping.
-4. **Slice `plate_tpu_1.stl`** — TPU 95A, 0.15–0.20 mm, ≥80 % infill, slow
-   (20–30 mm/s), part cooling down, no supports.
-5. **Assemble** (tool-free, see `ASSEMBLY.md`): fit each Fin Ray finger on its 2
-   finger pins → drop the arms/followers into the housing on the 3 axle pins →
-   **snap on the front cover** (it clicks; flex the 4 hooks outward to remove).
-6. **Function check** — turn the shaft on `drive_arm_L`; both fingers must
-   open/close symmetrically.
+### Step 2: PA12-GF final build (structural parts)
 
-**Per-group settings at a glance:**
+1. Dry PA12-GF spools: **80°C / 8–12 h**. Load into dry box.
+2. Install **0.4 mm hardened-steel or ruby nozzle**.
+3. Print the PA12-GF parts from `plate_rigid_1.stl` — all parts **except** the 4
+   `snap_pin_finger` pins — in **PA12-GF**:
+   - Nozzle 275–290°C, bed 75–85°C (Magigoo PA or PEI textured).
+   - 5–8 mm brim + draft shield on enclosure.
+   - 0.20 mm layers (0.15 mm option for gear teeth).
+   - Slow the snap-pin-axle barb region to 20–25 mm/s, cooling ≤20%.
+4. Print the 4 `snap_pin_finger` pins in **PETG-HF** (same profile as Step 1 —
+   add them to that run or print as a small separate batch). These are **final
+   build** pins; PETG-HF is correct here for barb ductility (see "Pinned
+   materials" and "Final-build material batches" above).
+5. Run bore coupon in PA12-GF (see Fit tuning) before the full plate.
+6. TPU fingers are already printed; reuse them.
+7. Optional: anneal PA12-GF structural parts at 80°C / 4 h, then condition 24–48 h
+   at room humidity before assembly (toughness peaks after re-absorbed moisture).
 
-| Group | Material | Layer | Walls | Infill | Supports |
-|---|---|---|---|---|---|
-| Fingers (`plate_tpu_1`) | TPU 95A ether-based | 0.15–0.20 mm | 3–4 | ≥80 % | none |
-| Pins (on `plate_rigid_1`) | PETG | 0.12–0.16 mm | solid | 100 % | none |
-| Structure (rest of `plate_rigid_1`) | PETG / ASA / Nylon | 0.16–0.20 mm (0.12–0.16 for gear teeth) | 4–6 | 30–60 % (15–25 % enclosure) | none (flange may want a few pillars) |
+### Step 3: Assemble
 
-## Print order / checklist
+See `ASSEMBLY.md` for the full sequence. Brief order:
+1. Deburr all pivot bores (countersink bit by hand); clear snap-pin `+` slots.
+2. Snap `snap_pin_finger` pins through each finger mounting eye; fingers click onto
+   the coupler.
+3. Drop drive arms and followers into the enclosure on the `snap_pin_axle` pins.
+4. Push-on the `front_cover` — 4 hooks click; no tools needed.
+5. Function check: rotate `drive_arm_L` input shaft; both fingers open/close
+   symmetrically.
 
-1. **Calibrate** — XY tolerance + pin-in-hole coupon in each filament (rigid +
-   TPU). Confirm a printed bore accepts your snap-pin shank and turns freely.
-2. **Fit-tune the snap pins** — print **one** snap pin + a scrap bore coupon and
-   verify the **click** (see [Fit tuning](#fit-tuning-do-this-first)) BEFORE
-   committing to the full set. Tune `PRINT_CLEAR` / `SNAP_BARB_PROUD` /
-   `SNAP_BARB_SEAT` here, not after you've printed seven.
-3. **Enclosure** — slot-face up, drains on bed; add a support skirt under the
-   flange if the slice shows overhang. Longest print; start it early.
-4. **Drive arms** ×2 — fine layers, high perimeters. `drive_arm_R` flat;
-   `drive_arm_L` shaft-vertical.
-5. **Followers** ×2 — flat, high perimeters.
-6. **Front cover** ×1 — outer face down so the snap clips print upward, no
-   supports.
-7. **Snap pins** ×7 — PETG, head-down/axis-vertical/barb-up, no supports, slow +
-   low cooling at the barb (3 axle pins + 4 finger pins).
-8. **Fin Ray fingers** ×2 — TPU, flat on side face, slow, ≥80% infill. (The
-   fillets/chamfers are in the model; don't remove them.)
-9. **Post-process** — deburr all bores so the snap pins seat, clean gear flanks,
-   clear the snap-pin slots, test-flex every barb and clip.
-10. **Dry-fit** — snap the axle pins through the eyes; arms and followers must
-    pivot freely. Mesh the two gear sectors and check for smooth, low-backlash
-    engagement.
-11. **Assemble** — fit the fingers on the C/D snap pins, drop the mechanism into
-    the housing on the A/B axle pins, then **snap on the front cover** (no
-    screws — it clicks).
-12. **Function check** — turn the input shaft on `drive_arm_L`; both fingers must
-    open/close symmetrically and splay outward. Then read `UNDERWATER.md` for
-    material/seawater prep before it gets wet.
+---
+
+## Post-processing checklist
+
+- **Deburr all pivot bores.** A countersink bit or a drill run by hand chamfers the
+  bore mouth so the snap-pin lead-in cone starts cleanly. Burrs shave the barb
+  on insertion.
+- **Clear the snap-pin `+` split slots.** If a slot fused shut, open it with a
+  fine blade. A fused slot doesn't flex; the barb won't compress on insertion.
+- **Test-flex each barb and clip before assembly.** A barb that shears on dry test
+  is a print-settings failure (interlayer adhesion), not a geometry failure. Fix
+  it now, not mid-assembly.
+- **Clean gear flanks.** Knock down layer ridges and seam witness marks on the
+  tooth flanks. Cycle the mesh by hand; sand tight spots lightly.
+- **TPU fingers:** trim any stringing, confirm grip ridges are crisp and the cells
+  flex smoothly under finger pressure.
+- **Seam placement in slicer:** set seam to Rear/Aligned on drive arms so it lands
+  away from meshing tooth flanks. On snap pins, place the seam on the head flange
+  or solid shank — not on the barb fingers (seam is a crack starter under flex).
+
+---
+
+## Print order checklist (full build)
+
+1. Calibrate — XY tolerance coupon + pin-in-hole coupon in both filaments.
+2. Fit-tune snap pins — one `snap_pin_finger` + scrap bore coupon; verify click.
+3. Bore coupon in PA12-GF — confirm shrinkage doesn't close Ø5.2 bores.
+4. Enclosure — slot-face up; brim + draft shield; support pillars under flange if needed.
+5. Drive arms ×2 — fine layers, high perimeters; `drive_arm_L` gear plate on bed.
+6. Followers ×2 — flat, high perimeters.
+7. Front cover ×1 — outer face down, clips up.
+8. Snap pins: `snap_pin_axle` ×3 in **PA12-GF** + `snap_pin_finger` ×4 in
+   **PETG-HF** — head-down, barb-up, 100% solid, slow at barb.
+9. Fin Ray fingers ×2 — TPU flat on side face, slow, ≥80% infill.
+10. Post-process — deburr bores, clear slots, test-flex barbs and clips.
+11. (PA12-GF) anneal + condition if desired.
+12. Dry-fit — snap axle pins; arms and followers pivot freely; mesh gears.
+13. Assemble — fingers on C/D pins; mechanism into housing on A/B pins; snap front cover.
+14. Function check — rotate input shaft; both fingers open/close symmetrically.
+15. Read `UNDERWATER.md` before it gets wet.

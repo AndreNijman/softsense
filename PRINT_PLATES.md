@@ -21,12 +21,16 @@ build plates for a common bed.
 - `print_plates/oriented/<part>.stl` — every unique part, **already rotated** to
   its print orientation with min-Z on the bed. Drop a single one in if you only
   need that part.
-- `print_plates/plate_rigid_1.stl` — all rigid (PETG/ASA/Nylon) parts, packed.
-- `print_plates/plate_tpu_1.stl` — the two TPU Fin Ray fingers, packed
+- `print_plates/plate_rigid_1.stl` — the 9 **PA12-GF** parts (body, cover, arms,
+  followers, 3 axle dowels), packed.
+- `print_plates/plate_petg_1.stl` — the 4 **PETG-HF** finger pins (`snap_pin_finger`),
+  on their own plate: the split snap barb needs ductility, so these print in
+  PETG-HF, not the brittle glass-filled nylon.
+- `print_plates/plate_tpu_1.stl` — the two **TPU** Fin Ray fingers, packed
   **separately** because they print in a different material.
 
-TPU and rigid are split across plates by design — you swap filament between the
-two plates.
+Plates are split by MATERIAL by design (PA12-GF / PETG-HF / TPU) — you swap
+filament between the three plates.
 
 ## Bed & packing
 
@@ -39,24 +43,29 @@ Re-run for a smaller printer, e.g. a 220 mm Ender bed:
 ```bash
 python make_print_plates.py --bed 220 220
 ```
-At 220×220 everything still lands on the same 2 plates (rigid footprint is only
-~235×105 — it will re-pack onto a couple more shelves but fits).
+At 220×220 everything still lands on the same 3 plates (rigid footprint is only
+~240×112 — it re-packs onto a couple more shelves but fits).
 
 ## Plate layout (256 × 256 mm, 5 mm spacing)
 
-### `plate_rigid_1.stl` — PETG / ASA / Nylon — **13 parts**, footprint ≈ 235 × 105 × 40 mm
+### `plate_rigid_1.stl` — PA12-GF (PETG-HF for test) — **9 parts**, footprint ≈ 240 × 112 × 40 mm
 
 | Part | Qty | Oriented bbox (mm) | Orientation |
 |---|---|---|---|
 | `enclosure` | 1 | 96.0 × 36.0 × 40.0 | open slot/cavity face **+Z up**, drain-floor on bed (as-exported) |
-| `front_cover` | 1 | 102.4 × 36.0 × 18.5 | **flip 180° about X**: flat outer face on bed, snap clips point up |
-| `drive_arm_L` | 1 | 26.5 × 49.7 × 40.0 | **flip 180° about X**: gear plate anchored on bed, integral shaft **+Z up** |
-| `drive_arm_R` | 1 | 26.6 × 49.8 × 5.0 | flat plate face-down (as-exported) |
-| `follower` | **2** | 11.2 × 38.7 × 5.0 | flat bar face-down (as-exported) |
-| `snap_pin_axle` | **3** | 7.8 × 7.8 × 23.0 | **flip 180° about X**: head on bed, barb up |
-| `snap_pin_finger` | **4** | 7.8 × 7.8 × 29.1 | **flip 180° about X**: head on bed, barb up |
+| `front_cover` | 1 | 102.4 × 36.0 × 23.5 | **flip 180° about X**: flat outer face on bed, snap clips point up |
+| `drive_arm_L` | 1 | 26.5 × 51.2 × 40.0 | **flip 180° about X**: gear plate anchored on bed, integral shaft **+Z up** |
+| `drive_arm_R` | 1 | 26.6 × 51.2 × 5.0 | flat plate face-down (as-exported) |
+| `follower` | **2** | 11.2 × 40.0 × 5.0 | flat bar face-down (as-exported) |
+| `snap_pin_axle` | **3** | 7.8 × 7.8 × 20.8 | **flip 180° about X**: head on bed, barb up |
 
-### `plate_tpu_1.stl` — TPU 95A — **2 parts**, footprint ≈ 61 × 96 × 10 mm
+### `plate_petg_1.stl` — PETG-HF — **4 parts**, footprint ≈ 51 × 13 × 27 mm
+
+| Part | Qty | Oriented bbox (mm) | Orientation |
+|---|---|---|---|
+| `snap_pin_finger` | **4** | 7.8 × 7.8 × 26.8 | **flip 180° about X**: head on bed, barb up (lip bridge spans 1–2 layers) |
+
+### `plate_tpu_1.stl` — TPU 95A — **2 parts**, footprint ≈ 68 × 101 × 10 mm
 
 | Part | Qty | Oriented bbox (mm) | Orientation |
 |---|---|---|---|
