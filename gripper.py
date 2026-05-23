@@ -110,6 +110,13 @@ FR_RIB_SLANT_DEG = 38.0
 FR_INSET_BASE = 4.0    # solid floor across the bottom
 FR_INSET_TIP = 3.0     # solid cap at the apex
 MOUNT_HOLE_R = PIN_R + 0.15   # = 2.45 mm pin bore
+# grip texture: friction ridges on the contact face (so objects don't slip)
+FR_GRIP_DEPTH = 0.6     # ridge protrusion toward the object (mm)
+FR_GRIP_PITCH = 2.2     # ridge spacing along the blade length Y (mm)
+FR_GRIP_Y0_FRAC = 0.15  # texture starts at this fraction of the blade length
+FR_GRIP_Y1_FRAC = 0.95  # texture ends at this fraction of the blade length
+FR_GRIP_ROOT_IN = 0.2   # tooth root sits this far INTO the body from the face
+FR_GRIP_FLAT = 0.4      # flat valley between teeth (mm)
 
 # --------------------------------------------------------------------------
 # Colours (clean industrial: dark slate body, matte-black TPU jaws, steel)
@@ -353,6 +360,35 @@ def finray_finger_closed(C0, D0, inner_dir, z0, thickness):
             ribs_all = ribs_all + r
         finger = finger + (ribs_all & blade)        # trim rib ends to the blade
 
+    # --- grip texture ---
+    # Fine friction ridges (pliers-style teeth) on the CONTACT face. They run
+    # across the finger depth (full Z) and repeat along the blade length (Y),
+    # protruding toward the object. Roots sit just inside the contact spar so
+    # they fuse cleanly; tips stay clear of the centreline at the closed pose
+    # (right finger: contact_x=+1.0, tips at +1.0-0.6 = +0.4 -> 0.8 mm gap).
+    grip_root_x = contact_x + into * FR_GRIP_ROOT_IN
+    grip_tip_x = contact_x - into * FR_GRIP_DEPTH
+    gy0 = base_y + FR_GRIP_Y0_FRAC * FR_BLADE_LEN
+    gy1 = base_y + FR_GRIP_Y1_FRAC * FR_BLADE_LEN
+    n_teeth = max(1, int((gy1 - gy0) / FR_GRIP_PITCH))
+    teeth = []
+    for i in range(n_teeth):
+        yb = gy0 + i * FR_GRIP_PITCH
+        yflat = yb + FR_GRIP_FLAT
+        ypeak = yb + 0.5 * (FR_GRIP_PITCH + FR_GRIP_FLAT)
+        ytop = yb + FR_GRIP_PITCH
+        quad = [(grip_root_x, yflat), (grip_tip_x, ypeak), (grip_root_x, ytop)]
+        try:
+            teeth.append(_poly_solid(quad, z0, thickness))
+        except Exception:
+            pass
+    if teeth:
+        teeth_all = teeth[0]
+        for t in teeth[1:]:
+            teeth_all = teeth_all + t
+        finger = finger + teeth_all
+    # --- end grip texture ---
+
     for hp in (C0, D0):
         finger -= Cylinder(radius=MOUNT_HOLE_R, height=thickness * 3).moved(
             Location((hp[0], hp[1], z0 + thickness / 2.0)))
@@ -376,21 +412,24 @@ def finger(side_pose, ref_pose, inner_dir, color, label):
 
 
 # --------------------------------------------------------------------------
-# Enclosure (clean hollow gearbox housing) -- encloses gears, pivots & lower
-# links; links/fingers emerge through two top slots; drive shaft exits the
-# back-wall bore; back mounting flange with 4x M4 holes.
+# Enclosure (UNDERWATER / flooded gearbox housing) -- encloses gears, pivots
+# & lower links; the four-bar arms emerge through two WIDENED top slots that
+# clear the full arm sweep (no clipping); drive shaft exits the back-wall
+# bore; back mounting flange with 4x M4 holes. The housing FLOODS and DRAINS
+# through round through-holes (no trapped air -> no buoyancy / pressure
+# problems). Slot x-ranges come from the measured link sweep at the top wall.
 # --------------------------------------------------------------------------
 ENC_X = (-48.0, 48.0)        # outer width
-ENC_Y = (-20.0, 18.0)        # bottom -> top of top wall
+ENC_Y = (-20.0, 16.0)        # bottom -> top of top wall (top LOWERED to 16)
 ENC_Z = (-12.0, 24.0)        # back -> front
 WALL = 3.0
-TOP_WALL_Y0 = 15.0           # inside face of the top wall
+TOP_WALL_Y0 = 14.5           # inside face of the thin top wall (y 14.5..16)
 CAV_X = (-45.0, 45.0)        # interior clear cavity (holds the mechanism)
-CAV_Y = (-17.0, 15.0)
+CAV_Y = (-17.0, 14.5)
 CAV_Z = (-2.0, 22.0)
-SLOT_Z = (0.0, 22.0)
-SLOT_R = (6.0, 34.0)         # right top slot x-span
-SLOT_L = (-34.0, -6.0)       # left top slot x-span
+SLOT_Z = (0.0, 22.0)         # slots cut the full cavity depth in Z
+SLOT_R = (2.5, 41.0)         # right top slot x-span (WIDENED so arms clear)
+SLOT_L = (-41.0, -2.5)       # left top slot x-span  (WIDENED so arms clear)
 SHAFT_C = (-12.0, 0.0)       # shaft bore centre (= A_L)
 SHAFT_BORE_R = 5.0
 FLANGE_Z = (-16.0, -12.0)    # raised back mounting flange
@@ -401,6 +440,11 @@ BOLT_XY = [(-37.0, -14.0), (37.0, -14.0), (-37.0, 8.0), (37.0, 8.0)]
 R_VERT = 4.0
 R_TOP = 2.0
 
+# --- underwater drainage / flood holes (so the housing floods & drains) ---
+DRAIN_R = 2.5
+DRAIN_BOTTOM_X = [-32.0, -16.0, 0.0, 16.0, 32.0]   # bottom-face row (along Y)
+DRAIN_SIDE_YZ = [(-14.0, 4.0), (-14.0, 16.0)]      # low side-wall holes (along X)
+
 
 def _box_between(x0, x1, y0, y1, z0, z1):
     return Box(x1 - x0, y1 - y0, z1 - z0).moved(
@@ -408,7 +452,9 @@ def _box_between(x0, x1, y0, y1, z0, z1):
 
 
 def build_enclosure():
-    """Clean hollow gearbox housing as a build123d solid in world coords."""
+    """Hollow flooded gearbox housing (underwater) as a build123d solid in
+    world coords. Widened top slots clear the four-bar arm sweep; drain/flood
+    holes let water flood and drain so no air is trapped."""
     body = _box_between(*ENC_X, *ENC_Y, *ENC_Z)
     # fillet cosmetic edges first, while the block is simple
     body = fillet(body.edges().filter_by(Axis.Y), radius=R_VERT)
@@ -433,6 +479,17 @@ def build_enclosure():
     for (bx, by) in BOLT_XY:
         body -= Cylinder(radius=BOLT_R, height=(FLANGE_Z[1] - FLANGE_Z[0]) + 4.0).moved(
             Location((bx, by, (FLANGE_Z[0] + FLANGE_Z[1]) / 2.0)))
+
+    # underwater drainage / flood holes: bottom-face row (along Y) + low side
+    # holes (along X) so the housing floods and drains in any orientation.
+    for dx in DRAIN_BOTTOM_X:
+        body -= Cylinder(radius=DRAIN_R, height=(WALL + 6.0)).moved(
+            Location((dx, ENC_Y[0] + WALL / 2.0, 10.0), (1, 0, 0), 90.0))
+    for (sy, sz) in DRAIN_SIDE_YZ:
+        for sx in (ENC_X[0] + WALL / 2.0, ENC_X[1] - WALL / 2.0):
+            body -= Cylinder(radius=DRAIN_R, height=(WALL + 6.0)).moved(
+                Location((sx, sy, sz), (0, 1, 0), 90.0))
+
     body.label = "enclosure"
     body.color = ENC
     return body

@@ -1,10 +1,12 @@
-# Geared four-bar gripper with Fin Ray fingers
+# Underwater geared four-bar gripper with Fin Ray fingers
 
 A robotic gripper CAD model with working single-DOF motion: **rotate one input
 shaft and both fingers open/close symmetrically, splaying outward as they open.**
-The jaws are **Fin Ray-style compliant fingers** (3D-printed in TPU) that bend
-and wrap *around* a grasped object, and the gear/linkage drive is hidden in a
-clean enclosed housing.
+The jaws are **Fin Ray-style compliant fingers** (3D-printed in TPU, with a
+ridged grip texture) that bend and wrap *around* a grasped object. The
+gear/linkage drive is housed in a clean **flooded enclosure** designed for
+**underwater** use (drain/flood holes, corrosion-resistant material choices —
+see `UNDERWATER.md`).
 
 ## Mechanism (one DOF)
 
@@ -25,14 +27,18 @@ the fingertips).
 Each finger is a compliant triangular truss — a near-straight contact beam, a
 slanting spine, joined by a row of **same-direction slanted ribs** with hollow
 cells. That asymmetric rib geometry is what makes the tip curl toward and
-conform around an object when the contact face is loaded. Printed in flexible
-**TPU**; the rigid parts (links, gears, pins) print/CNC in PLA/PETG/metal.
+conform around an object when the contact face is loaded. The contact face has
+**fine friction ridges** (≈2.2 mm pitch) so grasped objects don't slip. Printed
+in flexible **TPU** (ether-based for sustained immersion — see `UNDERWATER.md`).
 
-## Enclosure
+## Enclosure (flooded, underwater)
 
-Clean hollow gearbox housing: rounded slate body, two top slots the links emerge
-through, a back-wall bore where the drive shaft exits, and a back **mounting
-flange with 4× M4 holes** for attaching to a robot arm/wrist.
+Hollow gearbox housing: rounded slate body, a back-wall bore where the drive
+shaft exits, and a back **mounting flange with 4× M4 holes**. The two top slots
+are sized to the **measured arm sweep** so the four-bar links never clip the
+case. **Drain/flood holes** (a bottom row + low side holes) let it flood and
+drain in any orientation — no trapped air (buoyancy/crush) and pressure
+equalizes with depth. Material/sealing guidance is in `UNDERWATER.md`.
 
 ## Files
 
@@ -43,6 +49,7 @@ flange with 4× M4 holes** for attaching to a robot arm/wrist.
 | `gripper_closed/mid/open.step` | Static poses at open = 0 / 0.5 / 1. |
 | `gripper_motion.gif` | Rendered open↔close animation. |
 | `gripper_hero_open.png`, `gripper_hero_closed.png` | 3D hero renders. |
+| `UNDERWATER.md` | Engineering guide: gears underwater, flooded vs sealed, material BOM, sealing, drainage, checklist. |
 
 ## Regenerate / re-pose
 
