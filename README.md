@@ -44,12 +44,13 @@ equalizes with depth. Material/sealing guidance is in `UNDERWATER.md`.
 
 | File | What it is |
 |---|---|
-| `gripper.py` | Parametric build123d generator + four-bar solver + Fin Ray finger + enclosure (source of truth). `GRIPPER_OPEN` env var = 0…1. |
+| `gripper.py` | Parametric build123d generator + four-bar solver + Fin Ray finger + enclosure (source of truth). Env vars: `GRIPPER_OPEN` = 0…1 (pose), `GRIPPER_FINGER_SCALE` = 0.6…2.5 (finger size). |
 | `gripper_interactive.step` + `.gripper_interactive.step.js` | **Interactive** — drag the `open` slider to rotate the shaft live in CAD Explorer. |
 | `gripper_closed/mid/open.step` | Static poses at open = 0 / 0.5 / 1. |
 | `gripper_motion.gif` | Rendered open↔close animation. |
 | `gripper_hero_open.png`, `gripper_hero_closed.png` | 3D hero renders. |
 | `UNDERWATER.md` | Engineering guide: gears underwater, flooded vs sealed, material BOM, sealing, drainage, checklist. |
+| `DFM.md` | Design-for-3D-printing standards (walls, overhangs, holes, clearances, edge-breaks) and how each part complies. |
 
 ## Regenerate / re-pose
 
@@ -57,6 +58,7 @@ equalizes with depth. Material/sealing guidance is in `UNDERWATER.md`.
 source /home/andre/.cad-venv/bin/activate          # build123d + OCP toolchain
 STEP=/home/andre/.claude/skills/cad/scripts/step
 GRIPPER_OPEN=0.7 python $STEP gripper.py -o gripper_open70.step   # any pose 0..1
+GRIPPER_FINGER_SCALE=1.6 python $STEP gripper.py -o gripper_big.step  # bigger fingers
 python gripper.py                                  # numeric kinematic self-check
 ```
 

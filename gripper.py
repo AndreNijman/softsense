@@ -259,11 +259,17 @@ def link_bar(p0, p1, width, z0, thickness, label, color):
     bar = body + eye0 + eye1
     bar = bar.moved(Location((0, 0, z0 + thickness / 2.0)))
     bar = bar.moved(Location((p0[0], p0[1], 0), (0, 0, 1), ang))
-    # bore the pin holes
-    bar -= Cylinder(radius=PIN_R + 0.15, height=thickness * 3).moved(
+    # bore the pin holes (FDM clearance fit)
+    bar -= Cylinder(radius=AXLE_BORE_R, height=thickness * 3).moved(
         Location((p0[0], p0[1], z0 + thickness / 2.0)))
-    bar -= Cylinder(radius=PIN_R + 0.15, height=thickness * 3).moved(
+    bar -= Cylinder(radius=AXLE_BORE_R, height=thickness * 3).moved(
         Location((p1[0], p1[1], z0 + thickness / 2.0)))
+    # DFM: break the top & bottom face edges (no sharp edges; bore lead-ins)
+    try:
+        zf = bar.edges().group_by(Axis.Z)
+        bar = chamfer(zf[0] + zf[-1], DFM_EDGE)
+    except Exception:
+        pass
     bar.label = label
     bar.color = color
     return bar
