@@ -61,6 +61,13 @@ from build123d import (
 OPEN_NORM = float(os.environ.get("GRIPPER_OPEN", "0.5"))
 OPEN_NORM = max(0.0, min(1.0, OPEN_NORM))
 
+# Finger size scale factor (GRIPPER_FINGER_SCALE env var). Scales the FINGER
+# blade in-plane (length, width, tip) only; the mount interface (pin bores,
+# C/D spacing), wall thickness, clearances and grip-tooth size stay FIXED so
+# the fingers still bolt onto the linkage and stay printable at any scale.
+FINGER_SCALE = float(os.environ.get("GRIPPER_FINGER_SCALE", "1.0"))
+FINGER_SCALE = max(0.6, min(2.5, FINGER_SCALE))
+
 # --------------------------------------------------------------------------
 # Kinematic parameters (mm, deg)  -- locked
 # --------------------------------------------------------------------------
@@ -96,8 +103,9 @@ PIN_R = 2.3           # pivot pin radius
 PIN_HEAD_R = 3.6      # socket-head cap radius
 PIN_HEAD_T = 1.2      # cap height (sits ~flush in a counterbore)
 
-# production / printability
-PRINT_CLEAR = 0.25    # FDM clearance on moving bores & slots (per side)
+# production / printability (FDM design-for-AM standards)
+PRINT_CLEAR = 0.3     # mating clearance per side (FDM standard ~0.3 mm)
+DFM_EDGE = 0.4        # universal edge-break chamfer: no sharp edges
 AXLE_BORE_R = PIN_R + PRINT_CLEAR   # link/arm rides on its axle with clearance
 SHAFT_R = 4.0         # integral input-shaft radius
 SHAFT_COUPLER_R = 5.0 # rear coupler radius (D-profile for a servo/motor)
@@ -131,7 +139,7 @@ FR_N_RIBS = 10         # number of internal ribs (all same-direction slant)
 FR_RIB_SLANT_DEG = 38.0
 FR_INSET_BASE = 4.0    # solid floor across the bottom
 FR_INSET_TIP = 3.0     # solid cap at the apex
-MOUNT_HOLE_R = PIN_R + 0.15   # = 2.45 mm pin bore
+MOUNT_HOLE_R = PIN_R + PRINT_CLEAR   # finger pin bore (FDM clearance)
 # grip texture: friction ridges on the contact face (so objects don't slip)
 FR_GRIP_DEPTH = 0.6     # ridge protrusion toward the object (mm)
 FR_GRIP_PITCH = 2.2     # ridge spacing along the blade length Y (mm)
@@ -339,12 +347,15 @@ def pin(p, label, visible):
 
 
 def snap_pin(p, z0, z1, head_at="z0", label="snap_pin", color=PIN_COLOR,
-             shank_r=PIN_R):
-    """Fully 3D-printed push-to-snap pivot pin (no fasteners). Built in the
-    authored frame at XY point p, shank +Z from z0..z1. One end is a HEAD
-    flange (stop); the other is a SPLIT, BARBED compliant tip that squeezes
-    going in and springs out PAST the far bore face to lock. head_at="z0" ->
-    head at low-Z, barb beyond z1; "z1" -> head at high-Z, barb beyond z0."""
+             shank_r=PIN_R, barb=True):
+    """Fully 3D-printed pivot pin (no fasteners). Built in the authored frame at
+    XY point p, shank +Z from z0..z1, head flange at the head_at end.
+    barb=True : the far end is a SPLIT BARBED tip that squeezes in and springs
+                out PAST the far bore face to self-lock (finger pins -> the far
+                end exits into free space).
+    barb=False: a plain headed DOWEL with a small lead tip (axle pins -> the
+                dowel is captured between the back-wall socket and the cover
+                boss, so it needs no barb and nothing has to expand in a bore)."""
     x, y = p
     L = z1 - z0
     barb_max_r = shank_r + SNAP_BARB_PROUD
@@ -353,28 +364,32 @@ def snap_pin(p, z0, z1, head_at="z0", label="snap_pin", color=PIN_COLOR,
         Location((0, 0, -SNAP_HEAD_T / 2.0)))
     shank = Cylinder(radius=shank_r, height=L).moved(Location((0, 0, L / 2.0)))
 
-    lip_back_z = L + SNAP_BARB_SEAT
-    lip_front_z = lip_back_z + SNAP_BARB_LIP_T
-    tip_z = lip_front_z + SNAP_BARB_LEAD
-    stub = Cylinder(radius=shank_r, height=(lip_back_z - L) + 0.01).moved(
-        Location((0, 0, (L + lip_back_z) / 2.0)))
-    lip = Cylinder(radius=barb_max_r, height=SNAP_BARB_LIP_T).moved(
-        Location((0, 0, (lip_back_z + lip_front_z) / 2.0)))
-    lead = Cone(bottom_radius=barb_max_r, top_radius=SNAP_TIP_R,
-                height=SNAP_BARB_LEAD).moved(
-        Location((0, 0, (lip_front_z + tip_z) / 2.0)))
-
-    body = head + shank + stub + lip + lead
-
-    # '+' cross slot confined to the barb end (bearing shank stays solid)
-    slot_root_z = max(tip_z - SNAP_SLOT_LEN, L + 0.6)
-    slot_h = (tip_z - slot_root_z) + 1.0
-    slot_zc = (slot_root_z + tip_z + 1.0) / 2.0
-    slot_a = Box(SNAP_SLOT_W, 4 * barb_max_r, slot_h).moved(Location((0, 0, slot_zc)))
-    slot_b = Box(4 * barb_max_r, SNAP_SLOT_W, slot_h).moved(Location((0, 0, slot_zc)))
-    relief = Cylinder(radius=SNAP_SLOT_W * 0.7, height=SNAP_SLOT_W * 2).moved(
-        Location((0, 0, slot_root_z)))
-    body = body - slot_a - slot_b - relief
+    if barb:
+        lip_back_z = L + SNAP_BARB_SEAT
+        lip_front_z = lip_back_z + SNAP_BARB_LIP_T
+        tip_z = lip_front_z + SNAP_BARB_LEAD
+        stub = Cylinder(radius=shank_r, height=(lip_back_z - L) + 0.01).moved(
+            Location((0, 0, (L + lip_back_z) / 2.0)))
+        lip = Cylinder(radius=barb_max_r, height=SNAP_BARB_LIP_T).moved(
+            Location((0, 0, (lip_back_z + lip_front_z) / 2.0)))
+        lead = Cone(bottom_radius=barb_max_r, top_radius=SNAP_TIP_R,
+                    height=SNAP_BARB_LEAD).moved(
+            Location((0, 0, (lip_front_z + tip_z) / 2.0)))
+        body = head + shank + stub + lip + lead
+        # '+' cross slot confined to the barb end (bearing shank stays solid)
+        slot_root_z = max(tip_z - SNAP_SLOT_LEN, L + 0.6)
+        slot_h = (tip_z - slot_root_z) + 1.0
+        slot_zc = (slot_root_z + tip_z + 1.0) / 2.0
+        slot_a = Box(SNAP_SLOT_W, 4 * barb_max_r, slot_h).moved(Location((0, 0, slot_zc)))
+        slot_b = Box(4 * barb_max_r, SNAP_SLOT_W, slot_h).moved(Location((0, 0, slot_zc)))
+        relief = Cylinder(radius=SNAP_SLOT_W * 0.7, height=SNAP_SLOT_W * 2).moved(
+            Location((0, 0, slot_root_z)))
+        body = body - slot_a - slot_b - relief
+    else:
+        # plain dowel: head + shank + short lead-in tip (no barb, no slot)
+        tip = Cone(bottom_radius=shank_r, top_radius=shank_r * 0.6,
+                   height=1.2).moved(Location((0, 0, L + 0.6)))
+        body = head + shank + tip
 
     if head_at == "z0":
         body = body.moved(Location((0, 0, z0)))
@@ -436,14 +451,20 @@ def finray_finger_closed(C0, D0, inner_dir, z0, thickness):
     Print-friendly rounding (FDM TPU): base chamfer kills elephant-foot,
     internal rib-cell corners filleted (TPU stress relief), grip-tooth tips and
     blade apex rounded. 2.5D extrusion -> no Z-direction overhang added."""
+    # finger-size scale: blade length/width/tip scale; mount, walls, grip-tooth
+    # size and clearances stay fixed (so it still fits the linkage & prints).
+    blade_len = FR_BLADE_LEN * FINGER_SCALE
+    base_width = FR_BASE_WIDTH * FINGER_SCALE
+    tip_width = FR_TIP_WIDTH * FINGER_SCALE
+
     contact_x = -inner_dir * FR_CONTACT_OFFSET
-    spine_base_x = contact_x - inner_dir * FR_BASE_WIDTH
+    spine_base_x = contact_x - inner_dir * base_width
     base_y = max(C0[1], D0[1]) - FR_BASE_DROP
-    tip_y = base_y + FR_BLADE_LEN
+    tip_y = base_y + blade_len
     into = -inner_dir                       # interior direction: contact -> spine
 
     p_base_spine = (spine_base_x, base_y)
-    spine_tip_x = contact_x + into * FR_TIP_WIDTH       # blunt tip on spine side
+    spine_tip_x = contact_x + into * tip_width         # blunt tip on spine side
     p_tip = (spine_tip_x, tip_y)
 
     def spine_x_at(yy):
@@ -512,8 +533,8 @@ def finray_finger_closed(C0, D0, inner_dir, z0, thickness):
     # (right finger: contact_x=+1.0, tips at +1.0-0.6 = +0.4 -> 0.8 mm gap).
     grip_root_x = contact_x + into * FR_GRIP_ROOT_IN
     grip_tip_x = contact_x - into * FR_GRIP_DEPTH
-    gy0 = base_y + FR_GRIP_Y0_FRAC * FR_BLADE_LEN
-    gy1 = base_y + FR_GRIP_Y1_FRAC * FR_BLADE_LEN
+    gy0 = base_y + FR_GRIP_Y0_FRAC * blade_len
+    gy1 = base_y + FR_GRIP_Y1_FRAC * blade_len
     n_teeth = max(1, int((gy1 - gy0) / FR_GRIP_PITCH))
     teeth = []
     for i in range(n_teeth):
@@ -545,7 +566,7 @@ def finray_finger_closed(C0, D0, inner_dir, z0, thickness):
     BIG = 600.0
     cut = Box(BIG, BIG, BIG).moved(
         Location((keep_x - into * BIG / 2.0,
-                  base_y + FR_BLADE_LEN / 2.0, z0 + thickness / 2.0)))
+                  base_y + blade_len / 2.0, z0 + thickness / 2.0)))
     finger -= cut
 
     for hp in (C0, D0):
@@ -659,7 +680,7 @@ COVER_COLOR = Color(0.33, 0.35, 0.40)   # cover: slightly lighter than ENC
 FRONT_WALL_Z = (22.0, 24.0)             # old solid front wall, now removed
 AXLE_PIVOTS = [A_R, B_R, mirror_x(B_R)]  # captured-axle pivots (not A_L = shaft)
 BOSS_OD_R = 3.5                         # axle boss outer radius (OD ~7)
-AXLE_SCREW_R = 1.7                      # M3 axle clearance/self-tap
+AXLE_SCREW_R = AXLE_BORE_R              # snap-pin shank clearance (was M3)
 BACK_BOSS_Z = (-2.0, 1.0)              # back-wall boss into cavity
 COVER_BOSS_Z = (20.0, 22.0)            # cover inner-face boss into cavity
 BUSH_OD_R = 6.0                         # bushing-seat boss outer radius (OD ~12)
@@ -889,10 +910,12 @@ def gen_step():
                               ("L", L, ("B", "C", "D"))):
         for j in joints:
             lbl = f"pin_{j}_{tag}"
-            if j in ("C", "D"):    # finger pins: head caps above the finger
+            if j in ("C", "D"):    # finger pins: barbed, head caps above finger
                 parts.append(snap_pin(pose[j], 0.0, 23.0, head_at="z1", label=lbl))
-            else:                  # internal axles: head at back, barb at cover
-                parts.append(snap_pin(pose[j], -2.0, 22.0, head_at="z0", label=lbl))
+            else:                  # axles: plain dowels dropped in from the front,
+                                   # head capped by the cover boss (no barb needed)
+                parts.append(snap_pin(pose[j], -1.0, 19.0, head_at="z1",
+                                      barb=False, label=lbl))
 
     # bolt-on front cover LAST so existing occurrence ids stay stable
     parts.append(build_front_cover())
@@ -910,7 +933,7 @@ def gen_step():
 def _tip_world(side_pose, ref_pose):
     C0 = ref_pose["C"]
     a0 = ref_pose["coupler_ang"]
-    tip0 = (C0[0], C0[1] + FR_BLADE_LEN)
+    tip0 = (C0[0], C0[1] + FR_BLADE_LEN * FINGER_SCALE)
     d_ang = math.radians(side_pose["coupler_ang"] - a0)
     vx, vy = tip0[0] - C0[0], tip0[1] - C0[1]
     rx = vx * math.cos(d_ang) - vy * math.sin(d_ang)

@@ -3,9 +3,9 @@
 export_parts.py -- Per-part STEP + STL exporter for the geared four-bar gripper.
 
 Reads the assembly from gripper.gen_step() (CLOSED pose), identifies the UNIQUE
-printable parts (collapsing geometric duplicates so you don't print or buy more
-SKUs than there really are), translates each unique part to the origin, and
-writes parts/<name>.step and parts/<name>.stl for each.
+printable parts (collapsing geometric duplicates so you don't print more SKUs
+than there really are), translates each unique part to the origin, and writes
+parts/<name>.step and parts/<name>.stl for each.
 
 A summary table (stdout + parts/MANIFEST.md) lists every part with its print
 quantity, suggested material, bounding box and a print-orientation note.
@@ -18,40 +18,52 @@ Run:
 NOTE: this script does NOT edit gripper.py. It only imports it.
 
 ------------------------------------------------------------------------------
-De-duplication logic
+THIS GRIPPER IS NOW FULLY 3D-PRINTED -- ZERO BOUGHT HARDWARE.
+The metal pivot pins were replaced by printed PETG SNAP PINS, and the bolted
+front cover by a snap-clip cover with integral cantilever clips. Every part in
+this manifest is printed.
+
 ------------------------------------------------------------------------------
-gen_step() returns 14 labelled leaf solids in assembled world coordinates:
+De-duplication logic (LABEL-based)
+------------------------------------------------------------------------------
+gen_step() returns 15 labelled leaf solids in assembled world coordinates:
 
     enclosure
     drive_arm_R, drive_arm_L
     follower_R,  follower_L
     finger_R,    finger_L
-    pin_A_R, pin_B_R, pin_B_L          (short hidden axle pins, visible=False)
-    pin_C_R, pin_D_R, pin_C_L, pin_D_L (tall capped finger pins, visible=True)
+    pin_A_R, pin_B_R, pin_B_L          (internal axle SNAP PINS)
+    pin_C_R, pin_D_R, pin_C_L, pin_D_L (finger-pivot SNAP PINS)
+    front_cover                        (integral snap clips)
 
-Several of these are the SAME geometry placed at different positions:
+We collapse duplicates by the part LABEL via an explicit map (LABEL_TO_NAME),
+NOT by a geometric/bounding-box fingerprint. The old fingerprint approach broke
+once the metal pins became printed snap pins: the axle and finger snap pins now
+have almost identical bounding boxes (Z ~30.1 vs ~29.1 mm), so a height-based
+classifier put BOTH groups under one name ("pin_finger") and one file silently
+overwrote the other. Mapping by label is unambiguous and never collides.
 
-  * follower_R / follower_L -- a follower is a straight link_bar (rod + two
-    equal eyes). Such a bar is symmetric across its own long axis, so its
-    mirror image is congruent. -> 1 unique part, qty 2.
+Grouping (15 children -> 9 unique part files):
 
-  * The pins come from pin() in only TWO distinct shapes:
-        - axle pin  (visible=False): pin_A_R, pin_B_R, pin_B_L  -> qty 3
-        - finger pin (visible=True): pin_C_R, pin_D_R, pin_C_L, pin_D_L -> qty 4
-    Each group is one shape repeated at different (x,y) translations.
-    -> 2 unique pin parts. Both are REPRESENTATIONS of off-the-shelf M-screws,
-       flagged "hardware, do not print".
+  * follower_R / follower_L -> one file `follower`, qty 2. A follower is a
+    symmetric link bar; left and right are congruent.
 
-We detect duplicates with a translation-invariant geometric fingerprint
-(volume, surface area, sorted bounding-box extents, rounded). The FIRST part in
-each group becomes the canonical instance that we export; the rest just bump the
-quantity. This collapses 14 children -> 8 unique part files automatically, and
-adapts gracefully if a part is added/removed (e.g. a later front_cover).
+  * The 3 internal axle snap pins (pin_A_R, pin_B_R, pin_B_L) are one geometry
+    -> `snap_pin_axle`, qty 3.
 
-The Fin Ray fingers are the deliberate exception: finger_R / finger_L share a
-fingerprint (mirroring preserves volume/area/AABB) but are CHIRAL -- the ribs
-slant the same direction within a finger, so a mirror flips the slant and the
-two are NOT superimposable. We force them to stay as two separate files.
+  * The 4 finger-pivot snap pins (pin_C_R, pin_D_R, pin_C_L, pin_D_L) are one
+    geometry -> `snap_pin_finger`, qty 4.
+
+  * finger_R / finger_L stay SEPARATE (chiral Fin Ray ribs all slant the same
+    way within a finger; a mirror flips the slant -> not superimposable).
+
+  * drive_arm_R / drive_arm_L stay SEPARATE (the L arm carries the integral
+    input shaft + D-coupler; the R arm rides on a separate axle snap pin).
+
+  * enclosure qty 1, front_cover qty 1.
+
+Any label not in the map falls back to its own name (qty 1) so a newly-added
+part is still exported and listed instead of being dropped.
 """
 
 from __future__ import annotations
@@ -73,77 +85,92 @@ import gripper  # noqa: E402  -- imported after GRIPPER_OPEN is set
 OUT_DIR = Path(__file__).resolve().parent / "parts"
 
 # STL mesh quality: 0.05 mm linear deviation is the FDM sweet spot -- smooth
-# enough for the gear teeth / Fin Ray ribs without bloating the mesh.
+# enough for the gear teeth / Fin Ray ribs / snap barbs without bloating the mesh.
 STL_TOL = 0.05
 STL_ANG_TOL = 0.1
 
-# Parts whose geometry happens to fingerprint-match but must NOT be merged
-# (chiral mirrors). Keyed by label.
-FORCE_UNIQUE = {"finger_R", "finger_L"}
+# --------------------------------------------------------------------------
+# Label -> unique part file name. This is the SINGLE source of truth for
+# de-duplication: every child label maps to the file it belongs to. Multiple
+# labels mapping to the same name collapse into one file (qty = how many).
+# The first child encountered for a name becomes the canonical instance that
+# gets exported; later ones only bump the quantity.
+# --------------------------------------------------------------------------
+LABEL_TO_NAME = {
+    "enclosure": "enclosure",
+    "drive_arm_R": "drive_arm_R",
+    "drive_arm_L": "drive_arm_L",
+    "follower_R": "follower",
+    "follower_L": "follower",
+    "finger_R": "finger_R",          # chiral -> kept separate
+    "finger_L": "finger_L",          # chiral -> kept separate
+    "pin_A_R": "snap_pin_axle",      # internal axle snap pins x3
+    "pin_B_R": "snap_pin_axle",
+    "pin_B_L": "snap_pin_axle",
+    "pin_C_R": "snap_pin_finger",    # finger-pivot snap pins x4
+    "pin_D_R": "snap_pin_finger",
+    "pin_C_L": "snap_pin_finger",
+    "pin_D_L": "snap_pin_finger",
+    "front_cover": "front_cover",
+}
+
+
+def name_for(label: str) -> str:
+    """Unique file name for a child label (fallback: the label itself)."""
+    return LABEL_TO_NAME.get(label, label)
+
 
 # --------------------------------------------------------------------------
-# Per-part metadata: material + print-orientation note, keyed by a stable
-# "kind" derived from the label. Anything unknown falls back to a sane default
-# so a newly-added part (e.g. front_cover) still gets exported and listed.
+# Per-part metadata: material + print-orientation note, keyed by the unique
+# part NAME. Anything unknown falls back to a sane default so a newly-added
+# part still gets exported and listed.
 #
-# Materials:
-#   PETG / Nylon -> structural body parts (enclosure, arms, followers)
+# Materials (EVERYTHING is printed -- no bought hardware):
+#   PETG / Nylon -> structural body parts (enclosure, arms, followers, cover)
+#   PETG         -> snap pins (semi-flexible for the snap barb to flex, but
+#                   stronger than TPU so the loaded pivot shank doesn't creep)
 #   TPU          -> compliant Fin Ray fingers
-#   hardware     -> pins are REPRESENTATIONS of bought M-screws: DO NOT PRINT
 # --------------------------------------------------------------------------
-def part_meta(label: str):
-    """Return (material, print_note) for a given part label."""
-    if label == "enclosure":
+def part_meta(name: str):
+    """Return (material, print_note) for a given unique part name."""
+    if name == "enclosure":
         return ("PETG / Nylon",
                 "open cavity face UP on the bed (back flange down); supports "
                 "only inside the shaft bore.")
-    if label == "front_cover":
+    if name == "front_cover":
         return ("PETG / Nylon",
-                "flat-face down on the bed.")
-    if label == "drive_arm_L":
+                "outer face DOWN on the bed, snap clips pointing UP; the clips "
+                "print as unsupported cantilevers off the inner face -- no "
+                "supports needed.")
+    if name == "drive_arm_L":
         return ("PETG / Nylon",
-                "REORIENT MANUALLY: the 40 mm integral input shaft sticks out "
-                "along +Z; lay the shaft horizontal so the flat gear/arm face "
-                "is on the bed.")
-    if label.startswith("drive_arm"):
+                "REORIENT MANUALLY: the integral input shaft sticks out along "
+                "+Z; lay the shaft HORIZONTAL so the flat gear/arm face is on "
+                "the bed.")
+    if name.startswith("drive_arm"):
         return ("PETG / Nylon",
                 "lay the flat gear+arm plate face-down on the bed (5 mm thick).")
-    if label.startswith("follower"):
+    if name.startswith("follower"):
         return ("PETG / Nylon",
                 "lay the flat link bar face-down on the bed (5 mm thick).")
-    if label.startswith("finger"):
+    if name.startswith("finger"):
         return ("TPU (shore ~95A)",
-                "lay the Fin Ray plane flat on the bed, contact-face/ridge side "
-                "down for clean ridges; print the 10 mm depth as the Z height "
-                "(may want a 90 deg rotate from the exported pose).")
-    if label.startswith("pin"):
-        return ("stainless hardware (M-screw)",
-                "HARDWARE -- do not print; buy the equivalent dowel pin / "
-                "socket-head cap screw.")
+                "lay the Fin Ray plane FLAT on the bed, RIDGE (contact-face) "
+                "side DOWN for clean grip ridges; the 10 mm depth is the Z "
+                "height (may want a 90 deg rotate from the exported pose).")
+    if name.startswith("snap_pin"):
+        return ("PETG",
+                "stand HEAD DOWN with the pin AXIS VERTICAL (barb tip up); no "
+                "supports -- the split barb prints as a self-supporting cone "
+                "and springs out past the far bore face to lock.")
     # Fallback for any unexpected new part.
     return ("PETG / Nylon",
             "orientation TBD -- inspect and lay the largest flat face on the bed.")
 
 
-def is_hardware(label: str) -> bool:
-    return label.startswith("pin")
-
-
 # --------------------------------------------------------------------------
 # Geometry helpers
 # --------------------------------------------------------------------------
-def fingerprint(solid):
-    """Translation/mirror-invariant geometric fingerprint of a solid.
-
-    (volume, surface area, sorted bbox extents) rounded. Two solids that are
-    the same shape -- regardless of where they sit -- share this fingerprint.
-    Note: a mirror image ALSO shares it, which is why chiral parts must be
-    forced unique separately (see FORCE_UNIQUE)."""
-    bb = solid.bounding_box().size
-    extents = tuple(sorted((round(bb.X, 2), round(bb.Y, 2), round(bb.Z, 2))))
-    return (round(solid.volume, 1), round(solid.area, 1)) + extents
-
-
 def to_origin(solid):
     """Return a copy translated so its bounding-box min corner sits at (0,0,0).
 
@@ -153,11 +180,24 @@ def to_origin(solid):
     return solid.moved(gripper.Location((-mn.X, -mn.Y, -mn.Z)))
 
 
+def clean_out_dir():
+    """Remove stale per-part STEP/STL so an old naming scheme can't leave
+    orphaned files that misrepresent the current design (e.g. the obsolete
+    pin_axle/pin_finger from before the snap-pin rename)."""
+    if not OUT_DIR.exists():
+        return
+    for f in OUT_DIR.glob("*.step"):
+        f.unlink()
+    for f in OUT_DIR.glob("*.stl"):
+        f.unlink()
+
+
 # --------------------------------------------------------------------------
 # Main
 # --------------------------------------------------------------------------
 def main():
     OUT_DIR.mkdir(parents=True, exist_ok=True)
+    clean_out_dir()
 
     asm = gripper.gen_step()
     children = [c for c in asm.children if getattr(c, "label", None)]
@@ -165,41 +205,21 @@ def main():
         print("ERROR: gen_step() returned no labelled children", file=sys.stderr)
         return 1
 
-    # ---- group children into unique parts ----
-    # groups: list of dicts {canonical, qty, labels, fingerprint}
+    # ---- group children into unique parts BY LABEL ----
+    # groups: ordered list of dicts {canonical, name, qty, labels}
     groups = []
-    fp_index = {}  # fingerprint -> group dict (only for mergeable parts)
+    name_index = {}  # unique name -> group dict
 
     for c in children:
-        label = c.label
-        fp = fingerprint(c)
-        if label in FORCE_UNIQUE or fp not in fp_index:
-            grp = {"canonical": c, "name": label, "qty": 1,
-                   "labels": [label], "fp": fp}
+        name = name_for(c.label)
+        grp = name_index.get(name)
+        if grp is None:
+            grp = {"canonical": c, "name": name, "qty": 1, "labels": [c.label]}
             groups.append(grp)
-            # Only register mergeable (non-forced-unique) fingerprints so chiral
-            # mirrors never absorb each other.
-            if label not in FORCE_UNIQUE:
-                fp_index[fp] = grp
+            name_index[name] = grp
         else:
-            grp = fp_index[fp]
             grp["qty"] += 1
-            grp["labels"].append(label)
-
-    # Give merged groups a friendlier, side-agnostic name. The canonical was
-    # named after the first instance encountered (e.g. "pin_A_R", "follower_R"),
-    # which is misleading once it represents a quantity of identical parts.
-    for grp in groups:
-        if grp["name"].startswith("pin"):
-            # axle pins are short (~14 mm), finger pins are tall (~23.6 mm)
-            zext = grp["canonical"].bounding_box().size.Z
-            grp["name"] = "pin_axle" if zext < 18.0 else "pin_finger"
-        elif grp["qty"] > 1 and grp["name"] not in FORCE_UNIQUE:
-            # A non-chiral part merged from R/L (e.g. "follower_R") -> drop the
-            # trailing "_R"/"_L" so the file name doesn't imply one side.
-            base = grp["name"]
-            if base.endswith("_R") or base.endswith("_L"):
-                grp["name"] = base[:-2]
+            grp["labels"].append(c.label)
 
     # ---- export each unique part, translated to origin ----
     rows = []
@@ -218,13 +238,12 @@ def main():
             print(f"WARNING: failed to export {name}: {exc}", file=sys.stderr)
             continue
 
-        material, note = part_meta(grp["labels"][0])
-        printable = "no (hardware)" if is_hardware(grp["labels"][0]) else "yes"
+        material, note = part_meta(name)
         rows.append({
             "name": name,
             "qty": grp["qty"],
             "instances": ", ".join(grp["labels"]),
-            "printable": printable,
+            "printable": "yes",          # everything is printed now
             "material": material,
             "bbox": f"{bb.X:.1f} x {bb.Y:.1f} x {bb.Z:.1f}",
             "note": note,
@@ -234,25 +253,29 @@ def main():
     print()
     print("Exported unique gripper parts -> {}".format(OUT_DIR))
     print("Pose: CLOSED (GRIPPER_OPEN=0).  STL tol={} mm.".format(STL_TOL))
+    print("FULLY 3D-PRINTED gripper: zero bought hardware -- every part below "
+          "is printed.")
     print()
-    header = ("{:<14} {:>4} {:<13} {:<28} {:<20}"
+    header = ("{:<16} {:>4} {:<11} {:<18} {:<22}"
               .format("PART", "QTY", "PRINTABLE", "MATERIAL", "BBOX (mm)"))
     print(header)
     print("-" * len(header))
     for r in rows:
-        print("{:<14} {:>4} {:<13} {:<28} {:<20}".format(
+        print("{:<16} {:>4} {:<11} {:<18} {:<22}".format(
             r["name"], r["qty"], r["printable"], r["material"], r["bbox"]))
     print()
     print("Print-orientation notes:")
     for r in rows:
         print("  - {}: {}".format(r["name"], r["note"]))
     print()
-    print("Pins (pin_axle x{}, pin_finger x{}) are REPRESENTATIONS of bought "
-          "M-screws / dowel pins -- do NOT print them.".format(
-              next((r["qty"] for r in rows if r["name"] == "pin_axle"), 0),
-              next((r["qty"] for r in rows if r["name"] == "pin_finger"), 0)))
+    n_axle = next((r["qty"] for r in rows if r["name"] == "snap_pin_axle"), 0)
+    n_fing = next((r["qty"] for r in rows if r["name"] == "snap_pin_finger"), 0)
+    print("Snap pins are PRINTED PETG parts (snap_pin_axle x{}, "
+          "snap_pin_finger x{}) -- they REPLACE the old metal pins. Print head "
+          "down, no supports.".format(n_axle, n_fing))
     print("R/L Fin Ray fingers are chiral mirrors -> exported as two separate "
           "files (finger_R, finger_L), each qty 1.")
+    print("ZERO bought hardware: every part is 3D-printed.")
 
     # ---- MANIFEST.md ----
     manifest = OUT_DIR / "MANIFEST.md"
@@ -261,6 +284,11 @@ def main():
     lines.append("")
     lines.append("Generated by `export_parts.py` from `gripper.gen_step()` at the "
                  "**CLOSED** pose (`GRIPPER_OPEN=0`).")
+    lines.append("")
+    lines.append("**This gripper is FULLY 3D-PRINTED -- zero bought hardware.** "
+                 "The metal pivot pins are now printed PETG snap pins and the "
+                 "front cover snaps on with integral cantilever clips. Every "
+                 "part below is printed.")
     lines.append("")
     lines.append("STL mesh tolerance: `{} mm` (linear), `{}` (angular). "
                  "Each part is translated so its bounding-box min corner is at "
@@ -277,23 +305,32 @@ def main():
     lines.append("")
     lines.append("## Notes")
     lines.append("")
-    lines.append("- **Pins are hardware, not prints.** `pin_axle` (x{}) and "
-                 "`pin_finger` (x{}) model off-the-shelf stainless dowel pins / "
-                 "socket-head cap screws (PIN_R = {} mm). Source the real "
-                 "fasteners; the STEP/STL are reference only.".format(
-                     next((r["qty"] for r in rows if r["name"] == "pin_axle"), 0),
-                     next((r["qty"] for r in rows if r["name"] == "pin_finger"), 0),
-                     gripper.PIN_R))
+    lines.append("- **Everything is printed.** No screws, no dowel pins, no "
+                 "bought fasteners. `snap_pin_axle` (x{}) and `snap_pin_finger` "
+                 "(x{}) are printed PETG push-to-snap pivots (shank radius "
+                 "PIN_R = {} mm). PETG is chosen so the split barb flexes on "
+                 "insertion yet the loaded pivot shank resists creep better "
+                 "than TPU.".format(n_axle, n_fing, gripper.PIN_R))
+    lines.append("- **Snap pins: print head down, axis vertical, no supports.** "
+                 "The split/barbed tip is self-supporting; it squeezes through "
+                 "the bore on insertion and springs out past the far face to "
+                 "lock. To remove, pinch the barb and pull.")
+    lines.append("- **Front cover snaps on (no screws).** It carries 4 integral "
+                 "cantilever clips (2 per long side) that hook into the body "
+                 "side-wall windows. Print outer-face DOWN, clips UP. Push on "
+                 "to click; flex the 4 hooks outward to release.")
     lines.append("- **Fingers are chiral.** `finger_R` and `finger_L` share a "
                  "bounding box / volume but are mirror images (Fin Ray ribs all "
-                 "slant the same way within a finger), so both are exported.")
+                 "slant the same way within a finger), so both are exported. "
+                 "Print in TPU, ridge side down.")
     lines.append("- **Followers are identical.** A follower is a symmetric link "
                  "bar; left and right are the same part -> one file, qty 2.")
     lines.append("- **Drive arms differ.** `drive_arm_L` carries the integral "
                  "input shaft + D-coupler; `drive_arm_R` rides on a separate "
-                 "axle pin. Two distinct parts.")
+                 "axle snap pin. Two distinct parts.")
     lines.append("- **drive_arm_L needs manual reorientation** for printing "
-                 "(40 mm shaft sticks out along Z in the exported pose).")
+                 "(shaft sticks out along Z in the exported pose; lay it "
+                 "horizontal).")
     manifest.write_text("\n".join(lines) + "\n")
     print("Wrote {}".format(manifest))
 
