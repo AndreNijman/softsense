@@ -7,11 +7,11 @@ column is how this model meets them.
 
 | Rule (FDM standard) | Target | This design |
 |---|---|---|
-| **Min wall thickness** | ≥0.8 mm (≥2 perimeters); 1.5 mm for functional walls | enclosure/cover walls **3.0 mm**; Fin Ray spars/ribs **2.8 mm**; snap-clip arm **2.8 mm** — all ≥1.5 mm |
+| **Min wall thickness** | ≥0.8 mm (≥2 perimeters); 1.5 mm for functional walls | enclosure/cover walls **3.0 mm**; Fin Ray spars/ribs **2.8 mm**; snap-clip arm **2.8 mm**; axle-boss walls **2.0 mm** (`BOSS_OD_R = AXLE_SCREW_R + 2`); shaft-bushing wall **1.6 mm** — all ≥1.5 mm |
 | **Overhang angle** | ≤45° from vertical without support | boxy parts print flat; gear teeth, Fin Ray ribs and grip teeth are in-plane (no Z overhang); snap-pin barb is a narrowing cone (self-supporting); cover clips print pointing up |
 | **Hole diameter** | ≥1 mm (vertical) / ≥2 mm (horizontal); oversize 0.2–0.4 mm | pivot bores Ø5.2 mm, drains Ø5 mm — all well above min, with built-in clearance |
 | **Mating clearance** | ~0.3 mm per side | `PRINT_CLEAR = 0.3` on every pivot/slide; `SNAP_CLEAR = 0.35` on snap engagements |
-| **Sharp edges** | fillet/chamfer to relieve stress & ease printing | Fin Ray rib-cell corners filleted (R0.8), tip/teeth rounded, base chamfered (anti-elephant-foot); link bars get a 0.4 mm edge-break top & bottom; enclosure & cover edges filleted (R4/R2) |
+| **Sharp edges** | fillet/chamfer to relieve stress & ease printing | Fin Ray rib-cell corners filleted (R0.8), tip/teeth rounded, base chamfered (anti-elephant-foot); link bars **and** drive-arm arms get a 0.4 mm edge-break (`DFM_EDGE`) top & bottom; snap-pin head-flange rims chamfered; enclosure/cover perimeter filleted (R4/R2) and boss roots filleted (R0.8). **Intentionally crisp:** gear-tooth flanks (functional meshing, sealed inside the housing, printed in-plane) and the snap-pin barb catch face (positive lock). |
 | **Bridge span** | ≤10 mm reliable | no unsupported bridge exceeds the wall spans; drain/window openings are short |
 | **Elephant foot** | chamfer bottom edges | bed-face edges chamfered on fingers & link bars |
 

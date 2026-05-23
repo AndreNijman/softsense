@@ -326,6 +326,10 @@ def drive_arm(A, C, spin_deg, z0, thickness, label, color, with_shaft=False):
         # clearance bore so the arm rides on its axle pin
         part -= Cylinder(radius=AXLE_BORE_R, height=thickness * 4).moved(
             Location((A[0], A[1], z0 + thickness / 2.0)))
+    # Note: the arm portion already carries link_bar's 0.4 mm edge-break. The
+    # gear-tooth flanks are deliberately left crisp -- they are functional
+    # meshing surfaces (sealed inside the housing, printed in-plane so no
+    # overhang), and rounding them would degrade tooth engagement.
     part = part.moved(Location((0, 0, 0)))   # already in world coords
     part.label = label
     part.color = color
@@ -396,6 +400,11 @@ def snap_pin(p, z0, z1, head_at="z0", label="snap_pin", color=PIN_COLOR,
         tip = Cone(bottom_radius=shank_r, top_radius=shank_r * 0.6,
                    height=1.2).moved(Location((0, 0, L + 0.6)))
         body = head + shank + tip
+
+    # DFM edge-break: soften the head-flange rim (handled during insertion). The
+    # barb catch face is deliberately left crisp so the lock stays positive.
+    hd = [e for e in body.edges() if e.length > 20.0 and e.center().Z < 0.05]
+    body = _safe_round(body, hd, min(DFM_EDGE, SNAP_HEAD_T * 0.5), chamfer)
 
     if head_at == "z0":
         body = body.moved(Location((0, 0, z0)))
@@ -685,8 +694,8 @@ DRAIN_SIDE_YZ = [(-14.0, 4.0), (-14.0, 16.0)]      # low side-wall holes (along 
 COVER_COLOR = Color(0.33, 0.35, 0.40)   # cover: slightly lighter than ENC
 FRONT_WALL_Z = (22.0, 24.0)             # old solid front wall, now removed
 AXLE_PIVOTS = [A_R, B_R, mirror_x(B_R)]  # captured-axle pivots (not A_L = shaft)
-BOSS_OD_R = 3.5                         # axle boss outer radius (OD ~7)
 AXLE_SCREW_R = AXLE_BORE_R              # snap-pin shank clearance (was M3)
+BOSS_OD_R = AXLE_SCREW_R + 2.0          # axle boss OD -> 2 mm wall around bore (DFM min)
 BACK_BOSS_Z = (-2.0, 1.0)              # back-wall boss into cavity
 COVER_BOSS_Z = (20.0, 22.0)            # cover inner-face boss into cavity
 BUSH_OD_R = 6.0                         # bushing-seat boss outer radius (OD ~12)
