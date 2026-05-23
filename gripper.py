@@ -42,6 +42,7 @@ from build123d import (
     Color,
     Compound,
     Cylinder,
+    GeomType,
     Location,
     Plane,
     Polyline,
@@ -311,7 +312,7 @@ def pin(p, label, visible):
             Location((p[0], p[1], z1)))          # centred on finger top -> flush
         c = shaft + head
     else:
-        z0, z1 = Z_CRANK0 - 2.0, Z_FOLLOW0 + T_FOLLOW + 1.0  # ~-1 .. 13 (hidden)
+        z0, z1 = -2.0, 22.0   # full axle: back-wall boss -> front-cover boss
         c = Cylinder(radius=PIN_R, height=(z1 - z0)).moved(
             Location((p[0], p[1], (z0 + z1) / 2.0)))
     c.label = label
@@ -495,6 +496,24 @@ DRAIN_R = 2.5
 DRAIN_BOTTOM_X = [-32.0, -16.0, 0.0, 16.0, 32.0]   # bottom-face row (along Y)
 DRAIN_SIDE_YZ = [(-14.0, 4.0), (-14.0, 16.0)]      # low side-wall holes (along X)
 
+# --- assembly split: open-front body + bolt-on front cover ---------------
+COVER_COLOR = Color(0.33, 0.35, 0.40)   # cover: slightly lighter than ENC
+FRONT_WALL_Z = (22.0, 24.0)             # old solid front wall, now removed
+AXLE_PIVOTS = [A_R, B_R, mirror_x(B_R)]  # captured-axle pivots (not A_L = shaft)
+BOSS_OD_R = 3.5                         # axle boss outer radius (OD ~7)
+AXLE_SCREW_R = 1.7                      # M3 axle clearance/self-tap
+BACK_BOSS_Z = (-2.0, 1.0)              # back-wall boss into cavity
+COVER_BOSS_Z = (20.0, 22.0)            # cover inner-face boss into cavity
+BUSH_OD_R = 6.0                         # bushing-seat boss outer radius (OD ~12)
+BUSH_BORE_R = 4.4                       # flooded plain-bushing clearance
+BUSH_BOSS_Z = (-2.0, 1.0)
+CORNER_XY = [(-43.0, -15.0), (43.0, -15.0), (-43.0, 13.0), (43.0, 13.0)]
+CORNER_BOSS_R = 3.0                     # screw-boss outer radius
+CORNER_TAP_R = 1.35                    # M3 tap (self-tap into body column)
+CORNER_CLEAR_R = 1.7                   # M3 clearance hole in the cover
+CORNER_BOSS_Z = (-2.0, 22.0)           # full-height column: back wall -> cover seat
+COVER_Z = (22.0, 25.0)                 # bolt-on cover plate
+
 
 def _box_between(x0, x1, y0, y1, z0, z1):
     return Box(x1 - x0, y1 - y0, z1 - z0).moved(
@@ -502,36 +521,71 @@ def _box_between(x0, x1, y0, y1, z0, z1):
 
 
 def build_enclosure():
-    """Hollow flooded gearbox housing (underwater) as a build123d solid in
-    world coords. Widened top slots clear the four-bar arm sweep; drain/flood
-    holes let water flood and drain so no air is trapped."""
+    """Hollow flooded gearbox housing (underwater), SPLIT for assembly: the
+    FRONT wall is removed (open front) so the gear/linkage mechanism drops in
+    and the bolt-on front cover supports the far axle ends. Keeps the cavity,
+    two top slots, back mounting flange + M4 holes, the A_L shaft bore, and all
+    the drain/flood holes. Adds captured-axle bosses (A_R/B_R/B_L), a shaft
+    bushing seat at A_L, and 4 corner screw bosses for the cover."""
     body = _box_between(*ENC_X, *ENC_Y, *ENC_Z)
-    # fillet cosmetic edges first, while the block is simple
     body = fillet(body.edges().filter_by(Axis.Y), radius=R_VERT)
     top_edges = body.edges().filter_by(Axis.Y, reverse=True).group_by(Axis.Y)[-1]
     body = fillet(top_edges, radius=R_TOP)
-    # hollow it
     body -= _box_between(*CAV_X, *CAV_Y, *CAV_Z)
-    # top slots so the links/fingers emerge (central bridge + outboard stay solid)
+    # OPEN FRONT: remove the solid front wall over the cavity footprint
+    body -= _box_between(CAV_X[0], CAV_X[1], CAV_Y[0], CAV_Y[1],
+                         FRONT_WALL_Z[0] - 0.5, ENC_Z[1] + 1.0)
     body -= _box_between(SLOT_R[0], SLOT_R[1], TOP_WALL_Y0 - 1.0, ENC_Y[1] + 1.0,
                          SLOT_Z[0] - 0.5, SLOT_Z[1] + 0.5)
     body -= _box_between(SLOT_L[0], SLOT_L[1], TOP_WALL_Y0 - 1.0, ENC_Y[1] + 1.0,
                          SLOT_Z[0] - 0.5, SLOT_Z[1] + 0.5)
-    # back mounting flange
     flange = _box_between(*FLANGE_X, *FLANGE_Y, *FLANGE_Z)
     flange = fillet(flange.edges().filter_by(Axis.Z), radius=R_VERT)
     body += flange
-    # drive-shaft bore: through-hole from behind the flange into the cavity
-    bz0, bz1 = FLANGE_Z[0] - 2.0, CAV_Z[0] + 2.0
+
+    # captured-axle bosses on the BACK wall at A_R, B_R, B_L
+    for (px, py) in AXLE_PIVOTS:
+        body += Cylinder(radius=BOSS_OD_R, height=(BACK_BOSS_Z[1] - BACK_BOSS_Z[0])).moved(
+            Location((px, py, (BACK_BOSS_Z[0] + BACK_BOSS_Z[1]) / 2.0)))
+    # shaft bushing seat at A_L
+    body += Cylinder(radius=BUSH_OD_R, height=(BUSH_BOSS_Z[1] - BUSH_BOSS_Z[0])).moved(
+        Location((SHAFT_C[0], SHAFT_C[1], (BUSH_BOSS_Z[0] + BUSH_BOSS_Z[1]) / 2.0)))
+    # corner screw bosses (full-height columns) for the cover
+    for (cx, cy) in CORNER_XY:
+        body += Cylinder(radius=CORNER_BOSS_R, height=(CORNER_BOSS_Z[1] - CORNER_BOSS_Z[0])).moved(
+            Location((cx, cy, (CORNER_BOSS_Z[0] + CORNER_BOSS_Z[1]) / 2.0)))
+
+    # fillet boss roots at the back-wall inner face for the clean look
+    for e in body.edges().filter_by(GeomType.CIRCLE):
+        if abs(e.center().Z - CAV_Z[0]) < 0.05:
+            try:
+                body = fillet([e], radius=0.8)
+            except Exception:
+                pass
+
+    # drive-shaft bore through the BACK WALL only (behind flange -> cavity face)
+    bz0, bz1 = FLANGE_Z[0] - 2.0, CAV_Z[0]
     body -= Cylinder(radius=SHAFT_BORE_R, height=(bz1 - bz0)).moved(
         Location((SHAFT_C[0], SHAFT_C[1], (bz0 + bz1) / 2.0)))
+    # bushing seat: neck the A_L collar to BUSH_BORE_R (overlaps the bore)
+    body -= Cylinder(radius=BUSH_BORE_R, height=(BUSH_BOSS_Z[1] - CAV_Z[0]) + 4.0).moved(
+        Location((SHAFT_C[0], SHAFT_C[1], (CAV_Z[0] - 2.0 + BUSH_BOSS_Z[1]) / 2.0)))
+
+    # axle screw holes through the back-wall bosses (insert from behind)
+    for (px, py) in AXLE_PIVOTS:
+        body -= Cylinder(radius=AXLE_SCREW_R, height=(BACK_BOSS_Z[1] - ENC_Z[0]) + 6.0).moved(
+            Location((px, py, (ENC_Z[0] - 3.0 + BACK_BOSS_Z[1]) / 2.0)))
+    # corner tap holes (drilled down from the cover seat)
+    for (cx, cy) in CORNER_XY:
+        body -= Cylinder(radius=CORNER_TAP_R, height=14.0).moved(
+            Location((cx, cy, CORNER_BOSS_Z[1] - 14.0 / 2.0 + 0.5)))
+
     # M4 flange bolt holes
     for (bx, by) in BOLT_XY:
         body -= Cylinder(radius=BOLT_R, height=(FLANGE_Z[1] - FLANGE_Z[0]) + 4.0).moved(
             Location((bx, by, (FLANGE_Z[0] + FLANGE_Z[1]) / 2.0)))
 
-    # underwater drainage / flood holes: bottom-face row (along Y) + low side
-    # holes (along X) so the housing floods and drains in any orientation.
+    # underwater drainage / flood holes
     for dx in DRAIN_BOTTOM_X:
         body -= Cylinder(radius=DRAIN_R, height=(WALL + 6.0)).moved(
             Location((dx, ENC_Y[0] + WALL / 2.0, 10.0), (1, 0, 0), 90.0))
@@ -543,6 +597,32 @@ def build_enclosure():
     body.label = "enclosure"
     body.color = ENC
     return body
+
+
+def build_front_cover():
+    """Bolt-on FRONT cover that closes the open front and supports the far ends
+    of the axles. Plate over the footprint at Z=22..25 with matching axle bosses
+    at A_R/B_R/B_L and 4 corner M3 clearance holes aligned to the body columns."""
+    plate = _box_between(*ENC_X, *ENC_Y, *COVER_Z)
+    plate = fillet(plate.edges().filter_by(Axis.Z), radius=R_VERT)
+    for (px, py) in AXLE_PIVOTS:
+        plate += Cylinder(radius=BOSS_OD_R, height=(COVER_BOSS_Z[1] - COVER_BOSS_Z[0])).moved(
+            Location((px, py, (COVER_BOSS_Z[0] + COVER_BOSS_Z[1]) / 2.0)))
+    for e in plate.edges().filter_by(GeomType.CIRCLE):
+        if abs(e.center().Z - COVER_Z[0]) < 0.05:
+            try:
+                plate = fillet([e], radius=0.8)
+            except Exception:
+                pass
+    for (px, py) in AXLE_PIVOTS:
+        plate -= Cylinder(radius=AXLE_SCREW_R, height=(COVER_Z[1] - COVER_BOSS_Z[0]) + 4.0).moved(
+            Location((px, py, (COVER_BOSS_Z[0] + COVER_Z[1]) / 2.0)))
+    for (cx, cy) in CORNER_XY:
+        plate -= Cylinder(radius=CORNER_CLEAR_R, height=(COVER_Z[1] - COVER_Z[0]) + 4.0).moved(
+            Location((cx, cy, (COVER_Z[0] + COVER_Z[1]) / 2.0)))
+    plate.label = "front_cover"
+    plate.color = COVER_COLOR
+    return plate
 
 
 # --------------------------------------------------------------------------
@@ -599,6 +679,9 @@ def gen_step():
                               ("L", L, ("B", "C", "D"))):
         for j in joints:
             parts.append(pin(pose[j], f"pin_{j}_{tag}", visible=(j in ("C", "D"))))
+
+    # bolt-on front cover LAST so existing occurrence ids stay stable
+    parts.append(build_front_cover())
 
     asm = Compound(label="gripper", children=parts)
     # reorient to Z-up for printing & viewing: fingers point +Z, the input

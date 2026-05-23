@@ -4,6 +4,12 @@ A practical guide for taking the geared four-bar / Fin Ray gripper (see
 `gripper.py`, `README.md`) into fresh or salt water. It answers the obvious
 question first, then covers the real-world details.
 
+This is the **material / seawater** companion to `PRINTING.md` (which covers
+orientation, supports, and slicer settings). Decide *how* to print there; decide
+*what to print it in* and how to run it wet here. The headline: **print it
+flooded, in marine-grade polymers and 316/A4 stainless, and there is nothing to
+seal.**
+
 ## Will the gears be fine underwater? — Yes.
 
 Open spur gears run fine underwater **when the gearbox is flooded**, which is the
@@ -87,6 +93,46 @@ Notes:
 - Keep the assembly **single-metal where possible** (all 316, or all polymer) to
   avoid galvanic pairs.
 
+### Final pick per part — SEAWATER build
+
+The committed "just tell me what to use in salt water" list. Where two are given,
+either works; the first is the default.
+
+| Part (from `gripper.py`) | Seawater material |
+|---|---|
+| `enclosure` (flooded housing) | **Glass-filled nylon** or **acetal**; PETG/ASA OK for short/shallow work; anodized 6061 if you machine it |
+| `front_cover` (optional) | Same as the enclosure |
+| `drive_arm_R` / `drive_arm_L` (gear + arm) | **Acetal (Delrin)** or glass-filled nylon — self-lubricating teeth, runs dry flooded |
+| Integral input shaft (part of `drive_arm_L`) | Printed acetal/nylon for light duty; **316 SS shaft insert** for real torque (see Input shaft) |
+| `follower_R` / `follower_L` | Acetal or glass-filled nylon |
+| `finger_R` / `finger_L` (Fin Ray) | **Ether-based TPU** (e.g. NinjaFlex / suitable BASF grade) — *not* ester-based |
+| Pivot pins A/B/C/D | **316 / A4 stainless** dowel or shoulder pins |
+| Flange / cover fasteners | **A4 (316) stainless** |
+| Pivot bushings (if fitted) | **PTFE or acetal** plain bushing — never Oilite |
+
+Single-family rule: keep **every metal part 316/A4 stainless** so there is no
+galvanic pair inside the gripper, and isolate the whole gripper from any
+dissimilar metal on the robot arm (see Galvanic corrosion).
+
+### The input shaft (flooded plain bushing — no seal)
+
+The input shaft is **integral to `drive_arm_L`** and exits through the back-wall
+bore (`SHAFT_BORE_R = 5.0 mm`). In the **flooded** design it rides in a simple
+**plain bushing** and needs **no dynamic seal at all** — because there is no
+pressure differential and no dry cavity to protect, the shaft just turns wet:
+
+- **Bushing material: PTFE or acetal.** Both are self-lubricating and run dry
+  when flooded; water is the coolant. **No grease is required.** A dab of
+  **marine grease is optional** — it can smooth break-in and slightly reduce
+  wear, but in an open flooded bore it is partly sacrificial, so don't rely on it.
+- **No lip seal, no O-ring** on the shaft in the flooded build. The bore is sized
+  to clear the shaft, not to seal it.
+- *(Aside — if you ever want a DRY / sealed variant:* you'd add a **rotary lip
+  seal or shaft O-ring** in that 5 mm bore, **static face O-rings** on the cover
+  and flange joints, and either **pressure-rated walls** for your max depth or an
+  **oil-fill + pressure compensator**. That is a different machine — for this
+  passive gripper, stay flooded.)
+
 ## Lubrication
 
 - **Self-lubricating polymer mesh (acetal/nylon/PTFE) can run dry** — usually the
@@ -104,12 +150,18 @@ Notes:
 In seawater, dissimilar metals in contact form a battery and the less-noble metal
 corrodes preferentially.
 
-- **Best fix: don't mix metals.** All-316 hardware, or all-polymer where the load
-  allows.
-- If you must mix (e.g., aluminium housing + SS fasteners), use **isolating
-  washers / nylon shoulder bushings** to break the electrical path, and keep the
-  small-anode/large-cathode trap in mind (a small bare-aluminium feature next to a
-  large SS area corrodes fast).
+- **Best fix: don't mix metals.** Keep every metal part in the gripper the **same
+  stainless family (all 316/A4)**, or go all-polymer where the load allows. A
+  single-family assembly has no internal galvanic pair.
+- **Isolate the gripper from the rest of the robot.** Even if the gripper is
+  internally all-316, the arm it bolts to may be aluminium, anodized, or a
+  different stainless. Break that path: mount with **nylon/PTFE isolating washers
+  and shoulder bushings** at the flange so the gripper isn't electrically tied to
+  a dissimilar-metal robot frame.
+- If you must mix metals anyway (e.g., aluminium housing + SS fasteners), use the
+  same **isolating washers / nylon shoulder bushings** to break the path, and keep
+  the small-anode/large-cathode trap in mind (a small bare-aluminium feature next
+  to a large SS area corrodes fast).
 - For larger metal assemblies on long deployments, a **sacrificial zinc/aluminium
   anode** protects the structure. For a hand-sized gripper this is usually
   overkill — material choice + isolation is enough.
@@ -170,6 +222,17 @@ overall buoyancy trim.
   and/or a compensator must be rated for max depth.
 - Practical limit for the flooded gripper is set by your **materials and actuator**,
   not by the gripper's structure.
+- **Rough depth guidance for this flooded printed housing:** because it floods and
+  equalizes, the printed body has no hard depth ceiling — water pushes equally
+  inside and out. The realistic envelope is **a few tens of metres for a
+  hobby/ROV rig and into the 100 m+ range** if the actuator and electronics are
+  rated for it; the gripper goes as deep as whatever drives it. Three things still
+  scale with depth even on a flooded part: **(1)** any *unintended* trapped-air
+  pocket (a blind bolt hole, a dead-end rib cavity, an unvented cover) sees the
+  full crush load — vent every pocket; **(2)** water uptake and creep in the
+  polymer grow with pressure, time and temperature, so for deep/long dives prefer
+  **glass-filled nylon or acetal** over PETG/ASA; **(3)** the actuator/seal, not
+  the gripper, sets the true rating — match it to your target depth.
 
 ## Pre-dive / post-dive checklist
 
@@ -207,10 +270,11 @@ overall buoyancy trim.
 
 **You must choose at fabrication:**
 
-- **Actual materials per part** — pick from the BOM table above
+- **Actual materials per part** — pick from the BOM / final-pick tables above
   (acetal/316 for gears & pins, PETG/nylon/anodized-Al housing, ether-TPU fingers).
   In particular, **don't print the rigid parts in PLA for underwater use** even
-  though the README lists it.
+  though the README lists it. See **`PRINTING.md`** for how to orient and slice
+  each part once the material is chosen.
 - **Fasteners** — A2 for freshwater, **A4/316 for salt**.
 - **Bushings** — plastic/PTFE/sealed-SS, **not Oilite**.
 - **Actuator** — a waterproof servo or sealed/oil-filled actuator with compensator,
