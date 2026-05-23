@@ -1,284 +1,318 @@
 # Running this gripper underwater
 
-A practical guide for taking the geared four-bar / Fin Ray gripper (see
-`gripper.py`, `README.md`) into fresh or salt water. It answers the obvious
-question first, then covers the real-world details.
+Sustained-immersion durability + material-selection audit for the **fully
+3D-printed, zero-hardware** geared four-bar / Fin Ray gripper (see `gripper.py`,
+`BOM.md`, `DFM.md`). This is the production-readiness material/seawater gate:
+print it in the right polymers, accept the snap-fit constraints below, and dive
+it **flooded** — there is nothing to seal inside the gripper itself.
 
-This is the **material / seawater** companion to `PRINTING.md` (which covers
-orientation, supports, and slicer settings). Decide *how* to print there; decide
-*what to print it in* and how to run it wet here. The headline: **print it
-flooded, in marine-grade polymers and 316/A4 stainless, and there is nothing to
-seal.**
+> **Scope note.** The gripper is all-polymer and fastener-free: Fin Ray fingers
+> in TPU; 7 printed snap pins (3 barbed axle/finger pins + ... see below); a
+> 4-clip snap-on front cover; flooded enclosure with drain holes; integral
+> printed drive shaft + rear D-flat coupler. **The only metal/sealing burden in
+> the whole system is the user's own waterproof actuator** (see §6). Earlier
+> drafts of this file described a stainless-hardware build (SS pins, M4 bolts,
+> sealed-shaft option) — that version is obsolete and has been removed.
 
-## Will the gears be fine underwater? — Yes.
+This is the **material / seawater** companion to `PRINTING.md` (orientation,
+supports, slicer) and `DFM.md` (printability). Decide *how* to print there;
+decide *what to print it in* and how to run it wet here.
 
-Open spur gears run fine underwater **when the gearbox is flooded**, which is the
-standard approach for ROV/AUV manipulators and tooling. The two 16-tooth spur
-sectors (12 mm pitch radius, meshing on the centreline) don't care that they're
-wet — water is a poor lubricant but a fine coolant, and at this size, speed, and
-torque the mesh has plenty of margin. Let the housing flood through the drain
-holes and run the mesh wet.
+---
 
-The gears fail underwater for **material/contamination** reasons, not because
-they're submerged:
+## Audit summary (measured against `gripper.py`)
 
-- **Corrosion** — plain carbon steel rusts fast in water and very fast in salt.
-  The teeth pit, mesh quality drops, then it seizes. **Don't use plain carbon
-  steel.** Use acetal/Delrin, nylon, or 316 stainless.
-- **Lubricant washout** — any grease packed in an open mesh washes out within a
-  few cycles. Plan to either run dry on self-lubricating polymer gears, or use a
-  water-resistant marine/PTFE grease and re-apply (see Lubrication).
-- **Grit & biofouling ingress** — the open mesh and slot openings let sand, silt,
-  and marine growth into the teeth. This is abrasive and can jam the mesh. The
-  flood/drain holes (below) double as a flush path; rinse after every dive.
-- **Galvanic corrosion** — mixing dissimilar metals in seawater drives the less
-  noble one to corrode (see Galvanic corrosion). All-polymer mesh sidesteps this
-  entirely.
-
-Bottom line: flooded + corrosion-resistant tooth material = reliable. The default
-recommendation is **acetal (Delrin) or 316 SS gears**, run flooded.
-
-## Flooded vs sealed — choose FLOODED
-
-**Recommended: flooded, pressure-equalized.** Let water fill the housing through
-the drain/flood holes. This is simple, depth-independent, and needs no seals.
-Internal and external pressure equalize automatically, so the housing wall sees
-no pressure differential and there is nothing to crush or implode.
-
-Do **not** seal this housing dry without a real pressure-rated enclosure:
-
-- **Trapped air = buoyancy + crush risk.** A sealed air pocket makes the tool
-  buoyant and, more importantly, the external water pressure (~1 bar per 10 m of
-  depth) tries to collapse the housing. A 3 mm-walled printed/CNC slate body is
-  not a pressure vessel.
-
-A **sealed/dry housing is only worth it** when you need clean dry internals
-(precision metal gears with retained grease, electronics inside, very long
-service intervals). If you go that route, the housing then needs:
-
-- A **dynamic shaft seal** on the input shaft where it exits the back-wall bore
-  (`SHAFT_BORE_R = 5.0 mm` in the CAD — that bore is exactly where a rotary lip
-  seal or shaft O-ring goes).
-- **Static gaskets / face O-rings** on any cover joint and the mounting flange.
-- **Pressure-rated walls** sized for your max depth, or
-- **Oil-fill + a pressure compensator** (a flexible bladder that equalizes
-  internal oil pressure to ambient) — this is how "dry" subsea gearboxes actually
-  survive depth without thick walls.
-
-For this passive gripper, none of that is needed. Flood it.
-
-## Material BOM by part
-
-Corrosion-resistant picks for freshwater and saltwater. Saltwater is the harder
-case — bias toward 316/A4 stainless and inert polymers there.
-
-| Part | Freshwater pick | Saltwater pick | Avoid |
+| # | Check | Verdict | Evidence (measured from the model) |
 |---|---|---|---|
-| Enclosure / housing | PETG, ABS, or anodized 6061 Al | Glass-filled nylon, acetal, or anodized 6061; HDPE | **PLA** (absorbs water & hydrolyzes), bare aluminium next to SS |
-| Drive shaft | 303/304 SS or acetal | **316 SS** | Carbon/mild steel, brass in salt |
-| Gears (spur sectors) | Acetal/Delrin or nylon | Acetal/Delrin or **316 SS** | Plain carbon steel |
-| Pivot pins (A,B,C,D) | 304 SS shoulder pins | **316/A4 SS** shoulder pins | Carbon steel dowels |
-| Fasteners (M4 flange etc.) | A2 (304) stainless | **A4 (316)** stainless | Zinc-plated steel, mixed-metal mix |
-| Bushings (if fitted at pivots) | Acetal or PTFE | PTFE or sealed SS bearing | **Oil-impregnated bronze (Oilite)** — loses its oil when flooded |
-| Fingers (Fin Ray) | TPU | **Ether-based TPU** | Ester-based TPU for long warm immersion |
+| 1 | Material selection for sustained seawater | **RISK** | PETG/ASA/glass-nylon + ether-TPU are correct; **PLA must be rejected** (hydrolysis); untreated nylon swells; ester-TPU hydrolyzes. See §1. |
+| 2 | Creep at load-bearing snap interfaces | **FAIL (as drawn)** | Barbed finger pins lock on only **`SNAP_BARB_SEAT = 0.30 mm`** axial overlap held by **elastic preload** of a split tip (must flex `0.4 mm` radially). Creep + water plasticization relaxes this → pin walks out under sustained load. See §2 and the CONSTRAINTS block. |
+| 3 | Flooded-correctness (no trapped air) | **PASS** (1 RISK) | **Every part is a single solid, 1 shell each → no sealed internal pocket anywhere** (cells, cross-slots, sockets, shaft bore all vent to exterior). 5 bottom drains + 4 side drains + 4 snap windows + 2 top slots + back bores. Floods/drains fingers-up, fingers-down, back-up. **RISK:** front-up (+Z up) vents only via the slot/cover corner — add a cover vent (see §3). |
+| 4 | Net buoyancy | **PASS** | Solid vol **98.5 cm³**, dry mass ~**124 g** (PETG+TPU, 100% infill). Flooded → displaces solid vol only → **net ≈ +23 g in seawater (sinks gently, near-neutral)**. No ballast needed. See §4. |
+| 5 | Galvanic corrosion | **PASS** | **Zero metal in the gripper.** All 7 pins printed, snap-clip cover, no fasteners. No dissimilar-metal pair exists. See §5. |
+| 6 | Drive coupler / actuator | **FLAG (user)** | Rear D-flat coupler (`SHAFT_COUPLER_R = 5.0`, `SHAFT_DFLAT = 1.4`) needs a **user-supplied waterproof actuator** (IP68/sealed/flooded servo, potted servo, or magnetically-coupled drive). The gripper does NOT provide this. See §6. |
 
-Notes:
+---
 
-- **PLA is listed as an option in the README for rigid parts — do not use it
-  underwater.** It absorbs water and hydrolyzes over time, losing strength.
-  Substitute PETG/ABS/nylon or metal.
-- **Oil-impregnated bronze (Oilite) bushings are a trap underwater:** the
-  impregnated oil leaches out when flooded, leaving a dry porous bushing. Use
-  solid plastic, PTFE, or sealed stainless bearings instead.
-- Keep the assembly **single-metal where possible** (all 316, or all polymer) to
-  avoid galvanic pairs.
+## 1. Material selection for sustained immersion
 
-### Final pick per part — SEAWATER build
+Seawater is the hard case. The committed per-part picks (all printable on a
+0.4 mm-nozzle FDM machine):
 
-The committed "just tell me what to use in salt water" list. Where two are given,
-either works; the first is the default.
+| Part (from `gripper.py`) | Seawater material | Why / what to avoid |
+|---|---|---|
+| `enclosure` (flooded housing) | **PETG** default; **ASA** for topside/UV; **glass-filled nylon (PA-GF) or acetal/POM** for deep/long/warm dives | Low water uptake, **no hydrolysis**. **Never PLA.** Avoid **untreated cast nylon** (PA6/PA12 absorb 1–3 %+ water, swell, soften, drift dimensionally) — only **glass-filled** nylon is dimensionally acceptable. PETG-CF is fine. |
+| `front_cover` (snap-on, 4 clips) | Same as enclosure | The 4 cantilever snap clips must stay springy — see creep note §2. |
+| `drive_arm_R` / `drive_arm_L` (gear+arm) | **PETG**, or **acetal/POM** / PA-GF for real torque | Self-lubricating teeth run dry flooded; water is coolant. POM is the best wet gear polymer. |
+| Integral input shaft (part of `drive_arm_L`) | **PETG** light duty; **PA-GF or POM** for torque | Printed shaft runs in a bare flooded bore (no bushing, no seal). |
+| `follower` ×2 | PETG / ASA / PA-GF | Symmetric link, same part both sides. |
+| `finger_R` / `finger_L` (Fin Ray) | **Ether-based TPU ~95A** (e.g. NinjaFlex, BASF ether grades) | **Reject ester-based TPU** — it hydrolyzes in sustained/warm immersion and crumbles. Ether-TPU is hydrolysis-stable. TPU absorbs a little water and softens slightly (re-check grip force if tuned tight). |
+| 7 snap pins (3 barbed + ... ) | **PETG** default; **ASA / PA-GF** stiffer alternatives | Pins are pivots **and** retainers — must resist creep (§2). **TPU is wrong here** (it would creep and wallow the bore). |
 
-| Part (from `gripper.py`) | Seawater material |
-|---|---|
-| `enclosure` (flooded housing) | **Glass-filled nylon** or **acetal**; PETG/ASA OK for short/shallow work; anodized 6061 if you machine it |
-| `front_cover` (optional) | Same as the enclosure |
-| `drive_arm_R` / `drive_arm_L` (gear + arm) | **Acetal (Delrin)** or glass-filled nylon — self-lubricating teeth, runs dry flooded |
-| Integral input shaft (part of `drive_arm_L`) | Printed acetal/nylon for light duty; **316 SS shaft insert** for real torque (see Input shaft) |
-| `follower_R` / `follower_L` | Acetal or glass-filled nylon |
-| `finger_R` / `finger_L` (Fin Ray) | **Ether-based TPU** (e.g. NinjaFlex / suitable BASF grade) — *not* ester-based |
-| Pivot pins A/B/C/D | **316 / A4 stainless** dowel or shoulder pins |
-| Flange / cover fasteners | **A4 (316) stainless** |
-| Pivot bushings (if fitted) | **PTFE or acetal** plain bushing — never Oilite |
+**Rejected picks (do not use underwater):**
 
-Single-family rule: keep **every metal part 316/A4 stainless** so there is no
-galvanic pair inside the gripper, and isolate the whole gripper from any
-dissimilar metal on the robot arm (see Galvanic corrosion).
+- **PLA** — hydrolyzes; absorbs water; loses strength over days/weeks wet. Reject
+  for every part, even though general FDM guides list it.
+- **Ester-based TPU** — hydrolyzes; fingers eventually crumble. Use ether-TPU.
+- **Untreated (unfilled) nylon** — water absorption → swelling, dimensional
+  change, softening. Only **glass/CF-filled** nylon is acceptable.
+- **Oil-impregnated bronze (Oilite) bushings** — N/A here (no bushings), but if
+  you ever add one: the oil leaches out flooded, leaving a dry porous bush. Use
+  solid PTFE/acetal instead.
 
-### The input shaft (flooded plain bushing — no seal)
+**UV / biofouling:** for surface or shallow gear, **ASA** resists UV better than
+PETG (which yellows/embrittles in sun over months). Biofouling (algae, barnacle
+spat) settles in the open mesh and drains; rinse with fresh water after every
+dive and the flush path (drains + slots) clears it.
 
-The input shaft is **integral to `drive_arm_L`** and exits through the back-wall
-bore (`SHAFT_BORE_R = 5.0 mm`). In the **flooded** design it rides in a simple
-**plain bushing** and needs **no dynamic seal at all** — because there is no
-pressure differential and no dry cavity to protect, the shaft just turns wet:
+---
 
-- **Bushing material: PTFE or acetal.** Both are self-lubricating and run dry
-  when flooded; water is the coolant. **No grease is required.** A dab of
-  **marine grease is optional** — it can smooth break-in and slightly reduce
-  wear, but in an open flooded bore it is partly sacrificial, so don't rely on it.
-- **No lip seal, no O-ring** on the shaft in the flooded build. The bore is sized
-  to clear the shaft, not to seal it.
-- *(Aside — if you ever want a DRY / sealed variant:* you'd add a **rotary lip
-  seal or shaft O-ring** in that 5 mm bore, **static face O-rings** on the cover
-  and flange joints, and either **pressure-rated walls** for your max depth or an
-  **oil-fill + pressure compensator**. That is a different machine — for this
-  passive gripper, stay flooded.)
+## 2. Creep / stress-relaxation — the load-bearing snap interfaces (FAIL as drawn)
 
-## Lubrication
+**This is the production-blocking finding.** Polymers under *constant* load do
+not behave like metals: they creep, and any locking feature that depends on
+**stored elastic preload** slowly relaxes. Submersion makes it worse — water
+plasticizes PETG/nylon (lowers modulus and Tg), and warm shallow water adds
+temperature. Over days-to-weeks submerged, a preload-held catch can relax below
+its engagement and release.
 
-- **Self-lubricating polymer mesh (acetal/nylon/PTFE) can run dry** — usually the
-  simplest and most reliable choice flooded. Water provides cooling; the polymer
-  provides the low-friction surface.
-- **If you grease**, use a **water-resistant marine grease (calcium-sulfonate or
-  PTFE-fortified)**, not standard lithium grease — lithium grease emulsifies and
-  washes out. Accept that even good grease in an open mesh is partly sacrificial.
-- **Maintenance:** after each saltwater dive, **rinse with fresh water**, dry,
-  inspect the mesh for grit/pitting, and **re-grease** if greased. Salt left to
-  dry crystallizes in the mesh and accelerates wear and corrosion.
+### 2a. Barbed finger/axle pins — relies on elastic preload → FAIL
 
-## Galvanic corrosion
+Measured from `snap_pin()`:
 
-In seawater, dissimilar metals in contact form a battery and the less-noble metal
-corrodes preferentially.
+- Shank radius `PIN_R = 2.3`; barb lip projects to `barb_max_r = PIN_R +
+  SNAP_BARB_PROUD = 3.0 mm`.
+- The bore it passes through is `MOUNT_HOLE_R = 2.6 mm`, so the split tip must
+  flex **0.4 mm radially** and then spring back out.
+- The **entire positive-capture is `SNAP_BARB_SEAT = 0.30 mm`** of axial overlap
+  of the lip past the far bore face.
+- The split (`SNAP_SLOT_W = 1.0`, `SNAP_SLOT_LEN = 7.0`) makes the tip a sprung
+  cantilever — its outward projection is **held by elastic preload**.
 
-- **Best fix: don't mix metals.** Keep every metal part in the gripper the **same
-  stainless family (all 316/A4)**, or go all-polymer where the load allows. A
-  single-family assembly has no internal galvanic pair.
-- **Isolate the gripper from the rest of the robot.** Even if the gripper is
-  internally all-316, the arm it bolts to may be aluminium, anodized, or a
-  different stainless. Break that path: mount with **nylon/PTFE isolating washers
-  and shoulder bushings** at the flange so the gripper isn't electrically tied to
-  a dissimilar-metal robot frame.
-- If you must mix metals anyway (e.g., aluminium housing + SS fasteners), use the
-  same **isolating washers / nylon shoulder bushings** to break the path, and keep
-  the small-anode/large-cathode trap in mind (a small bare-aluminium feature next
-  to a large SS area corrodes fast).
-- For larger metal assemblies on long deployments, a **sacrificial zinc/aluminium
-  anode** protects the structure. For a hand-sized gripper this is usually
-  overkill — material choice + isolation is enough.
+Failure path: under sustained side load on the pivot + the barb's standing
+preload, the split tip stress-relaxes inward. Once the relaxed lip projection
+falls below the 0.30 mm seat (plus hygroscopic dimensional drift, which can
+itself be ~0.1–0.3 mm), the pin **walks out and the joint releases**. 0.30 mm is
+far too little margin for a creep-prone polymer holding a constant load for
+days underwater. **This is a FAIL as currently dimensioned.**
 
-## The Fin Ray TPU fingers
+### 2b. Front-cover snap clips — geometric, but watch arm relaxation → RISK
 
-**TPU works wet.** The compliant Fin Ray action — tip curling and wrapping around
-an object as the contact face loads — is a mechanical/geometric behaviour and
-still works fully submerged. Practical notes:
+The 4 cover clips hook behind a wall step: `SNAP_HOOK_ENGAGE = 1.5 mm` of
+mechanical capture, and the wall material above each window physically blocks
+the cover lifting. That is **geometric capture, not pure preload**, so it does
+**not** fail the same way — the hook can only release if the arm flexes 1.5 mm
+outward. **RISK** only: over long immersion the cantilever arm (`SNAP_ARM_T =
+2.8 mm`) can stress-relax and reduce hold-down preload (cover rattle), but it
+will not spontaneously unlatch. Acceptable; the fix (deeper engagement / stiffer
+material) is in the constraints block.
 
-- TPU **absorbs a little water and may swell/soften slightly**, marginally
-  changing finger stiffness. For most grasping this is negligible; if you've tuned
-  grip force tightly, re-check it wet.
-- **Chemistry matters for chronic immersion:** **ester-based TPU hydrolyzes** in
-  long or warm immersion and eventually crumbles. For sustained underwater use,
-  print the fingers in **ether-based TPU** (e.g. NinjaFlex / suitable BASF
-  grades). Short dives in any TPU are fine.
-- A wet, slightly softer TPU surface can actually improve conformance on smooth
-  objects.
+> The hard, quantified requirements for fixing 2a/2b are in the
+> **CONSTRAINTS FOR A (snap-fit/pin agent)** block at the end of this file.
 
-## Why the drain/flood holes (this housing)
+---
 
-The housing is being given drainage/flood holes specifically so it runs as a
-flooded design:
+## 3. Flooded-correctness — floods AND drains, no trapped air
 
-- **Bottom-row holes + low side holes** let the cavity **flood and drain in any
-  orientation** — fingers up, down, or sideways, no air stays trapped.
-- They **equalize internal/external pressure** continuously, so the wall never
-  sees a pressure differential (no crush, no implosion, depth-independent).
-- They give grit and silt a **flush-out path** — water moving through the mesh
-  during actuation, plus a freshwater rinse afterward, carries debris out instead
-  of packing it into the teeth.
-- Holes should clear the top link slots and the shaft bore so they don't weaken
-  those features.
+**Geometry-level proof:** building the assembly and counting shells, **every
+one of the 15 parts is a single solid with exactly 1 shell** — i.e. there is
+**no fully enclosed internal void anywhere in the model.** Every feature that
+could trap air is open to the exterior:
 
-## Actuation & buoyancy
+- **Snap-pin cross-slot** — the `+` slot is cut through to the barb tip (open
+  end), not a blind pocket. Vents.
+- **Axle dowel sockets (A_R, B_R, B_L)** — the enclosure bore runs Z −15…+1
+  (through to the **back exterior**, back face at −12) and the cover bore runs
+  Z 20…25 (through to the **front exterior**), with a 0.3 mm annular gap around
+  the 2.3 mm dowel. Open both ends → floods/drains.
+- **Shaft bore** — `SHAFT_BORE_R = 5.0` / `BUSH_BORE_R = 4.4` around the 4.0 mm
+  shaft (0.4 mm gap), open through the back wall. Vents.
+- **Finger rib cells** — the Fin Ray cavity and ribs are 2.5-D extrusions
+  through the **full 10 mm Z depth**: each cell is an **open channel** on both
+  the front and back faces of the finger, not a sealed pocket. Single-shell
+  confirmed. Floods/drains.
 
-The gripper itself is **passive and flooded** — only the input shaft needs to be
-driven. Drive it with one of:
+**Enclosure cavity openings** (so the housing floods/drains by orientation):
 
-- a **waterproof/submersible servo** (IP68-rated, or a hobby servo potted/sealed),
-  or
-- a **sealed or oil-filled actuator with a pressure compensator** for deeper /
-  longer work.
+- **5 bottom drains** Ø5 mm at X = −32, −16, 0, +16, +32.
+- **4 low side drains** Ø5 mm (2 per side wall).
+- **4 snap-clip windows** in the side walls (double as drains).
+- **2 wide top slots** where the arms/fingers emerge (open to the +Y exterior).
+- **3 axle bores + 1 shaft bore** through the back wall.
 
-The actuator carries the only real waterproofing burden in the system. The
-flooded gripper adds little trapped air, so its buoyancy contribution is small and
-roughly constant with depth; account for the actuator and any mount in your
-overall buoyancy trim.
+**Air-trap by orientation** (air rises to the highest point):
 
-## Depth & pressure
+- **Fingers up:** highest point = the open top slots → vents. **PASS.**
+- **Fingers down:** highest point = the 5 bottom drains → vents. **PASS.**
+- **Back up:** highest point = back wall = shaft + 3 axle bores → vents. **PASS.**
+- **Front up (+Z up):** the cover plate (Z 22…25) becomes the ceiling. The only
+  openings reaching that plane are the top slots' front-top corners (slot Z
+  spans 0…22), so a bubble must migrate along the cover/slot junction to escape
+  out the +Y slot. The path **exists** but is indirect. **RISK** — see fix
+  below. The internal void is ~84 cm³; if it ever held air instead of water that
+  is **+86 g of buoyancy** (flips the tool strongly positive) **and** an
+  unequalized crush load on the wall — so guaranteeing the flood matters.
 
-- **Flooded design is essentially depth-independent.** Pressure equalizes through
-  the holes, so the mechanism behaves the same at 1 m or 100 m. Polymer parts see
-  hydrostatic pressure equally on all sides and don't care.
-- **What changes with depth is only the sealed bits** — i.e. the actuator, and the
-  housing *only if* you chose the sealed-dry route. Then seals, wall thickness,
-  and/or a compensator must be rated for max depth.
-- Practical limit for the flooded gripper is set by your **materials and actuator**,
-  not by the gripper's structure.
-- **Rough depth guidance for this flooded printed housing:** because it floods and
-  equalizes, the printed body has no hard depth ceiling — water pushes equally
-  inside and out. The realistic envelope is **a few tens of metres for a
-  hobby/ROV rig and into the 100 m+ range** if the actuator and electronics are
-  rated for it; the gripper goes as deep as whatever drives it. Three things still
-  scale with depth even on a flooded part: **(1)** any *unintended* trapped-air
-  pocket (a blind bolt hole, a dead-end rib cavity, an unvented cover) sees the
-  full crush load — vent every pocket; **(2)** water uptake and creep in the
-  polymer grow with pressure, time and temperature, so for deep/long dives prefer
-  **glass-filled nylon or acetal** over PETG/ASA; **(3)** the actuator/seal, not
-  the gripper, sets the true rating — match it to your target depth.
+**Recommended fix for the front-up case (constraint for the cover/snap agent):**
+add **2 vent holes (≥1.5 mm dia) through the front cover plate** at the +Y
+(finger-side) corners, above the cavity, so air against the cover ceiling
+escapes directly regardless of orientation. Cheap insurance; see CONSTRAINTS.
+
+> Note on infill: a part printed at low infill has interconnected internal voids
+> that are **not watertight** — they flood slowly through the print's micro-
+> porosity. For predictable buoyancy and faster equalization, print structural
+> parts at **high infill (≥40 %) or with solid walls**; do not assume low-infill
+> air stays put.
+
+---
+
+## 4. Net buoyancy
+
+Measured: solid material volume **98.5 cm³** (rigid 80.3 + TPU 18.1). At 100 %
+infill (PETG ρ≈1.27, TPU ρ≈1.21) dry mass ≈ **124 g**. **Flooded**, the tool
+displaces only its solid volume, so:
+
+- **Seawater (ρ 1.025):** buoyant mass ≈ 100.9 g → **net ≈ +23 g (sinks
+  gently / near-neutral).**
+- **Freshwater (ρ 1.00):** net ≈ +25.5 g.
+
+**Verdict: PASS — no ballast required.** It is slightly negative, which is the
+desired behaviour for a manipulator (it won't float away if released). Two
+caveats: **(a)** only true if the cavity is fully flooded — trapped air in the
+~84 cm³ enclosure void would add up to ~+86 g of buoyancy and flip it positive
+(see §3); **(b)** the user's actuator + mount dominate the system trim — account
+for them separately.
+
+---
+
+## 5. Galvanic corrosion
+
+**PASS — not applicable.** The gripper is **100 % polymer**: all 7 pivot pins
+are printed snap pins, the front cover latches with 4 integral printed clips,
+and there are no screws, nuts, bushings, or inserts. With no dissimilar-metal
+contact there is **no galvanic cell, no anode to drive, nothing to pit or rust.**
+
+The only galvanic consideration is **external**: the M4 flange holes pass
+through to the user's robot arm. If that arm is metal, isolate the bolted joint
+with **nylon/PTFE shoulder bushings + isolating washers** — but the gripper
+itself contributes no metal to that joint.
+
+---
+
+## 6. Drive coupler & actuator — FLAG for the user
+
+The rear **D-flat coupler** is integral to `drive_arm_L` (`SHAFT_COUPLER_R =
+5.0 mm`, `SHAFT_DFLAT = 1.4 mm`, `SHAFT_COUPLER_LEN = 12 mm`). It transmits all
+drive torque and is the **only interface that needs a waterproof actuator**.
+
+**FLAG (you must supply this — the gripper does not):** drive the coupler with
+one of:
+
+- a **submersible / IP68-rated servo**, or a **potted/sealed hobby servo**, or
+- a **sealed or oil-filled actuator with a pressure compensator** for deeper/
+  longer work, or
+- a **magnetically-coupled drive** (no shaft penetration at all — cleanest for
+  deep work).
+
+The flooded gripper has **no shaft seal and no dry cavity** — the printed shaft
+turns wet in a bare flooded bore. **Do not** drive the coupler with a bare
+unsealed servo; that servo will flood and die. Match the actuator's depth rating
+to your dive — the actuator, not the gripper, sets the system depth limit.
+
+---
 
 ## Pre-dive / post-dive checklist
 
 **Pre-dive**
 
-- Confirm gears, pins, fasteners are corrosion-resistant grade (no carbon steel).
-- Confirm flood/drain holes are clear and unobstructed.
-- Cycle the gripper open↔close in air; check smooth mesh and full travel.
-- Confirm the actuator/shaft seal (if any) is intact and the actuator is rated for
-  depth.
-- Check galvanic isolation washers are in place on any mixed-metal joint.
-- Verify buoyancy trim with the gripper fitted.
+- Confirm material: no PLA, no ester-TPU, no unfilled nylon anywhere.
+- Confirm snap pins meet the creep constraint (§2 / CONSTRAINTS) — geometric
+  capture, adequate seat. Tug-test every pin and the cover before diving.
+- Confirm all drains/slots/windows are clear; confirm cavity floods (submerge,
+  watch bubbles fully clear in your dive orientation; add the cover vent if you
+  dive front-up).
+- Cycle open↔close in air; check smooth mesh, full travel, cover stays latched.
+- Confirm the actuator is sealed and rated for depth.
+- Verify buoyancy trim with the gripper + actuator fitted.
 
 **Post-dive**
 
-- **Rinse thoroughly with fresh water**, especially after salt — flush the mesh
-  and flood holes.
-- Cycle open↔close to flush trapped grit; inspect teeth for grit, pitting, growth.
-- Dry, then **re-grease** if the mesh is greased.
-- Inspect TPU fingers for swelling/softening or surface damage.
-- Check fasteners and pins for early corrosion; replace any that show it.
+- **Rinse thoroughly with fresh water** (flush mesh, drains, slots) — salt
+  crystallizes and abrades.
+- Cycle to flush grit; inspect teeth and pins for wear, the TPU for swelling.
+- Inspect every snap pin and the cover clips for any loss of engagement
+  (the creep failure mode) — replace pins that have loosened.
 
-## What's already in the CAD vs. what you choose at fabrication
+---
 
-**Already reflected in the CAD (`gripper.py`):**
+## What's in the CAD vs. what you choose at fabrication
 
-- **Flooded-design geometry** — the housing is open to flooding (top link slots,
-  shaft bore, plus the drain/flood holes being added).
-- **TPU Fin Ray fingers** — compliant grip that works submerged as-is.
-- **Plastic/SS-friendly geometry** — plain shoulder pins (PIN_R 2.3 mm),
-  clearance-bored links/gears, M4 flange holes — all compatible with stainless or
-  polymer parts with no redesign.
-- **A shaft bore** (`SHAFT_BORE_R = 5.0 mm`) sized to accept a rotary lip seal or
-  shaft O-ring *if* you ever choose the sealed-dry path.
+**In `gripper.py` already:** flooded geometry (slots + drains + windows + back
+bores), all-polymer zero-hardware assembly, single-shell parts (no sealed
+pockets), TPU Fin Ray fingers, the rear D-flat coupler.
 
-**You must choose at fabrication:**
+**You choose at fabrication:** the per-part polymer (§1 — never PLA/ester-TPU/
+unfilled nylon), infill (≥40 % for predictable flooding/buoyancy), and the
+waterproof actuator (§6). And **the snap-fit agent must apply the creep fixes
+below before this is dive-ready.**
 
-- **Actual materials per part** — pick from the BOM / final-pick tables above
-  (acetal/316 for gears & pins, PETG/nylon/anodized-Al housing, ether-TPU fingers).
-  In particular, **don't print the rigid parts in PLA for underwater use** even
-  though the README lists it. See **`PRINTING.md`** for how to orient and slice
-  each part once the material is chosen.
-- **Fasteners** — A2 for freshwater, **A4/316 for salt**.
-- **Bushings** — plastic/PTFE/sealed-SS, **not Oilite**.
-- **Actuator** — a waterproof servo or sealed/oil-filled actuator with compensator,
-  rated for your depth.
-- **Lubrication strategy** — run dry on self-lubricating polymer, or marine/PTFE
-  grease with a rinse-and-re-grease routine.
-- **Galvanic isolation / anode** — only if you end up with a mixed-metal assembly.
+---
+
+=== CONSTRAINTS FOR A (snap-fit/pin agent) ===
+
+Hard, quantified requirements the snap-fit / pin design must satisfy for
+sustained underwater (days–weeks) constant-load service. Rationale: polymers
+creep under constant load and water plasticizes PETG/nylon, so any preload-held
+catch relaxes and releases. Numbers are measured from the current `gripper.py`.
+
+1. **Retention must be GEOMETRIC, not friction/elastic-preload.** The pin must
+   be held by a positive mechanical step that exists in *rigid* material
+   independent of the barb's elasticity. A split barb whose hold depends on the
+   sprung tip staying expanded is **not acceptable** — it creeps and releases.
+
+2. **Barbed-pin axial capture floor:** raise `SNAP_BARB_SEAT` from **0.30 mm**
+   to **≥ 1.0 mm** (target 1.0–1.5 mm). Rationale: must survive (a) sustained-
+   load stress-relaxation of the split tip and (b) ≥0.3 mm hygroscopic/thermal
+   dimensional drift, with margin. 0.30 mm has zero margin against either.
+
+3. **Preferred fix — eliminate the sprung barb entirely:** replace each barbed
+   pin with a **two-piece captured pin**: a headed pin pushed in from one side +
+   a separate **push-on retainer cap** snapped onto the protruding tip from the
+   other side, where **both the head and the cap are wider than their bores**
+   (e.g. head/cap OD ≥ bore OD + 2×0.8 mm). Capture is then purely geometric
+   (two flanges straddling the joint) and creep-immune. If a one-piece pin is
+   kept, the barb lip overlap must meet item 2 **and** the lip face must seat
+   against a rigid counterbore shoulder, not free-spring in open space.
+
+4. **Cover snap clips (currently OK, harden them):** keep capture geometric.
+   `SNAP_HOOK_ENGAGE` is **1.5 mm** today — keep **≥ 1.5 mm**; if switching to a
+   stiffer cover polymer (ASA/PA-GF) verify the arm can still flex enough to
+   assemble (insertion strain < material yield). Add a small **secondary
+   detent/lip** so a creep-relaxed arm cannot back out under vibration.
+
+5. **Pivot bore wall under external pressure:** keep **≥ 2.0 mm** wall around
+   every pivot bore (current `BOSS_OD_R = AXLE_SCREW_R + 2.0` = 2.0 mm wall —
+   meets floor). For dives beyond ~30 m, increase to **≥ 3.0 mm** so the bore
+   does not creep-ovalize under sustained hoop stress + side load.
+
+6. **Bearing clearance vs. creep:** current pivot clearance `PRINT_CLEAR =
+   0.30 mm` (bore = `PIN_R + 0.30`). Do **not** reduce it to fight wallowing —
+   a tight bore + creep galls. Instead fix retention geometrically (items 1–3)
+   and keep the 0.30 mm running clearance. Floor for the chosen creep-prone
+   material: **bore-to-shank radial clearance ≥ 0.25 mm, ≤ 0.40 mm.**
+
+7. **Add ≥2 vent holes through the front cover** (≥ **1.5 mm dia**) so trapped
+   air against the cover ceiling escapes in the **front-up** orientation.
+   **Location:** the hole must land over the *open cavity*, i.e. cover footprint
+   at **Y ∈ [−17, +14.5]** and **X ∈ [−45, +45]** (not Y ∈ [14.5, 16], which is
+   over the solid top wall — a hole there hits wall, not air). Bias toward the
+   **+Y (finger-side) end of the cavity, around Y ≈ +12**, so it is the high
+   point when fingers-up; place one near each side (e.g. X ≈ ±30) to cover roll.
+   Keep clear of the 3 cover axle bosses (at A_R/B_R/B_L) and the snap-clip
+   windows. Min 1.5 mm dia for bubble release and FDM horizontal-hole minimum.
+
+8. **Material directive for all snap features:** PETG default; **do not** print
+   any snap pin or clip in **TPU** (creeps, wallows the bore) or **PLA**
+   (hydrolyzes wet). ASA or glass-filled nylon are acceptable stiffer
+   alternatives if insertion strain is re-checked.
+
+=== END CONSTRAINTS ===

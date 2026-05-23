@@ -24,6 +24,90 @@ no `pin_A_L`) — there is no separate shaft part to print.
 queue is: enclosure, 2 drive arms, 2 followers, 2 fingers, front cover, and the
 7 snap pins (3 hidden axle pins + 4 visible finger pins).
 
+## Drop-into-slicer plates (start here)
+
+The fastest path to a print is the **pre-oriented, pre-packed plates** produced
+by `make_print_plates.py`. They rotate every part to its supportless orientation
+and arrange them on a common bed for you:
+
+```bash
+source /home/andre/.cad-venv/bin/activate
+python export_parts.py          # parts/*.stl  (CLOSED pose, from gripper.py)
+python make_print_plates.py     # print_plates/  (oriented + plated STLs)
+```
+
+Outputs (see `PRINT_PLATES.md` for the full layout):
+
+- `print_plates/plate_rigid_1.stl` — all 13 rigid parts (PETG/ASA/Nylon).
+- `print_plates/plate_tpu_1.stl` — the 2 TPU Fin Ray fingers (separate material).
+- `print_plates/oriented/<part>.stl` — each part alone, already oriented.
+
+> The plates are a **derived artifact**: re-run `export_parts.py` *then*
+> `make_print_plates.py` after ANY change to `gripper.py` geometry. The script
+> wipes and rebuilds `print_plates/` each run.
+
+## Supportless orientation table (audited)
+
+Every part below was mesh-audited for supportless printing (down-facing surface
+steeper than 45° from horizontal). The "support" column is the residual
+overhang area in the chosen orientation. **The whole set prints supportless**
+with two caveats called out below.
+
+| Part | Qty | Print orientation (from `gen_step()` export pose) | Support? |
+|---|---|---|---|
+| `enclosure` | 1 | **No rotation.** Open slot/cavity face **+Z up**, solid floor (drain bores) on bed. Drains print as vertical bores; clip-catch windows print as vertical wall slots. | ~1272 mm² — interior floor ceilings mostly bridge; **back flange (+Y) may want a few support pillars / a small skirt** |
+| `front_cover` | 1 | **Rotate 180° about X.** Flat outer face on bed, 4 snap clips point **+Z up** (self-supporting beams). | 184 mm² — hook underlips bridge; no support |
+| `drive_arm_L` | 1 | **Rotate 180° about X.** Gear/arm plate anchored flat on the bed, integral input shaft pointing **+Z up** (vertical cylinder = self-supporting rings). | 23 mm² — only the Ø8→Ø10 coupler shoulder at the shaft tip bridges; **see torsion note below** |
+| `drive_arm_R` | 1 | **No rotation.** Flat 5 mm plate face-down, pivot axis vertical. | 0 |
+| `follower` | 2 | **No rotation.** Flat 5 mm bar face-down. | 0 |
+| `snap_pin_axle` | 3 | **Rotate 180° about X.** Head flange on bed, barb tip **up** (lead-in cone narrows going up). | 0 |
+| `snap_pin_finger` | 4 | **Rotate 180° about X.** Head flange on bed, barb tip **up**. | 12 mm² — 0.7 mm locking-lip bridge; no support |
+| `finger_R` | 1 | **No rotation.** Lying flat on a 28×96 Z-face, build height 10 mm; Fin Ray cells in the build plane. | ~0 |
+| `finger_L` | 1 | **No rotation.** Same as `finger_R` (chiral mirror). | ~0 |
+
+**Two orientation facts the older prose got slightly wrong, now corrected:**
+
+1. **The snap pins and the front cover must be FLIPPED 180° about X** relative to
+   the `gen_step()` export pose. In the *exported* STL the pin head (Ø7.8 flange)
+   sits at **+Z (top)** and the barb at the bottom; the front-cover clips hang
+   **downward**. `make_print_plates.py` applies the 180° flip so the head/outer
+   face lands on the bed and the barb/clips point up — the supportless direction.
+   If you orient the raw `parts/*.stl` by hand, do the flip yourself.
+2. **The finger grip ridges are on the −X *contact* face, which is vertical** when
+   the finger lies flat (it is not a top/bottom face). The ridge grooves run up
+   the 10 mm build height as in-plane perimeters — so "ridge side down" from the
+   old notes is moot for the flat-on-Z-face orientation; either Z face on the bed
+   works. What matters is keeping the 28×96 cell plane horizontal so the truss
+   self-supports.
+
+### drive_arm_L — supportless vs. torsion (the one real trade-off)
+
+The audited supportless orientation flips the part **180° about X** so the
+**gear plate anchors on the bed and the shaft stands vertical** (no support under
+the shaft; only the Ø8→Ø10 coupler shoulder at the shaft tip bridges, ~23 mm²).
+Printing it the *other* way — shaft tip on the bed, gear plate at the top —
+cantilevers the whole 26×50 plate in mid-air (529 mm² of support); don't. The
+cost of the correct orientation is that the shaft's layers run **transverse to
+the drive-torque axis**, the weak direction for interlayer shear. To keep it
+supportless *and* strong:
+
+- **100 % infill + 5–6 perimeters in the shaft region.**
+- Print PETG hot for max interlayer fusion; slow on the shaft.
+- If you will drive the gripper hard, the optional metal-shaft upgrade in
+  "Integral shaft on `drive_arm_L`" below trades zero-hardware for strength.
+
+(The older "lay the shaft horizontal" hint from `export_parts.py` is
+geometrically impossible — the shaft is perpendicular to the plate; you choose
+plate-flat/shaft-up *or* shaft-down, not both flat at once.)
+
+### Clearance constant note (read before tuning)
+
+The live value in `gripper.py` is **`PRINT_CLEAR = 0.3 mm`** (confirmed in
+`DFM.md`), giving pivot bores of **Ø5.2 mm** (`AXLE_BORE_R = PIN_R + 0.3 = 2.6`,
+shank Ø4.6). Some prose further down still says "0.25 mm / Ø4.9–5.1" — that is
+**stale**; trust 0.3 mm / Ø5.2. `SNAP_CLEAR = 0.35`, `SNAP_BARB_PROUD = 0.7`,
+`SNAP_BARB_SEAT = 0.3` are current.
+
 ## Per-part print recommendations
 
 Orientations are described in the **printed/Z-up** frame (`gen_step()` rotates
@@ -344,6 +428,40 @@ a single pin and a scrap coupon before you commit filament to six more.
 4. **Only once the single pin clicks cleanly**, print the remaining 6 (and the
    front cover, whose clips use the same flex principle — dry-snap it once to
    confirm before final assembly).
+
+## Quick start — print then assemble
+
+**Print (2 plates, no supports):**
+
+```bash
+source /home/andre/.cad-venv/bin/activate
+python export_parts.py && python make_print_plates.py
+```
+
+1. **Calibrate once** — XY tolerance + a pin-in-hole coupon in BOTH filaments
+   (rigid + TPU). Confirm a printed Ø5.2 bore accepts the snap-pin Ø4.6 shank and
+   turns freely.
+2. **Fit-tune ONE snap pin** + a scrap bore coupon; verify the click before
+   committing the other six (see Fit tuning below).
+3. **Slice `plate_rigid_1.stl`** — PETG/ASA, 0.2 mm (0.12–0.16 mm for the gear
+   teeth if your slicer lets you vary by object), no supports, brim on the tall
+   skinny pins and the enclosure. Add a few **support pillars under the enclosure
+   back flange** if the preview shows it drooping.
+4. **Slice `plate_tpu_1.stl`** — TPU 95A, 0.15–0.20 mm, ≥80 % infill, slow
+   (20–30 mm/s), part cooling down, no supports.
+5. **Assemble** (tool-free, see `ASSEMBLY.md`): fit each Fin Ray finger on its 2
+   finger pins → drop the arms/followers into the housing on the 3 axle pins →
+   **snap on the front cover** (it clicks; flex the 4 hooks outward to remove).
+6. **Function check** — turn the shaft on `drive_arm_L`; both fingers must
+   open/close symmetrically.
+
+**Per-group settings at a glance:**
+
+| Group | Material | Layer | Walls | Infill | Supports |
+|---|---|---|---|---|---|
+| Fingers (`plate_tpu_1`) | TPU 95A ether-based | 0.15–0.20 mm | 3–4 | ≥80 % | none |
+| Pins (on `plate_rigid_1`) | PETG | 0.12–0.16 mm | solid | 100 % | none |
+| Structure (rest of `plate_rigid_1`) | PETG / ASA / Nylon | 0.16–0.20 mm (0.12–0.16 for gear teeth) | 4–6 | 30–60 % (15–25 % enclosure) | none (flange may want a few pillars) |
 
 ## Print order / checklist
 

@@ -16,9 +16,16 @@ column is how this model meets them.
 | **Elephant foot** | chamfer bottom edges | bed-face edges chamfered on fingers & link bars |
 
 **Materials (seawater):** Fin Ray fingers in ether-based **TPU 95A** (compliance
-is the grip mechanism); snap pins in **PETG** (springy enough to snap, stiff
-enough not to creep); structural parts in **PETG / ASA / glass-filled nylon**.
-All-polymer → no galvanic corrosion. See `UNDERWATER.md`, `PRINTING.md`, `BOM.md`.
+is the grip mechanism — never ester-TPU: it hydrolyzes); snap pins in **PETG**
+(springy to snap, stiff enough to resist creep — never TPU, which creeps and
+wallows the bore); structural parts in **PETG / ASA / glass-filled nylon** (ASA
+for UV/topside, GF-nylon for deep/long dives). **Never PLA** (hydrolyzes wet) and
+**never unfilled nylon** (absorbs water, swells). All-polymer → no galvanic
+corrosion. **Creep caveat:** the load-bearing barbed snap pins currently lock on
+only `SNAP_BARB_SEAT = 0.30 mm` of elastic-preload overlap — under sustained
+underwater load that creep-relaxes and can release; the underwater audit requires
+**geometric (not preload) capture with `SNAP_BARB_SEAT ≥ 1.0 mm`**. See
+`UNDERWATER.md` (audit + snap-fit constraints), `PRINTING.md`, `BOM.md`.
 
 **Tuning knobs** (in `gripper.py`): `PRINT_CLEAR` (fit), `SNAP_CLEAR` (clip/barb
 engagement), `DFM_EDGE` (edge-break size). Print one snap pin + a scrap bore
