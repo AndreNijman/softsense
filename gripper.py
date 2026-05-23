@@ -149,15 +149,18 @@ SHAFT_R = 4.0         # vertical input-shaft radius
 CROWN_RC = 8.0        # crown-gear pitch radius on the A_L gear face
 CROWN_Z = (6.0, 9.0)  # crown ring model-Z span (sits on the A_L gear +Z face)
 CROWN_TOOTH_H = 1.6   # crown tooth RADIAL band half-width about the pitch circle
-CROWN_FACE_H = 1.6    # crown tooth AXIAL proud height (teeth stand this far in +Z
-                      # from CROWN_Z[1] downward; the rest of the band is solid base)
+CROWN_FACE_H = 2.8    # crown tooth AXIAL proud height (teeth stand this far in +Z
+                      # from CROWN_Z[1] downward; the rest of the band is solid base).
+                      # Tall teeth + deep MESH_DEPTH -> the pinion tips sit well down
+                      # in the crown valleys (real interleave, not a tip graze).
 CROWN_TEETH = 24      # crown face-tooth count (representative)
 PINION_RP = 3.0       # input-pinion pitch radius
 PINION_TEETH = 9      # pinion tooth count (representative; ratio CROWN/PINION)
 PINION_TOOTH_H = 1.6
 PINION_T = 4.0        # pinion thickness along its axis (model Y)
 PINION_TIP = PINION_RP + 0.45 * PINION_TOOTH_H   # pinion tooth-tip radius
-MESH_DEPTH = 1.0      # how far the pinion tips dip into the crown teeth (~one module)
+MESH_DEPTH = 2.2      # how far the pinion tips dip into the crown teeth (deep enough
+                      # that the tip sits in the valley with flank contact, not a graze)
 DRIVE_X = -A_R[0]                    # shaft/pinion model-X = A_L x = -12
 # Shaft/pinion axis model-Z: raise it so the pinion sits ABOVE the crown face and
 # only its bottom tips reach MESH_DEPTH into the crown teeth (top at CROWN_Z[1]):

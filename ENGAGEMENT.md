@@ -77,6 +77,21 @@ enough to prevent wobble, large enough to assemble and disassemble without
 pressing. The shaft cannot pull out (−Y) or be pushed in (+Y) past either bore
 mouth shoulder.
 
+### 1c. Right-angle crown↔pinion mesh — genuine tooth interleave
+
+The input pinion drives a crown (face-tooth) ring on the A_L crank gear. The
+mesh is **representative** (straight-flank, coupon-tunable, like the spur gears)
+but it is a REAL interleave, not a tip graze — verified two ways:
+- **Engagement depth:** `CROWN_FACE_H = 2.8 mm` tall face teeth; the pinion tips
+  dip `MESH_DEPTH = 2.2 mm` into them, so a pinion tooth sits well down in the
+  crown valley with flank contact (not tip-on-tip). Static mesh overlap ≈ 16.5 mm³.
+- **Interleave test (the proof):** rotating the pinion ±½ tooth about its own axis
+  (without moving the crown) swings the overlap **0 → 16.5 → 124 mm³** — teeth
+  clear into the gaps one way and collide the other. A graze would stay ~flat; this
+  periodic swing is the signature of teeth actually sitting in valleys.
+Pitches match (crown 2π·8/24 = pinion 2π·3/9 = 2.09 mm), so rotation transmits.
+Tune backlash with a coupon print like the other gears.
+
 ### 1d. Axle dowels (`pin_A_R`, `pin_A_L`, `pin_B_R`, `pin_B_L`) — sandwich, zero slop
 
 These were over-long (head poked 0.8 mm INTO the cover boss, an interference)

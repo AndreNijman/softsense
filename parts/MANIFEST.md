@@ -17,7 +17,7 @@ STL mesh tolerance: `0.05 mm` (linear), `0.1` (angular). Each part is translated
 | `snap_pin_axle.step`/`.stl` | 4 | yes | PETG | 7.8 x 7.8 x 20.8 | pin_A_R, pin_B_R, pin_A_L, pin_B_L | stand HEAD DOWN with the pin AXIS VERTICAL (barb tip up); no supports -- the split barb prints as a self-supporting cone and springs out past the far bore face to lock. |
 | `snap_pin_finger.step`/`.stl` | 4 | yes | PETG | 7.8 x 7.8 x 26.8 | pin_C_R, pin_D_R, pin_C_L, pin_D_L | stand HEAD DOWN with the pin AXIS VERTICAL (barb tip up); no supports -- the split barb prints as a self-supporting cone and springs out past the far bore face to lock. |
 | `front_cover.step`/`.stl` | 1 | yes | PETG / Nylon | 102.4 x 36.0 x 23.5 | front_cover | outer face DOWN on the bed, snap clips pointing UP; the clips print as unsupported cantilevers off the inner face -- no supports needed. |
-| `input_pinion_shaft.step`/`.stl` | 1 | yes | PA12-GF | 11.6 x 33.0 x 11.6 | input_pinion_shaft | print shaft-axis VERTICAL: stand the pinion end DOWN on the bed so the wide pinion disc anchors the print; shaft cylinder rises as self-supporting rings; D-coupler tip at the top. Collar mid-shaft is an annular ring (bridges 1-2 layers). SUPPORTLESS. |
+| `input_pinion_shaft.step`/`.stl` | 1 | yes | PA12-GF | 11.6 x 33.0 x 11.6 | input_pinion_shaft | print shaft-axis VERTICAL: rotate 90 about X so the shaft stands up; D-coupler/shoulder end DOWN on the bed (r=5.0mm, wider base), pinion teeth UP. Shaft cylinder = self-supporting rings. Collar mid-shaft bridges ~1.8mm radially (1-2 layers). SUPPORTLESS. |
 
 ## Notes
 
@@ -27,4 +27,4 @@ STL mesh tolerance: `0.05 mm` (linear), `0.1` (angular). Each part is translated
 - **Fingers are chiral.** `finger_R` and `finger_L` share a bounding box / volume but are mirror images (Fin Ray ribs all slant the same way within a finger), so both are exported. Print in TPU, ridge side down.
 - **Followers are identical.** A follower is a symmetric link bar; left and right are the same part -> one file, qty 2.
 - **Drive arms differ.** `drive_arm_L` carries the crown gear on its +Z face (right-angle stage); `drive_arm_R` is a plain gear+arm plate. Both arms ride on snap-pin axles -- neither has an integral shaft. The input shaft is a separate part: `input_pinion_shaft`.
-- **input_pinion_shaft** (pinion + vertical shaft + capture collar + D-coupler) prints shaft-axis VERTICAL: pinion end down on the bed, D-coupler tip up. Supportless.
+- **input_pinion_shaft** (pinion + vertical shaft + capture collar + D-coupler) prints shaft-axis VERTICAL (rotate 90° about X from exported pose): D-coupler/shoulder end on bed (r=5.0 mm, wider base), pinion teeth up. Supportless.
