@@ -130,6 +130,15 @@ export default {
     tr("o1.14", -dCx, dCy);                           // pin_C_L
     tr("o1.15", -dDx, dDy);                           // pin_D_L
 
+    // ---- input pinion+shaft: spins about its own VERTICAL axis (world Z) at the
+    // gear ratio CROWN_RC/PINION_RP. crank A_L turns -dCrank; the crown rides it;
+    // the pinion turns that * ratio. (Drive geometry: axis at world x=DRIVE_X,
+    // y=-DRIVE_Z; this is the one part whose axis is vertical, not the world-Y hinge.)
+    const CROWN_RC = 8.0, PINION_RP = 3.0, DRIVE_X = -12.0, DRIVE_Z = 10.52;
+    const pinionSpin = dCrank * (CROWN_RC / PINION_RP);   // matches _pinion_spin_deg in gripper.py
+    ctx.effects.transform("o1.17", { rotate: {
+      axis: [0, 0, 1], origin: [DRIVE_X, -DRIVE_Z, 0], angleDeg: pinionSpin } });
+
     ctx.requestRender?.();
   },
 };
