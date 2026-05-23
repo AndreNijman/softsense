@@ -83,9 +83,9 @@ T_CRANK = 5.0
 Z_CRANK0 = 1.0                        # crank + gear layer
 T_FOLLOW = 5.0
 Z_FOLLOW0 = 7.0                       # follower layer
-T_FINGER = 6.0
+T_FINGER = 10.0                      # Fin Ray finger depth in Z (z 13..23)
 Z_FINGER0 = 13.0                      # finger layer
-Z_PIN0, Z_PIN1 = -8.0, 21.0          # pins span the whole stack
+Z_PIN0, Z_PIN1 = -6.0, 25.0          # pins span the stack (stay inside housing)
 SHAFT_BACK = -34.0                   # input shaft extends to here (behind)
 
 LINK_W = 7.0          # link bar half-look width
@@ -97,22 +97,29 @@ GEAR_TEETH = 16
 GEAR_TOOTH_H = 3.0    # radial tooth height
 GEAR_SECTOR_DEG = 150.0   # gears are sectors, not full discs
 
-FINGER_BLADE = 86.0   # blade length from base up to tip
-FINGER_W = 9.0        # blade full width
-TIP_CURVE = 1.5       # subtle inward hook at the very tip
-SERR_FRAC = 0.55      # fraction of blade (upper) that is serrated
-SERR_N = 13           # number of jaw teeth
-SERR_DEPTH = 2.4      # how far jaw teeth protrude toward the centre
-CLOSED_HALF_GAP = 0.8  # half the jaw-face clearance at the closed pose
+# --- Fin Ray finger (TPU compliant jaw) parameters ---
+FR_BRACKET_W = 13.0    # mounting-bracket eye diameter
+FR_BLADE_LEN = 90.0    # contact beam length, base -> tip
+FR_BASE_WIDTH = 22.0   # triangle base width in X
+FR_CONTACT_OFFSET = 1.0  # contact face sits this far inboard of the centreline
+FR_BASE_DROP = 9.0     # triangle base sits this far below the top pin
+FR_WALL = 2.8          # beam / rib wall thickness
+FR_TIP_WIDTH = 5.0     # blade width at the blunt tip
+FR_N_RIBS = 10         # number of internal ribs (all same-direction slant)
+FR_RIB_SLANT_DEG = 38.0
+FR_INSET_BASE = 4.0    # solid floor across the bottom
+FR_INSET_TIP = 3.0     # solid cap at the apex
+MOUNT_HOLE_R = PIN_R + 0.15   # = 2.45 mm pin bore
 
 # --------------------------------------------------------------------------
-# Colours
+# Colours (clean industrial: dark slate body, matte-black TPU jaws, steel)
 # --------------------------------------------------------------------------
-GOLD = Color(0.78, 0.66, 0.36)
-STEEL_L = Color(0.46, 0.53, 0.61)
-STEEL_R = Color(0.62, 0.74, 0.86)
-BLUE = Color(0.30, 0.55, 0.95)
-DARK = Color(0.32, 0.36, 0.42)
+STEEL_L = Color(0.55, 0.58, 0.62)   # internal links / gears (hidden in housing)
+STEEL_R = Color(0.58, 0.61, 0.65)
+PIN_COLOR = Color(0.74, 0.76, 0.79)  # pivot pins (bright steel)
+DARK = Color(0.20, 0.21, 0.24)       # drive shaft
+TPU = Color(0.12, 0.13, 0.15)        # Fin Ray fingers (matte black TPU)
+ENC = Color(0.27, 0.29, 0.33)        # enclosure body (dark slate)
 
 
 # ==========================================================================
@@ -177,9 +184,22 @@ def solve_side_left(open_norm):
 # ==========================================================================
 # Geometry helpers
 # ==========================================================================
+def _ccw(pts):
+    """Return pts wound CCW. Mirrored (left) parts produce CW polygons whose
+    extruded solids have inverted orientation -> booleans silently fail to
+    fuse. Normalising winding fixes both sides uniformly."""
+    area = 0.0
+    n = len(pts)
+    for i in range(n):
+        x0, y0 = pts[i]
+        x1, y1 = pts[(i + 1) % n]
+        area += x0 * y1 - x1 * y0
+    return pts if area >= 0 else list(reversed(pts))
+
+
 def _poly_solid(pts, z0, thickness):
     """Extrude a closed XY polygon (list of (x,y)) to a Z slab at z0."""
-    face = make_face(Polyline(*pts, close=True))
+    face = make_face(Polyline(*_ccw(pts), close=True))
     sol = extrude(face, amount=thickness)
     return sol.moved(Location((0, 0, z0)))
 
@@ -233,75 +253,115 @@ def gear(center, phase_deg, z0, thickness, label, color):
     return sol
 
 
-def pin(p, label, head_top_z):
-    """Pivot pin (shoulder cylinder) with a blue socket-head cap on top."""
-    shaft = Cylinder(radius=PIN_R, height=(Z_PIN1 - Z_PIN0)).moved(
-        Location((p[0], p[1], (Z_PIN0 + Z_PIN1) / 2.0)))
-    head = Cylinder(radius=PIN_HEAD_R, height=PIN_HEAD_T).moved(
-        Location((p[0], p[1], head_top_z + PIN_HEAD_T / 2.0)))
-    c = shaft + head
+def pin(p, label, visible):
+    """Pivot pin. visible=True (finger pins C,D): reaches the finger layer with
+    a steel cap, seen above the housing. visible=False (fixed pivots A,B):
+    short internal axle, hidden inside the enclosure."""
+    if visible:
+        z0, z1 = Z_CRANK0 - 1.0, Z_FINGER0 + T_FINGER       # ~0 .. 23
+        shaft = Cylinder(radius=PIN_R, height=(z1 - z0)).moved(
+            Location((p[0], p[1], (z0 + z1) / 2.0)))
+        head = Cylinder(radius=PIN_HEAD_R, height=PIN_HEAD_T).moved(
+            Location((p[0], p[1], z1 + PIN_HEAD_T / 2.0)))
+        c = shaft + head
+    else:
+        z0, z1 = Z_CRANK0 - 2.0, Z_FOLLOW0 + T_FOLLOW + 1.0  # ~-1 .. 13 (hidden)
+        c = Cylinder(radius=PIN_R, height=(z1 - z0)).moved(
+            Location((p[0], p[1], (z0 + z1) / 2.0)))
     c.label = label
-    c.color = BLUE
+    c.color = PIN_COLOR
     return c
 
 
 # --------------------------------------------------------------------------
-# Finger (serrated jaw) — defined in world @ CLOSED pose, then rigid-moved
+# Fin Ray-style compliant finger (TPU) — defined in world @ CLOSED pose,
+# then rigid-moved with the coupler. The triangular truss of same-direction
+# slanted ribs makes the tip curl AROUND a grasped object.
 # --------------------------------------------------------------------------
-def _finger_solid_closed(C0, D0, inner_dir):
-    """Build the finger blade + bracket in world coords at the closed pose.
-    inner_dir = -1 for the right finger (gripping edge faces -X = centre),
-                +1 for the left finger.
+def finray_finger_closed(C0, D0, inner_dir, z0, thickness):
+    """Fin Ray-style compliant finger as a build123d solid in world coords at
+    the CLOSED pose. C0, D0 are the mounting-pin centres; the finger points
+    +Y with its CONTACT face on the inner side (toward the centreline):
+      inner_dir = -1 -> right finger (contact faces -X)
+      inner_dir = +1 -> left finger  (contact faces +X)
+    Mount holes (MOUNT_HOLE_R) at C0/D0; extruded in Z from z0."""
+    contact_x = -inner_dir * FR_CONTACT_OFFSET
+    spine_base_x = contact_x - inner_dir * FR_BASE_WIDTH
+    base_y = max(C0[1], D0[1]) - FR_BASE_DROP
+    tip_y = base_y + FR_BLADE_LEN
+    into = -inner_dir                       # interior direction: contact -> spine
 
-    The blade is offset OUTBOARD of the pins so that, at the closed pose, the
-    serrated jaw faces meet near the centreline with a small clearance
-    (CLOSED_HALF_GAP) instead of the pins -- no interpenetration when closed.
-    """
-    halfw = FINGER_W / 2.0
-    base_y = C0[1] - 4.0                       # start a touch below C for fusion
-    tip_y = C0[1] + FINGER_BLADE
-    # blade centreline so the inner tooth tips land at +/-CLOSED_HALF_GAP closed
-    spine_x = -inner_dir * (CLOSED_HALF_GAP + halfw + SERR_DEPTH)
+    p_base_spine = (spine_base_x, base_y)
+    spine_tip_x = contact_x + into * FR_TIP_WIDTH       # blunt tip on spine side
+    p_tip = (spine_tip_x, tip_y)
 
-    def cx(t):                                 # subtle inward hook near the tip
-        return spine_x + inner_dir * TIP_CURVE * (t ** 1.6)
+    def spine_x_at(yy):
+        t = (yy - base_y) / (tip_y - base_y)
+        return p_base_spine[0] + (p_tip[0] - p_base_spine[0]) * t
 
-    def y(t):
-        return base_y + (tip_y - base_y) * t
+    # solid blade triangle: contact edge + slanting spine + blunt flat tip
+    tri = [(contact_x, base_y), (spine_base_x, base_y),
+           (spine_tip_x, tip_y), (contact_x, tip_y)]
+    blade = _poly_solid(tri, z0, thickness)
 
-    def w(t):
-        return halfw * (1.0 - 0.32 * t)        # slight taper toward the tip
+    bracket = link_bar(C0, D0, FR_BRACKET_W, z0, thickness, "bracket", TPU)
+    shell = blade + bracket
 
-    # ---- outer (smooth) edge: base -> tip
-    outer = [(cx(t) - inner_dir * w(t), y(t)) for t in [k / 24.0 for k in range(25)]]
-    # ---- rounded tip apex
-    tip_apex = [(cx(1.0), tip_y + 2.0)]
-    # ---- inner edge tip -> base, serrated in the upper SERR_FRAC
-    inner = []
-    NS = 90
-    for k in range(NS, -1, -1):
-        t = k / NS
-        ix = cx(t) + inner_dir * w(t)
-        if t >= (1.0 - SERR_FRAC):
-            u = (1.0 - t) / SERR_FRAC               # 0 at tip .. 1 at serr start
-            saw = abs(((u * SERR_N) % 1.0) - 0.5) * 2.0
-            ix += inner_dir * SERR_DEPTH * saw      # teeth protrude toward centre
-        inner.append((ix, y(t)))
+    # hollow it: subtract the inner cavity (leaves contact/spine/base/tip spars)
+    cav_contact_x = contact_x + into * FR_WALL
+    y_cav_lo = base_y + FR_INSET_BASE
 
-    blade = _poly_solid(outer + tip_apex + inner, Z_FINGER0, T_FINGER)
+    def cav_spine_x(yy):
+        return spine_x_at(yy) - into * FR_WALL
 
-    # ---- bracket plate joining the two pins C0, D0 to the blade base
-    bracket = link_bar(C0, D0, FINGER_W + 4.0, Z_FINGER0, T_FINGER,
-                       "bracket", STEEL_R)
-    finger = blade + bracket
-    for hp in (C0, D0):                            # (re)bore pin holes
-        finger -= Cylinder(radius=PIN_R + 0.15, height=T_FINGER * 3).moved(
-            Location((hp[0], hp[1], Z_FINGER0 + T_FINGER / 2.0)))
+    def cav_w(yy):
+        return (cav_spine_x(yy) - cav_contact_x) * into
+
+    MIN_CAV_W = 2.0
+    y_cav_hi = tip_y - FR_INSET_TIP
+    while y_cav_hi > y_cav_lo and cav_w(y_cav_hi) < MIN_CAV_W:
+        y_cav_hi -= 0.5
+    cavity = _poly_solid(
+        [(cav_contact_x, y_cav_lo), (cav_spine_x(y_cav_lo), y_cav_lo),
+         (cav_spine_x(y_cav_hi), y_cav_hi), (cav_contact_x, y_cav_hi)],
+        z0 - 2.0, thickness + 4.0)
+    finger = shell - cavity
+
+    # add back the slanted parallel ribs (all same slant = Fin Ray signature)
+    slant = math.radians(FR_RIB_SLANT_DEG)
+    shear = (math.cos(slant) / math.sin(slant)) * into
+    y_rib_lo = base_y + FR_INSET_BASE
+    y_rib_hi = tip_y - FR_INSET_TIP
+    pitch = (y_rib_hi - y_rib_lo) / FR_N_RIBS
+    half = FR_WALL / 2.0
+    x_a = contact_x + into * 0.3
+    ribs = []
+    for i in range(FR_N_RIBS + 1):
+        yc = y_rib_lo + i * pitch
+        x_b = spine_x_at(yc) - into * (FR_WALL * 0.4)
+        if (x_b - x_a) * into <= 2.0:
+            continue
+        quad = [(x_a, yc - half), (x_b, yc - half),
+                (x_b + shear * FR_WALL, yc + half), (x_a + shear * FR_WALL, yc + half)]
+        try:
+            ribs.append(_poly_solid(quad, z0, thickness))
+        except Exception:
+            pass
+    if ribs:
+        ribs_all = ribs[0]
+        for r in ribs[1:]:
+            ribs_all = ribs_all + r
+        finger = finger + (ribs_all & blade)        # trim rib ends to the blade
+
+    for hp in (C0, D0):
+        finger -= Cylinder(radius=MOUNT_HOLE_R, height=thickness * 3).moved(
+            Location((hp[0], hp[1], z0 + thickness / 2.0)))
     return finger
 
 
 def finger(side_pose, ref_pose, inner_dir, color, label):
-    f = _finger_solid_closed(ref_pose["C"], ref_pose["D"], inner_dir)
+    f = finray_finger_closed(ref_pose["C"], ref_pose["D"], inner_dir,
+                             Z_FINGER0, T_FINGER)
     C0 = ref_pose["C"]
     a0 = ref_pose["coupler_ang"]
     C1 = side_pose["C"]
@@ -316,31 +376,66 @@ def finger(side_pose, ref_pose, inner_dir, color, label):
 
 
 # --------------------------------------------------------------------------
-# Base plate (skeletonized)
+# Enclosure (clean hollow gearbox housing) -- encloses gears, pivots & lower
+# links; links/fingers emerge through two top slots; drive shaft exits the
+# back-wall bore; back mounting flange with 4x M4 holes.
 # --------------------------------------------------------------------------
-def base_plate():
-    # rounded-hexagon footprint, wider at the top where the links splay
-    pts = [(-40, -14), (40, -14), (52, 8), (40, 24), (-40, 24), (-52, 8)]
-    plate = _poly_solid(pts, Z_BASE0, Z_BASE1 - Z_BASE0)
-    plate = fillet(plate.edges().filter_by(Axis.Z), radius=3.0)
+ENC_X = (-48.0, 48.0)        # outer width
+ENC_Y = (-20.0, 18.0)        # bottom -> top of top wall
+ENC_Z = (-12.0, 24.0)        # back -> front
+WALL = 3.0
+TOP_WALL_Y0 = 15.0           # inside face of the top wall
+CAV_X = (-45.0, 45.0)        # interior clear cavity (holds the mechanism)
+CAV_Y = (-17.0, 15.0)
+CAV_Z = (-2.0, 22.0)
+SLOT_Z = (0.0, 22.0)
+SLOT_R = (6.0, 34.0)         # right top slot x-span
+SLOT_L = (-34.0, -6.0)       # left top slot x-span
+SHAFT_C = (-12.0, 0.0)       # shaft bore centre (= A_L)
+SHAFT_BORE_R = 5.0
+FLANGE_Z = (-16.0, -12.0)    # raised back mounting flange
+FLANGE_X = (-42.0, 42.0)
+FLANGE_Y = (-18.0, 12.0)
+BOLT_R = 2.25                # M4 clearance
+BOLT_XY = [(-37.0, -14.0), (37.0, -14.0), (-37.0, 8.0), (37.0, 8.0)]
+R_VERT = 4.0
+R_TOP = 2.0
 
-    # lightening windows
-    holes = [
-        Box(20, 14, 40).moved(Location((-22, 5, (Z_BASE0 + Z_BASE1) / 2))),
-        Box(20, 14, 40).moved(Location((22, 5, (Z_BASE0 + Z_BASE1) / 2))),
-        Box(14, 10, 40).moved(Location((0, 14, (Z_BASE0 + Z_BASE1) / 2))),
-    ]
-    for h in holes:
-        h = fillet(h.edges().filter_by(Axis.Z), radius=2.5)
-        plate -= h
 
-    # pivot bores + central drive bore
-    for p in (A_R, mirror_x(A_R), B_R, mirror_x(B_R)):
-        plate -= Cylinder(radius=PIN_R + 0.2, height=40).moved(
-            Location((p[0], p[1], (Z_BASE0 + Z_BASE1) / 2)))
-    plate.label = "base_plate"
-    plate.color = GOLD
-    return plate
+def _box_between(x0, x1, y0, y1, z0, z1):
+    return Box(x1 - x0, y1 - y0, z1 - z0).moved(
+        Location(((x0 + x1) / 2.0, (y0 + y1) / 2.0, (z0 + z1) / 2.0)))
+
+
+def build_enclosure():
+    """Clean hollow gearbox housing as a build123d solid in world coords."""
+    body = _box_between(*ENC_X, *ENC_Y, *ENC_Z)
+    # fillet cosmetic edges first, while the block is simple
+    body = fillet(body.edges().filter_by(Axis.Y), radius=R_VERT)
+    top_edges = body.edges().filter_by(Axis.Y, reverse=True).group_by(Axis.Y)[-1]
+    body = fillet(top_edges, radius=R_TOP)
+    # hollow it
+    body -= _box_between(*CAV_X, *CAV_Y, *CAV_Z)
+    # top slots so the links/fingers emerge (central bridge + outboard stay solid)
+    body -= _box_between(SLOT_R[0], SLOT_R[1], TOP_WALL_Y0 - 1.0, ENC_Y[1] + 1.0,
+                         SLOT_Z[0] - 0.5, SLOT_Z[1] + 0.5)
+    body -= _box_between(SLOT_L[0], SLOT_L[1], TOP_WALL_Y0 - 1.0, ENC_Y[1] + 1.0,
+                         SLOT_Z[0] - 0.5, SLOT_Z[1] + 0.5)
+    # back mounting flange
+    flange = _box_between(*FLANGE_X, *FLANGE_Y, *FLANGE_Z)
+    flange = fillet(flange.edges().filter_by(Axis.Z), radius=R_VERT)
+    body += flange
+    # drive-shaft bore: through-hole from behind the flange into the cavity
+    bz0, bz1 = FLANGE_Z[0] - 2.0, CAV_Z[0] + 2.0
+    body -= Cylinder(radius=SHAFT_BORE_R, height=(bz1 - bz0)).moved(
+        Location((SHAFT_C[0], SHAFT_C[1], (bz0 + bz1) / 2.0)))
+    # M4 flange bolt holes
+    for (bx, by) in BOLT_XY:
+        body -= Cylinder(radius=BOLT_R, height=(FLANGE_Z[1] - FLANGE_Z[0]) + 4.0).moved(
+            Location((bx, by, (FLANGE_Z[0] + FLANGE_Z[1]) / 2.0)))
+    body.label = "enclosure"
+    body.color = ENC
+    return body
 
 
 # --------------------------------------------------------------------------
@@ -370,7 +465,7 @@ def gen_step():
     R, L = solve_side_right(OPEN_NORM), solve_side_left(OPEN_NORM)
     parts = []
 
-    parts.append(base_plate())
+    parts.append(build_enclosure())
     parts.append(drive_shaft())
 
     # meshing gear pair (rigid with cranks). The right gear turns with the
@@ -389,15 +484,15 @@ def gen_step():
     parts.append(link_bar(R["B"], R["D"], LINK_W, Z_FOLLOW0, T_FOLLOW, "follower_R", STEEL_R))
     parts.append(link_bar(L["B"], L["D"], LINK_W, Z_FOLLOW0, T_FOLLOW, "follower_L", STEEL_L))
 
-    # fingers (serrated jaws) rigid with coupler CD
-    parts.append(finger(R, refR, -1, STEEL_R, "finger_R"))
-    parts.append(finger(L, refL, +1, STEEL_L, "finger_L"))
+    # Fin Ray fingers (TPU) rigid with coupler CD
+    parts.append(finger(R, refR, -1, TPU, "finger_R"))
+    parts.append(finger(L, refL, +1, TPU, "finger_L"))
 
-    # pins at every revolute axis (head sits just above the finger layer)
-    head_z = Z_FINGER0 + T_FINGER
+    # pins: finger pins (C,D) visible/capped above the housing; fixed pivots
+    # (A,B) are short internal axles hidden inside the enclosure.
     for tag, pose in (("R", R), ("L", L)):
         for j in ("A", "B", "C", "D"):
-            parts.append(pin(pose[j], f"pin_{j}_{tag}", head_z))
+            parts.append(pin(pose[j], f"pin_{j}_{tag}", visible=(j in ("C", "D"))))
 
     asm = Compound(label="gripper", children=parts)
     return asm
@@ -409,7 +504,7 @@ def gen_step():
 def _tip_world(side_pose, ref_pose):
     C0 = ref_pose["C"]
     a0 = ref_pose["coupler_ang"]
-    tip0 = (C0[0], C0[1] + FINGER_BLADE)
+    tip0 = (C0[0], C0[1] + FR_BLADE_LEN)
     d_ang = math.radians(side_pose["coupler_ang"] - a0)
     vx, vy = tip0[0] - C0[0], tip0[1] - C0[1]
     rx = vx * math.cos(d_ang) - vy * math.sin(d_ang)

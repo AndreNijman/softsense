@@ -9,7 +9,7 @@
 // so the live motion matches the baked STEP geometry exactly.
 //
 // Part occurrence ids (by assembly order in gripper.py):
-//   o1.1 base  o1.2 shaft  o1.3 gearR  o1.4 gearL  o1.5 crankR  o1.6 crankL
+//   o1.1 enclosure  o1.2 shaft  o1.3 gearR  o1.4 gearL  o1.5 crankR  o1.6 crankL
 //   o1.7 followerR  o1.8 followerL  o1.9 fingerR  o1.10 fingerL
 //   o1.11 pinA_R o1.12 pinB_R o1.13 pinC_R o1.14 pinD_R
 //   o1.15 pinA_L o1.16 pinB_L o1.17 pinC_L o1.18 pinD_L
