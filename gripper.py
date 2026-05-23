@@ -91,7 +91,7 @@ SHAFT_BACK = -34.0                   # input shaft extends to here (behind)
 LINK_W = 7.0          # link bar half-look width
 PIN_R = 2.3           # pivot pin radius
 PIN_HEAD_R = 3.6      # socket-head cap radius
-PIN_HEAD_T = 2.2
+PIN_HEAD_T = 1.2      # cap height (sits ~flush in a counterbore)
 
 GEAR_TEETH = 16
 GEAR_TOOTH_H = 3.0    # radial tooth height
@@ -262,7 +262,7 @@ def pin(p, label, visible):
         shaft = Cylinder(radius=PIN_R, height=(z1 - z0)).moved(
             Location((p[0], p[1], (z0 + z1) / 2.0)))
         head = Cylinder(radius=PIN_HEAD_R, height=PIN_HEAD_T).moved(
-            Location((p[0], p[1], z1 + PIN_HEAD_T / 2.0)))
+            Location((p[0], p[1], z1)))          # centred on finger top -> flush
         c = shaft + head
     else:
         z0, z1 = Z_CRANK0 - 2.0, Z_FOLLOW0 + T_FOLLOW + 1.0  # ~-1 .. 13 (hidden)
