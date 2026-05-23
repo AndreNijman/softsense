@@ -21,11 +21,13 @@ is the grip mechanism — never ester-TPU: it hydrolyzes); snap pins in **PETG**
 wallows the bore); structural parts in **PETG / ASA / glass-filled nylon** (ASA
 for UV/topside, GF-nylon for deep/long dives). **Never PLA** (hydrolyzes wet) and
 **never unfilled nylon** (absorbs water, swells). All-polymer → no galvanic
-corrosion. **Creep caveat:** the load-bearing barbed snap pins currently lock on
-only `SNAP_BARB_SEAT = 0.30 mm` of elastic-preload overlap — under sustained
-underwater load that creep-relaxes and can release; the underwater audit requires
-**geometric (not preload) capture with `SNAP_BARB_SEAT ≥ 1.0 mm`**. See
-`UNDERWATER.md` (audit + snap-fit constraints), `PRINTING.md`, `BOM.md`.
+corrosion. **Creep (resolved):** the load-bearing barbed finger pins no longer
+rely on elastic preload. The expanded lip now drops into a **rigid counterbore
+pocket** that radially confines it (creep relaxes it *outward*, away from
+escape) and bears the pull-out load on a solid shoulder; `SNAP_BARB_SEAT` is
+1.2 mm (audit floor ≥1.0). Axle dowels are captured geometrically between a
+back-bore step and the cover boss. Capture is now geometric, not creep-prone.
+See `ENGAGEMENT.md` (measured numbers), `UNDERWATER.md`, `PRINTING.md`, `BOM.md`.
 
 **Tuning knobs** (in `gripper.py`): `PRINT_CLEAR` (fit), `SNAP_CLEAR` (clip/barb
 engagement), `DFM_EDGE` (edge-break size). Print one snap pin + a scrap bore

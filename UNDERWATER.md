@@ -25,7 +25,7 @@ decide *what to print it in* and how to run it wet here.
 | # | Check | Verdict | Evidence (measured from the model) |
 |---|---|---|---|
 | 1 | Material selection for sustained seawater | **RISK** | PETG/ASA/glass-nylon + ether-TPU are correct; **PLA must be rejected** (hydrolysis); untreated nylon swells; ester-TPU hydrolyzes. See §1. |
-| 2 | Creep at load-bearing snap interfaces | **FAIL (as drawn)** | Barbed finger pins lock on only **`SNAP_BARB_SEAT = 0.30 mm`** axial overlap held by **elastic preload** of a split tip (must flex `0.4 mm` radially). Creep + water plasticization relaxes this → pin walks out under sustained load. See §2 and the CONSTRAINTS block. |
+| 2 | Creep at load-bearing snap interfaces | **RESOLVED** (was FAIL as drawn) | Fixed: finger-pin lips now snap into a **rigid counterbore pocket** that radially confines them (creep relaxes them *outward*) and bears load on a solid shoulder; `SNAP_BARB_SEAT` 0.30→1.2 mm. Axle dowels captured between a back-bore step and the cover boss. Capture is now **geometric**, not preload. Measured numbers in `ENGAGEMENT.md`. See §2 + CONSTRAINTS (now satisfied). |
 | 3 | Flooded-correctness (no trapped air) | **PASS** (1 RISK) | **Every part is a single solid, 1 shell each → no sealed internal pocket anywhere** (cells, cross-slots, sockets, shaft bore all vent to exterior). 5 bottom drains + 4 side drains + 4 snap windows + 2 top slots + back bores. Floods/drains fingers-up, fingers-down, back-up. **RISK:** front-up (+Z up) vents only via the slot/cover corner — add a cover vent (see §3). |
 | 4 | Net buoyancy | **PASS** | Solid vol **98.5 cm³**, dry mass ~**124 g** (PETG+TPU, 100% infill). Flooded → displaces solid vol only → **net ≈ +23 g in seawater (sinks gently, near-neutral)**. No ballast needed. See §4. |
 | 5 | Galvanic corrosion | **PASS** | **Zero metal in the gripper.** All 7 pins printed, snap-clip cover, no fasteners. No dissimilar-metal pair exists. See §5. |
@@ -66,18 +66,28 @@ dive and the flush path (drains + slots) clears it.
 
 ---
 
-## 2. Creep / stress-relaxation — the load-bearing snap interfaces (FAIL as drawn)
+## 2. Creep / stress-relaxation — the load-bearing snap interfaces (RESOLVED)
 
-**This is the production-blocking finding.** Polymers under *constant* load do
+> **RESOLUTION (implemented).** This was the production-blocking finding; it is
+> now fixed in `gripper.py`. Finger-pin lips snap into a **rigid counterbore
+> pocket** that radially confines the lip (creep can only relax it *outward*,
+> away from escape) and bears pull-out load on a solid annular shoulder;
+> `SNAP_BARB_SEAT` raised 0.30→1.2 mm. Axle dowels are sandwiched with zero
+> slop between a back-bore step (−Z) and the cover boss (+Z). Capture is now
+> **geometric, not preload-dependent**. Measured nominal + worst-case (±0.2 mm
+> FDM) numbers are in `ENGAGEMENT.md`. The analysis below is retained as the
+> rationale for the fix; the CONSTRAINTS block at the end is now satisfied.
+
+**Why it mattered.** Polymers under *constant* load do
 not behave like metals: they creep, and any locking feature that depends on
 **stored elastic preload** slowly relaxes. Submersion makes it worse — water
 plasticizes PETG/nylon (lowers modulus and Tg), and warm shallow water adds
 temperature. Over days-to-weeks submerged, a preload-held catch can relax below
 its engagement and release.
 
-### 2a. Barbed finger/axle pins — relies on elastic preload → FAIL
+### 2a. Barbed finger/axle pins — original failure mode (now fixed, see RESOLUTION above)
 
-Measured from `snap_pin()`:
+Measured from the *original* `snap_pin()` (pre-fix):
 
 - Shank radius `PIN_R = 2.3`; barb lip projects to `barb_max_r = PIN_R +
   SNAP_BARB_PROUD = 3.0 mm`.
@@ -91,9 +101,10 @@ Measured from `snap_pin()`:
 Failure path: under sustained side load on the pivot + the barb's standing
 preload, the split tip stress-relaxes inward. Once the relaxed lip projection
 falls below the 0.30 mm seat (plus hygroscopic dimensional drift, which can
-itself be ~0.1–0.3 mm), the pin **walks out and the joint releases**. 0.30 mm is
-far too little margin for a creep-prone polymer holding a constant load for
-days underwater. **This is a FAIL as currently dimensioned.**
+itself be ~0.1–0.3 mm), the pin would **walk out and the joint release**. 0.30 mm
+was far too little margin for a creep-prone polymer holding a constant load for
+days underwater. **This drove the geometric-capture redesign** described in the
+RESOLUTION box above (confined counterbore + 1.2 mm seat).
 
 ### 2b. Front-cover snap clips — geometric, but watch arm relaxation → RISK
 

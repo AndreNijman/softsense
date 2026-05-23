@@ -115,13 +115,35 @@ SHAFT_DFLAT = 1.4     # D-flat depth on the coupler
 # --- 3D-printed snap-pin geometry (replaces ALL metal pivot pins) ---
 SNAP_HEAD_R = PIN_R + 1.6        # flange that stops pull-through
 SNAP_HEAD_T = 1.8                # flange thickness (sits OUTSIDE the near face)
-SNAP_BARB_PROUD = 0.7            # lip sticks this far past PIN_R (-> r ~3.0)
+SNAP_BARB_PROUD = 0.9            # lip sticks this far past PIN_R (-> r 3.2);
+                                 # raised 0.7->0.9 so the lip catches 0.6 mm of
+                                 # rigid counterbore shoulder (was 0.4 mm) while
+                                 # keeping insertion strain in PETG's elastic band
 SNAP_BARB_LIP_T = 1.0            # axial length of the flat locking-lip face
+                                 # (FLOOR: 2.5 perimeters @0.4 nozzle -- do NOT
+                                 # reduce; the only marginal wall in the design)
 SNAP_BARB_LEAD = 3.0             # length of the tapered lead-in cone
 SNAP_TIP_R = 1.0                 # small flat at the very tip (printable)
 SNAP_SLOT_W = 1.0                # split-slot width (lets the tip flex)
-SNAP_SLOT_LEN = 7.0             # slot depth, measured back from the tip
-SNAP_BARB_SEAT = 0.30          # catch face sits this far PAST the far face
+SNAP_SLOT_LEN = 9.0             # slot depth back from tip; lengthened 7->9 so the
+                                 # split cantilever is long enough that the larger
+                                 # SEAT+PROUD insertion deflection stays <~3% strain
+SNAP_BARB_SEAT = 1.2           # catch-face axial overlap PAST the far face;
+                                 # raised 0.30->1.2 (audit floor >=1.0) so the lip
+                                 # has real axial capture vs creep + hygroscopic drift
+
+# --- confined counterbore: the GEOMETRIC capture for the barbed finger pins ---
+# The expanded lip drops into a rigid counterbore pocket cut into the EXIT face
+# of the receiving eye. The pocket wall RADIALLY confines the lip (it cannot
+# creep-relax inward to re-enter the bore and escape) and the pocket SHOULDER
+# (step from bore radius up to pocket radius) takes the axial pull-out load in
+# rigid material -- so retention no longer depends on the sprung tip staying
+# expanded. This is the creep-proof fix per UNDERWATER audit C-items 1-3.
+SNAP_CB_RCLEAR = 0.45           # radial gap pocket-wall to lip; 0.45 keeps the
+                                # worst-case-TIGHT gap (+/-0.2 FDM) non-negative so
+                                # the lip never jams on assembly, while the shoulder
+                                # still grows 1.05 mm wide (robust axial bearing)
+SNAP_CB_FLOOR_CLEAR = 0.30      # axial gap lip-front-face to pocket floor
 
 GEAR_TEETH = 16
 GEAR_TOOTH_H = 3.0    # radial tooth height
@@ -246,8 +268,43 @@ def _poly_solid(pts, z0, thickness):
     return sol.moved(Location((0, 0, z0)))
 
 
-def link_bar(p0, p1, width, z0, thickness, label, color):
-    """Rounded-end link bar from p0 to p1 (eyes at both ends)."""
+# Pocket depth of the lip-confining counterbore (rigid, cut into the eye exit
+# face). Deep enough to swallow the full locking lip plus a small floor gap:
+SNAP_CB_DEPTH = SNAP_BARB_LIP_T + SNAP_CB_FLOOR_CLEAR   # 1.0 + 0.30 = 1.30 mm
+SNAP_CB_R = (PIN_R + SNAP_BARB_PROUD) + SNAP_CB_RCLEAR  # pocket radius (3.2+0.3)
+
+
+def _counterbore_cut(p, z_face, depth, into_plus_z):
+    """Solid to subtract from a receiving eye so the snap-pin lip drops into a
+    rigid confining pocket. The pocket is the eye bore WIDENED to SNAP_CB_R over
+    `depth` of the eye thickness measured from `z_face` (the eye's EXIT face).
+    into_plus_z=True cuts upward into the eye (exit face is the eye bottom);
+    False cuts downward. The remaining ring of eye material at radius
+    SNAP_CB_R..outer (a) radially confines the expanded lip so it cannot
+    creep-relax inward and escape, and (b) the step where the bore narrows back
+    to AXLE_BORE_R is the rigid SHOULDER that takes the axial pull-out load."""
+    if into_plus_z:
+        zc = z_face + depth / 2.0
+    else:
+        zc = z_face - depth / 2.0
+    return Cylinder(radius=SNAP_CB_R, height=depth).moved(
+        Location((p[0], p[1], zc)))
+
+
+# Local eye boss OD so a counterbored eye keeps a solid ring OUTSIDE the pocket:
+# pocket radius + a >=1 mm confining/shoulder wall. The plain LINK_W eye (r 3.5)
+# is too small for the SNAP_CB_R (3.65) pocket -- without this boss the pocket
+# would blow through the eye wall and lose both the radial confinement and the
+# axial shoulder. Same idea as the housing's BOSS_OD_R around its axle bores.
+SNAP_EYE_BOSS_R = SNAP_CB_R + 1.0
+
+
+def link_bar(p0, p1, width, z0, thickness, label, color, counterbores=None):
+    """Rounded-end link bar from p0 to p1 (eyes at both ends). `counterbores` is
+    an optional list of (point, z_face, depth, into_plus_z) specs cut into the
+    eye exit face to confine a snap-pin lip (see _counterbore_cut). Each
+    counterbored eye gets a local SNAP_EYE_BOSS_R boss so a solid confining ring
+    + axial shoulder survives around the widened pocket."""
     dx = p1[0] - p0[0]
     dy = p1[1] - p0[1]
     L = math.hypot(dx, dy)
@@ -259,11 +316,20 @@ def link_bar(p0, p1, width, z0, thickness, label, color):
     bar = body + eye0 + eye1
     bar = bar.moved(Location((0, 0, z0 + thickness / 2.0)))
     bar = bar.moved(Location((p0[0], p0[1], 0), (0, 0, 1), ang))
+    # local bosses around counterbored eyes (so the pocket has a solid wall ring)
+    if counterbores:
+        for (cp, zf, depth, into_pz) in counterbores:
+            bar += Cylinder(radius=SNAP_EYE_BOSS_R, height=thickness).moved(
+                Location((cp[0], cp[1], z0 + thickness / 2.0)))
     # bore the pin holes (FDM clearance fit)
     bar -= Cylinder(radius=AXLE_BORE_R, height=thickness * 3).moved(
         Location((p0[0], p0[1], z0 + thickness / 2.0)))
     bar -= Cylinder(radius=AXLE_BORE_R, height=thickness * 3).moved(
         Location((p1[0], p1[1], z0 + thickness / 2.0)))
+    # lip-confining counterbores (the geometric snap-pin capture pockets)
+    if counterbores:
+        for (cp, zf, depth, into_pz) in counterbores:
+            bar -= _counterbore_cut(cp, zf, depth, into_pz)
     # DFM: break the top & bottom face edges (no sharp edges; bore lead-ins)
     try:
         zf = bar.edges().group_by(Axis.Z)
@@ -310,7 +376,10 @@ def drive_arm(A, C, spin_deg, z0, thickness, label, color, with_shaft=False):
     driven left side); that side's shaft IS the axle, so its hub is left solid.
     The right side has a clearance bore and rides on a separate axle pin."""
     g = gear(A, spin_deg, z0, thickness, label + "_gear", color, bore=not with_shaft)
-    arm = link_bar(A, C, LINK_W, z0, thickness, label + "_arm", color)
+    # Counterbore the C-eye exit (bottom) face so the finger pin (pin_C) lip drops
+    # into a rigid confining pocket -> geometric, creep-proof capture.
+    cb = [(C, z0, SNAP_CB_DEPTH, True)]
+    arm = link_bar(A, C, LINK_W, z0, thickness, label + "_arm", color, counterbores=cb)
     part = g + arm
     if with_shaft:
         # integral shaft along -Z (out the back) + D-profile coupler
@@ -396,9 +465,13 @@ def snap_pin(p, z0, z1, head_at="z0", label="snap_pin", color=PIN_COLOR,
             Location((0, 0, slot_root_z)))
         body = body - slot_a - slot_b - relief
     else:
-        # plain dowel: head + shank + short lead-in tip (no barb, no slot)
-        tip = Cone(bottom_radius=shank_r, top_radius=shank_r * 0.6,
-                   height=1.2).moved(Location((0, 0, L + 0.6)))
+        # plain dowel: head + shank + a NARROW pilot tip that fits the back flood
+        # hole, so the FLAT shank-end shoulder (r=shank_r) bottoms cleanly on the
+        # stepped-bore shoulder (the geometric -Z stop) while the pilot self-centres
+        # in the flood hole. Pilot radius < AXLE_FLOOD_R so it never jams.
+        pilot_r = min(shank_r * 0.55, AXLE_FLOOD_R - 0.25)
+        tip = Cone(bottom_radius=pilot_r, top_radius=pilot_r * 0.7,
+                   height=1.0).moved(Location((0, 0, L + 0.5)))
         body = head + shank + tip
 
     # DFM edge-break: soften the head-flange rim (handled during insertion). The
@@ -698,6 +771,24 @@ AXLE_SCREW_R = AXLE_BORE_R              # snap-pin shank clearance (was M3)
 BOSS_OD_R = AXLE_SCREW_R + 2.0          # axle boss OD -> 2 mm wall around bore (DFM min)
 BACK_BOSS_Z = (-2.0, 1.0)              # back-wall boss into cavity
 COVER_BOSS_Z = (20.0, 22.0)            # cover inner-face boss into cavity
+# --- axle dowel axial sandwich (geometric capture, no barb) ---
+# The plain axle dowel is trapped between the BACK boss and the COVER boss with no
+# slop: its head (SNAP_HEAD_R, wider than the AXLE_SCREW_R bore) cannot pass the
+# back boss bore (=> cannot fall out the back, -Z stop) and its head top face
+# seats against the cover boss inner face (=> +Z stop). Sizing puts the head top
+# just clear of the cover boss and the tip just into the back boss bore.
+AXLE_DOWEL_CLR = 0.20                       # head-to-cover-boss seating gap
+AXLE_DOWEL_Z1 = COVER_BOSS_Z[0] - AXLE_DOWEL_CLR - SNAP_HEAD_T   # 18.0 (shank top)
+# The back axle bore is STEPPED: a wide (AXLE_SCREW_R) running bore from the cavity
+# down to AXLE_STOP_Z, then a narrow flood hole (AXLE_FLOOD_R) on through the back
+# wall. The dowel's flat shank end (r=PIN_R) is too wide for the flood hole, so it
+# BOTTOMS on the rigid step (annular shoulder) -> the -Z stop. The narrow hole still
+# floods/drains (3 mm dia > 1.5 mm vent floor). With head_at='z1' the shank end is at
+# z0; set z0 = AXLE_STOP_Z so the shank end seats on the step with the head clamped
+# against the cover boss above -> the dowel is sandwiched with NO axial slop.
+AXLE_STOP_Z = 0.0                           # back-bore step (shank bottoms here)
+AXLE_FLOOD_R = 1.5                          # narrow flood hole below the step
+AXLE_DOWEL_Z0 = AXLE_STOP_Z                 # shank flat end seats on the step
 BUSH_OD_R = 6.0                         # bushing-seat boss outer radius (OD ~12)
 BUSH_BORE_R = 4.4                       # flooded plain-bushing clearance
 BUSH_BOSS_Z = (-2.0, 1.0)
@@ -707,6 +798,13 @@ CORNER_TAP_R = 1.35                    # M3 tap (self-tap into body column)
 CORNER_CLEAR_R = 1.7                   # M3 clearance hole in the cover
 CORNER_BOSS_Z = (-2.0, 22.0)           # (legacy; replaced by snap clips)
 COVER_Z = (22.0, 25.0)                 # bolt-on cover plate
+
+# --- front-cover vent holes (underwater audit C-6): let trapped air escape when
+# the gripper is front-up. Placed over the OPEN cavity (Y in [-17,14.5], X in
+# [-45,45]), biased +Y so they are the high point fingers-up, one near each side
+# to cover roll, clear of the 3 cover axle bosses and the snap-clip windows. ---
+COVER_VENT_R = 0.9                      # 1.8 mm dia (> 1.5 mm bubble/FDM floor)
+COVER_VENT_XY = [(34.0, 12.0), (-34.0, 12.0)]   # >=8 mm from any boss centre
 
 # --- snap-clip front cover (tool-free, zero hardware) -------------------
 SNAP_Y = [-9.0, 7.0]                 # clip y-centres on each side wall
@@ -807,9 +905,17 @@ def build_enclosure():
     body -= Cylinder(radius=BUSH_BORE_R, height=(BUSH_BOSS_Z[1] - CAV_Z[0]) + 4.0).moved(
         Location((SHAFT_C[0], SHAFT_C[1], (CAV_Z[0] - 2.0 + BUSH_BOSS_Z[1]) / 2.0)))
 
+    # STEPPED back axle bore: wide running bore (AXLE_SCREW_R) from the cavity down
+    # to AXLE_STOP_Z, then a narrow flood hole (AXLE_FLOOD_R) on through the back wall.
+    # The step (annular shoulder at AXLE_STOP_Z) is the rigid -Z stop the dowel shank
+    # bottoms on; the narrow hole keeps the socket flooding/draining.
     for (px, py) in AXLE_PIVOTS:
-        body -= Cylinder(radius=AXLE_SCREW_R, height=(BACK_BOSS_Z[1] - ENC_Z[0]) + 6.0).moved(
-            Location((px, py, (ENC_Z[0] - 3.0 + BACK_BOSS_Z[1]) / 2.0)))
+        wz0, wz1 = AXLE_STOP_Z, BACK_BOSS_Z[1] + 1.5    # wide bore: step -> cavity
+        body -= Cylinder(radius=AXLE_SCREW_R, height=(wz1 - wz0)).moved(
+            Location((px, py, (wz0 + wz1) / 2.0)))
+        nz0, nz1 = ENC_Z[0] - 3.0, AXLE_STOP_Z + 0.01   # narrow flood hole through back
+        body -= Cylinder(radius=AXLE_FLOOD_R, height=(nz1 - nz0)).moved(
+            Location((px, py, (nz0 + nz1) / 2.0)))
 
     # snap-clip catch windows: a through-window in each long side wall so the
     # cover's hook latches behind the window's top edge (also act as drains).
@@ -864,6 +970,10 @@ def build_front_cover():
     for (px, py) in AXLE_PIVOTS:
         plate -= Cylinder(radius=AXLE_SCREW_R, height=(COVER_Z[1] - COVER_BOSS_Z[0]) + 4.0).moved(
             Location((px, py, (COVER_BOSS_Z[0] + COVER_Z[1]) / 2.0)))
+    # vent holes through the cover plate (front-up air escape, audit C-6)
+    for (vx, vy) in COVER_VENT_XY:
+        plate -= Cylinder(radius=COVER_VENT_R, height=(COVER_Z[1] - COVER_Z[0]) + 4.0).moved(
+            Location((vx, vy, (COVER_Z[0] + COVER_Z[1]) / 2.0)))
     for clip in _all_snap_clips():
         plate += clip
     plate.label = "front_cover"
@@ -910,9 +1020,12 @@ def gen_step():
     parts.append(drive_arm(L["A"], L["C"], -spin + half_tooth, Z_CRANK0, T_CRANK,
                            "drive_arm_L", STEEL_L, with_shaft=True))
 
-    # followers B->D
-    parts.append(link_bar(R["B"], R["D"], LINK_W, Z_FOLLOW0, T_FOLLOW, "follower_R", STEEL_R))
-    parts.append(link_bar(L["B"], L["D"], LINK_W, Z_FOLLOW0, T_FOLLOW, "follower_L", STEEL_L))
+    # followers B->D. Counterbore the D-eye exit (bottom) face so the finger pin
+    # (pin_D) lip drops into a rigid confining pocket (geometric capture).
+    parts.append(link_bar(R["B"], R["D"], LINK_W, Z_FOLLOW0, T_FOLLOW, "follower_R", STEEL_R,
+                          counterbores=[(R["D"], Z_FOLLOW0, SNAP_CB_DEPTH, True)]))
+    parts.append(link_bar(L["B"], L["D"], LINK_W, Z_FOLLOW0, T_FOLLOW, "follower_L", STEEL_L,
+                          counterbores=[(L["D"], Z_FOLLOW0, SNAP_CB_DEPTH, True)]))
 
     # Fin Ray fingers (TPU) rigid with coupler CD
     parts.append(finger(R, refR, -1, TPU, "finger_R"))
@@ -925,12 +1038,19 @@ def gen_step():
                               ("L", L, ("B", "C", "D"))):
         for j in joints:
             lbl = f"pin_{j}_{tag}"
-            if j in ("C", "D"):    # finger pins: barbed, head caps above finger
-                parts.append(snap_pin(pose[j], 0.0, 23.0, head_at="z1", label=lbl))
+            if j in ("C", "D"):    # finger pins: barbed, head caps above finger.
+                # z0 = the receiving eye's EXIT (bottom) face + pocket depth + seat,
+                # so the locking lip seats flush in the rigid confining counterbore
+                # cut into that eye (C -> crank eye @Z_CRANK0; D -> follower @Z_FOLLOW0).
+                far = Z_CRANK0 if j == "C" else Z_FOLLOW0
+                pin_z0 = far + SNAP_CB_DEPTH + SNAP_BARB_SEAT
+                parts.append(snap_pin(pose[j], pin_z0, 23.0, head_at="z1", label=lbl))
             else:                  # axles: plain dowels dropped in from the front,
-                                   # head capped by the cover boss (no barb needed)
-                parts.append(snap_pin(pose[j], -1.0, 19.0, head_at="z1",
-                                      barb=False, label=lbl))
+                                   # SANDWICHED with no slop between the back boss
+                                   # (head too wide to pass its bore -> -Z stop) and
+                                   # the cover boss (head seats on it -> +Z stop).
+                parts.append(snap_pin(pose[j], AXLE_DOWEL_Z0, AXLE_DOWEL_Z1,
+                                      head_at="z1", barb=False, label=lbl))
 
     # bolt-on front cover LAST so existing occurrence ids stay stable
     parts.append(build_front_cover())
