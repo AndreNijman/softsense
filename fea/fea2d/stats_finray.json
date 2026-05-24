@@ -1,0 +1,27 @@
+{
+  "model": "Fin Ray finger, plane-strain, St.-Venant-Kirchhoff, total Lagrangian",
+  "material": {
+    "name": "TPU ~95A (ASSUMED)",
+    "E_MPa": 40.0,
+    "nu": 0.45,
+    "note": "literature-typical 95A, not measured on the print"
+  },
+  "mesh": {
+    "nodes": 1655,
+    "tris": 2791
+  },
+  "load_steps": 24,
+  "grip_load_N": {
+    "max": 5.400000000000001,
+    "note": "applied horizontal contact-patch load = grip force"
+  },
+  "tip_wrap_mm": {
+    "inward_dx": 23.44190799656518,
+    "axial_dy": -2.0050281092101345
+  },
+  "von_mises_MPa": {
+    "max": 2.6557372078662964,
+    "p99_5": 1.4010161623305502
+  },
+  "limit_point_N": "~5.7 (load-control snap-through; solve capped at 5.4 N)"
+}

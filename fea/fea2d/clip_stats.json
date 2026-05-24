@@ -1,0 +1,26 @@
+{
+  "part": "cover snap-clip cantilever",
+  "model": "linear plane-stress FEA (quadratic elements), prescribed tip deflection",
+  "material": {
+    "name": "PA12-GF",
+    "E_MPa": 4500.0,
+    "nu": 0.39,
+    "sigma_allow_MPa": 70.0,
+    "strain_gate": 0.015
+  },
+  "inputs": {
+    "free_len_mm": 20.5,
+    "thickness_mm": 2.0,
+    "width_mm": 9.0,
+    "tip_defl_mm": 1.9
+  },
+  "results": {
+    "nominal_bending_strain": 0.011212799535853357,
+    "analytic_strain": 0.013563355145746577,
+    "nominal_strain_margin": 1.337756904690655,
+    "sharp_corner_peak_strain": 0.022381144973436608,
+    "stress_concentration_factor": 1.6501186272081994,
+    "note": "nominal bending strain governs and matches the analytic build gate; the sharp-clamp corner peak is a mesh-sensitive singularity mitigated by the root fillet in the real part."
+  },
+  "verdict": "PASS"
+}

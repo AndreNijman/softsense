@@ -1,2 +1,9 @@
 __pycache__/
 *.glb
+
+# FEA/render transfer scratch
+fea_out.tgz
+fea_pull/
+render_bundle.tar.gz
+fea_work/
+render_bundle/

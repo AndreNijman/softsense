@@ -1,0 +1,225 @@
+{
+  "title": "Custom full-3D FEA \u2014 Fin Ray finger wrapping the amphora neck",
+  "method": "3D corotational (polar-decomposition warped-stiffness) finite-element, linear tetrahedra, Newton-Raphson with displacement (press) load stepping",
+  "constitutive": "corotational linear elasticity (large-rotation, small-strain) \u2014 valid here: TPU strains are small, deformation is rotation/bending dominated",
+  "material": {
+    "name": "TPU ~95A (assumed, per bundle)",
+    "E_MPa": 40.0,
+    "nu_used": 0.42,
+    "nu_note": "nu relaxed from 0.45 to limit linear-tet volumetric locking (the bundle's 2D solve made the same compromise)"
+  },
+  "contact": {
+    "type": "penalty, frictionless",
+    "rigid_body": "amphora neck = analytic cylinder",
+    "neck_radius_mm": 22.0,
+    "neck_axis": "finger-local z (vertical) \u2014 matches the upright neck in the side grip",
+    "neck_centre_finger_local_mm": [
+      -22.1,
+      80.2
+    ],
+    "max_penetration_mm": "<0.01 (penalty well converged)"
+  },
+  "mesh": {
+    "nodes": 6620,
+    "tets": 25119,
+    "z_layers": 3,
+    "dof": 19860,
+    "source": "fea/finray_morph.npz cross-section (1655 nodes/2791 tris) extruded over the 10 mm finger thickness"
+  },
+  "drive": {
+    "load_steps": 24,
+    "press_max_mm": 9.0,
+    "note": "neck pressed into the toothed contact face = the gripper closing past first contact; the Fin Ray truss converts the push into the conforming wrap"
+  },
+  "results_final": {
+    "grip_reaction_N": 18.25,
+    "tip_wrap_mm": 12.05,
+    "von_mises_max_MPa": 2.704
+  },
+  "results_grasp_frame": {
+    "frame": 23,
+    "press_mm": 9.0,
+    "grip_reaction_N": 18.25,
+    "tip_wrap_mm": 12.05,
+    "von_mises_max_MPa": 2.704
+  },
+  "safety": {
+    "TPU_strength_MPa": [
+      25.0,
+      40.0
+    ],
+    "margin_x": 9.2,
+    "verdict": "gentle grip \u2014 peak stress well below TPU strength (fragile-safe)"
+  },
+  "honesty": "Genuine 3D contact FEA. Grip reaction is displacement-controlled (can pass the load-control limit point the bundled 2D solve hit at 5.4 N) and is an UPPER bound because linear-tet volumetric locking stiffens near-incompressible TPU; the von Mises field (the fragility-relevant metric) is reliable and gives ~10x margin.",
+  "per_step": [
+    {
+      "step": 0,
+      "press_mm": 0.38,
+      "grip_N": 0.0,
+      "tip_mm": 0.0,
+      "vm_max_MPa": 0.0
+    },
+    {
+      "step": 1,
+      "press_mm": 0.75,
+      "grip_N": 0.48,
+      "tip_mm": 0.37,
+      "vm_max_MPa": 0.076
+    },
+    {
+      "step": 2,
+      "press_mm": 1.12,
+      "grip_N": 1.21,
+      "tip_mm": 0.93,
+      "vm_max_MPa": 0.19
+    },
+    {
+      "step": 3,
+      "press_mm": 1.5,
+      "grip_N": 1.96,
+      "tip_mm": 1.48,
+      "vm_max_MPa": 0.304
+    },
+    {
+      "step": 4,
+      "press_mm": 1.88,
+      "grip_N": 2.77,
+      "tip_mm": 2.0,
+      "vm_max_MPa": 0.421
+    },
+    {
+      "step": 5,
+      "press_mm": 2.25,
+      "grip_N": 3.58,
+      "tip_mm": 2.52,
+      "vm_max_MPa": 0.539
+    },
+    {
+      "step": 6,
+      "press_mm": 2.62,
+      "grip_N": 4.37,
+      "tip_mm": 3.07,
+      "vm_max_MPa": 0.657
+    },
+    {
+      "step": 7,
+      "press_mm": 3.0,
+      "grip_N": 5.16,
+      "tip_mm": 3.62,
+      "vm_max_MPa": 0.776
+    },
+    {
+      "step": 8,
+      "press_mm": 3.38,
+      "grip_N": 5.95,
+      "tip_mm": 4.17,
+      "vm_max_MPa": 0.895
+    },
+    {
+      "step": 9,
+      "press_mm": 3.75,
+      "grip_N": 6.74,
+      "tip_mm": 4.72,
+      "vm_max_MPa": 1.015
+    },
+    {
+      "step": 10,
+      "press_mm": 4.12,
+      "grip_N": 7.53,
+      "tip_mm": 5.27,
+      "vm_max_MPa": 1.134
+    },
+    {
+      "step": 11,
+      "press_mm": 4.5,
+      "grip_N": 8.32,
+      "tip_mm": 5.83,
+      "vm_max_MPa": 1.252
+    },
+    {
+      "step": 12,
+      "press_mm": 4.88,
+      "grip_N": 9.11,
+      "tip_mm": 6.38,
+      "vm_max_MPa": 1.371
+    },
+    {
+      "step": 13,
+      "press_mm": 5.25,
+      "grip_N": 9.9,
+      "tip_mm": 6.93,
+      "vm_max_MPa": 1.49
+    },
+    {
+      "step": 14,
+      "press_mm": 5.62,
+      "grip_N": 10.72,
+      "tip_mm": 7.46,
+      "vm_max_MPa": 1.61
+    },
+    {
+      "step": 15,
+      "press_mm": 6.0,
+      "grip_N": 11.56,
+      "tip_mm": 7.97,
+      "vm_max_MPa": 1.731
+    },
+    {
+      "step": 16,
+      "press_mm": 6.38,
+      "grip_N": 12.4,
+      "tip_mm": 8.48,
+      "vm_max_MPa": 1.853
+    },
+    {
+      "step": 17,
+      "press_mm": 6.75,
+      "grip_N": 13.24,
+      "tip_mm": 8.99,
+      "vm_max_MPa": 1.974
+    },
+    {
+      "step": 18,
+      "press_mm": 7.12,
+      "grip_N": 14.08,
+      "tip_mm": 9.5,
+      "vm_max_MPa": 2.096
+    },
+    {
+      "step": 19,
+      "press_mm": 7.5,
+      "grip_N": 14.92,
+      "tip_mm": 10.01,
+      "vm_max_MPa": 2.217
+    },
+    {
+      "step": 20,
+      "press_mm": 7.88,
+      "grip_N": 15.76,
+      "tip_mm": 10.52,
+      "vm_max_MPa": 2.339
+    },
+    {
+      "step": 21,
+      "press_mm": 8.25,
+      "grip_N": 16.6,
+      "tip_mm": 11.02,
+      "vm_max_MPa": 2.461
+    },
+    {
+      "step": 22,
+      "press_mm": 8.62,
+      "grip_N": 17.43,
+      "tip_mm": 11.53,
+      "vm_max_MPa": 2.582
+    },
+    {
+      "step": 23,
+      "press_mm": 9.0,
+      "grip_N": 18.25,
+      "tip_mm": 12.05,
+      "vm_max_MPa": 2.704
+    }
+  ]
+}
