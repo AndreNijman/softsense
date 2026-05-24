@@ -250,8 +250,12 @@ FR_RIB_SLANT_DEG = 38.0
 # GRADIENT along the blade: a thinner SPINE toward the tip lets the contact face
 # wrap (conform) around an object instead of bending away as a stiff cantilever.
 # See fea/ITERATIONS.md for the FEA rationale.
-FR_CONTACT_WALL = None      # contact-beam wall at base (None -> FR_WALL)
-FR_CONTACT_WALL_TIP = None  # contact-beam wall at tip  (None -> FR_CONTACT_WALL)
+# FEA-optimized (fea/ITERATIONS.md "wrap-quality optimization"): a more compliant
+# contact beam, thinning base->tip, lets the contact face curve around the object
+# -> +40% wrap arc (12deg->17deg) and a gentler peak stress (margin 3.6->4.2x) at a
+# still-secure ~18 N grip. 1.2 mm tip stays >= the 2.5-perimeter FDM floor.
+FR_CONTACT_WALL = 1.8       # contact-beam wall at base (was uniform FR_WALL=2.8)
+FR_CONTACT_WALL_TIP = 1.2   # contact-beam wall at tip (compliant -> conforms/wraps)
 FR_SPINE_WALL = None        # spine-beam wall at base   (None -> FR_WALL)
 FR_SPINE_WALL_TIP = None    # spine-beam wall at tip    (None -> FR_SPINE_WALL)
 FR_RIB_WALL = None          # rib wall at base          (None -> FR_WALL)

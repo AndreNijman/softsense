@@ -229,3 +229,28 @@ worse. The contact-wall gradient (w1) evens the pressure (pcov 0.74→0.53) for 
 The lever to GROW the arc and lift the margin is a more compliant **contact beam**
 (thinner) so the face curves around more of the cylinder at lower peak pressure —
 Round 2 (w4–w6) testing FR_CONTACT_WALL 1.2–1.6.
+
+### Round 2 — compliant contact beam: grows the wrap arc. WINNER = w7
+| variant | contact wall | contact | arc° | pcov | grip | margin |
+|---|---|---|---|---|---|---|
+| w0_base | 2.8 uniform | 22 | 12 | 0.74 | 24 | 3.6 |
+| w4_csoft15 | 1.5 uniform | 22 | 12 | 0.73 | 17 | 4.4 |
+| w5_csoft12 | 1.2 uniform | 23 | 17 | 0.94 | 15 | 4.7 |
+| w6_csoft_grad10 | 1.6→1.0 | 24 | 17 | 0.91 | 17 | 4.6 |
+| **w7_balanced** ✅ | **1.8→1.2** | **24** | **17** | **0.79** | **18** | **4.2** |
+
+A more compliant contact beam lets the face curve around more of the cylinder:
+**arc 12°→17° (+40% wrap), margin 3.6→4.2 (gentler peak), contact 22→24**, at a
+still-secure 18 N grip. **w7 (FR_CONTACT_WALL 1.8 base → 1.2 tip)** is the winner —
+biggest arc with the best evenness + grip of the arc-gainers, and the 1.2 mm tip
+stays ≥ the FDM 2.5-perimeter floor (printable). **Ported into `gripper.py`**
+(`FR_CONTACT_WALL=1.8`, `FR_CONTACT_WALL_TIP=1.2`); verified kinematics unchanged,
+finger a single valid solid, finger-vs-finger still 0 at closed.
+
+**Honest scope of the win:** the wrap is still modest in absolute terms (17° arc) —
+a straight contact face on a Ø44 mm cylinder is geometry-limited — but the
+optimization delivered a real, printable improvement on the correct metrics: more
+conforming contact area, distributed over a wider arc, at a gentler peak stress.
+Renders: per-iteration `wrap_render.png`/`wrap_anim.gif` + `_comparison/compare.png`
++ `_comparison/compare.gif` (finger mesh coloured by von Mises conforming to the
+SOLID object, closing animations).

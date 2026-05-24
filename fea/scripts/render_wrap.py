@@ -20,6 +20,16 @@ OBJ_COLOR = "#5a7d99"
 PRESS_AT = 8.0
 
 
+def statline(d):
+    try:
+        m = json.load(open(os.path.join(d, "metrics.json")))
+        return ("arc %.0f°  pcov %.2f  margin %.1fx\ncontact %d  grip %.0fN"
+                % (m["contact_arc_deg"], m["pressure_cov"], m["margin_x"],
+                   m["contact_nodes"], m["grip_at_press_N"]))
+    except Exception:
+        return ""
+
+
 def load2d(d):
     z = np.load(os.path.join(d, "fea3d_solution.npz"))
     rest, frames, vms, press, grip = z["rest"], z["frames"], z["vms"], z["press"], z["grip"]
@@ -86,10 +96,10 @@ def render_compare(outdir, dirs):
     n = len(Ss); vmax = max(s["vmax"] for _, s in Ss)
     sm = plt.cm.ScalarMappable(cmap="inferno", norm=plt.Normalize(0, vmax))
     # still: all at grasp
-    fig, axs = plt.subplots(1, n, figsize=(3.0 * n, 6.5), dpi=130)
+    fig, axs = plt.subplots(1, n, figsize=(3.0 * n, 6.8), dpi=130)
     if n == 1: axs = [axs]
-    for ax, (nm, S) in zip(axs, Ss):
-        i = S["op"]; _draw(ax, S, i, f"{nm}\n{S['press'][i]:.1f}mm {S['grip'][i]:.0f}N", vmax)
+    for ax, d, (nm, S) in zip(axs, dirs, Ss):
+        i = S["op"]; _draw(ax, S, i, f"{nm}\n{statline(d)}", vmax)
     fig.colorbar(sm, ax=axs, fraction=0.012, pad=0.01, label="von Mises (MPa)")
     fig.savefig(os.path.join(outdir, "compare.png"), bbox_inches="tight"); plt.close(fig)
     # animation: all close together
