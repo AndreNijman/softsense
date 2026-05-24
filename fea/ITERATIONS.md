@@ -51,6 +51,8 @@ first. Then land the winning FR_* values into `gripper.py` and regenerate.
 | r2_spinetip10 | spine 2.8→1.0 @tip (grip 21.5N) | 0.053 | 0.00 | −9.1 | 0.219 | 3.46 | 7.22 | DEAD — contact still 22, no wrap |
 | r2b_stiffbeam_thinrib | contact4/spine4/rib1.2 (grip 19.8N) | 0.029 | 0.00 | −7.1 | 0.038 | 5.88 | 4.25 | DEAD — contact 14 (fewer) |
 | r2c_thinrib_only | rib 2.8→1.2 (grip 11.1N) | 0.024 | 0.00 | −5.8 | 0.024 | 5.48 | 4.56 | DEAD — contact 10 (fewer) |
+| exp_yc95 | baseline, object centre y=80→95 | 0.029 | 0.00 | −10.4 | 0.035 | 4.61 | 5.42 | position not the lever (contact 13, band just moves up) |
+| r3_len58 | shorten FR_BLADE_LEN 90→58 | 0.076 | **1.00** | −9.6 | 0.186 | 5.94 | 4.21 | top‑⅓=1.0 is a METRIC ARTIFACT (band near short tip); tip still −9.6 away, contact still a 19‑node band, margin worse |
 
 ## Log
 
@@ -125,3 +127,41 @@ object may sit too low — the finger tip is 20 mm above the object top; test yc
 (#1) flip the taper so the CONTACT face narrows toward the tip (angled-but-straight,
 preserves adaptivity; not a concave face) so the upper face approaches the object as
 the gripper closes. Testing #2 first (one run, no geometry change).
+
+### Round 2c — object position (yc 80→95): NEGATIVE; and the geometric wall
+Raising the object did not help (contact 13, top-third 0; the band just tracked the
+object up to y89–92). yc=80 actually has the most contact (22). **Position is not the
+lever.** This, plus the contact patch being press-invariant (22 nodes at press 10,
+22 at press 8 — it does NOT grow with closure), establishes the real wall:
+
+> **A straight contact face only tangent-touches a cylinder at one line, and the
+> finger's wrap mechanism propagates only BELOW the contact (toward the clamp
+> reaction), not ABOVE it (free cantilever, no driving load). The finger tip
+> (y=122) is also ABOVE the object entirely (object top y≈102–117) — there is no
+> surface there to "morph over." So the top third can never load for this
+> object/finger combination, by geometry, not material.** No stiffness, gradient,
+> directional-wall, slant, or position change moved it (16 runs).
+
+The wrap the finger DOES produce (the lower/driven arc) is real and works. Getting
+the *whole* finger to share load requires a **geometric** change, three families:
+- **(a) match finger length to the object** — shorten `FR_BLADE_LEN` so the tip is
+  ~object-top height; the whole finger is then in the wrap arc. Cheap (1 param).
+  Cost: less open-jaw reach (blade 90→58 drops tip span 123.8→101.8 mm).
+- **(b) a topology that propagates curl toward the tip too** (tendon / coupled tip /
+  different rib scheme) — real R&D, not a parameter sweep.
+- **(c) accept the wrap is the lower arc** and document the over-the-top limit for
+  objects smaller than the finger length.
+
+Testing (a) as a concrete data point (r3_len58), then bringing the choice to the user.
+
+### Round 3 — shorten finger (a): top‑⅓ metric rises but it's an ARTIFACT
+`FR_BLADE_LEN` 90→58 gives `top_third_force_frac = 1.0` — but only because the
+unchanged contact band (y71–76) now sits in the top third of the *shorter* finger.
+The real behaviour is unchanged: tip still bends **away** (−9.6 mm), contact is
+still a single 19-node band, and margin got *worse* (4.21×, the short finger is
+stiffer). So (a) relabels the geometry; it does not produce a conforming wrap or
+make the tip curl toward the object. **Net conclusion after 17 runs: this Fin Ray
+finger does not conform-wrap a 44 mm cylinder — it tangent-contacts and the free
+portion bends away. True whole-finger wrap needs a topology change (R&D), not a
+parameter. Surfaced to the user for a direction decision (kept gripper.py at its
+original, working geometry — only added the unused graded-wall params).**
