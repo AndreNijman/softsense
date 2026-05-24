@@ -1,0 +1,13 @@
+{
+  "engage_y_frac": 0.053,
+  "bot_third_force_frac": 0.0,
+  "mid_third_force_frac": 1.0,
+  "top_third_force_frac": 0.0,
+  "tip_inward_mm": -10.93,
+  "stress_spread_frac": 0.031,
+  "max_von_mises_MPa": 8.169,
+  "margin_x": 3.06,
+  "grip_N": 27.28,
+  "contact_y_min": 73.9,
+  "contact_y_max": 78.7
+}

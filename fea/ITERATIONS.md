@@ -38,6 +38,14 @@ first. Then land the winning FR_* values into `gripper.py` and regenerate.
 | iter | change | engage | top‑⅓ | tip‑in (mm) | spread | max vM | margin | verdict |
 |---|---|---|---|---|---|---|---|---|
 | iter00 | baseline, corrected 2‑bore clamp | 0.073 | 0.00 | **−11.8** | 0.031 | 8.86 | 2.82 | reference — problem confirmed |
+| r1_wall20 | FR_WALL 2.8→2.0 | 0.053 | 0.00 | −8.8 | 0.028 | 7.46 | 3.35 | no top engage |
+| r1_wall15 | FR_WALL 2.8→1.5 | 0.053 | 0.00 | −7.0 | 0.071 | 4.47 | 5.59 | margin↑ but grip→8N (confounded) |
+| r1_ribs16 | FR_N_RIBS 10→16 | 0.053 | 0.00 | −14.3 | 0.020 | 11.40 | 2.19 | worse (stiffer lever) |
+| r1_ribs22 | FR_N_RIBS 10→22 | — | — | — | — | — | — | incomplete (agent didn't wait) |
+| r1_tip10 | FR_TIP_WIDTH 5→10 | 0.073 | 0.00 | −11.5 | 0.069 | 6.37 | 3.93 | no top engage |
+| r1_tip16 | FR_TIP_WIDTH 5→16 | 0.073 | 0.00 | −11.8 | 0.074 | 5.65 | 4.42 | no top engage |
+| r1_tipcap05 | FR_INSET_TIP 3→0.5 | 0.073 | 0.00 | −11.5 | 0.041 | 8.02 | 3.12 | no top engage |
+| r1_slant22 | FR_RIB_SLANT 38→22 | 0.053 | 0.00 | −10.9 | 0.031 | 8.17 | 3.06 | worse engage |
 
 ## Log
 
@@ -54,3 +62,18 @@ lattice shear (more compliance / more ribs) and stop the upper finger behaving a
 rigid wedge (less taper). Distributing contact will also raise the margin.
 **Decision:** sweep compliance (FR_WALL), rib density (FR_N_RIBS), taper
 (FR_TIP_WIDTH), tip cap (FR_INSET_TIP) and rib slant (FR_RIB_SLANT_DEG) in parallel.
+
+### Round 1 — uniform single-lever sweep (8 variants, 4 parallel agents): NEGATIVE
+Every uniform parameter change **failed to move the core problem.** Across all 8
+variants `top_third_force_frac` stayed exactly **0.00**, the contact band stayed
+pinned at **y≈72–79 mm** (invariant), and `tip_inward_mm` stayed **negative** (tip
+away). Trends: thinner walls → marginally less-negative tip and higher margin, but
+only by collapsing grip force (8 N at WALL=1.5 — confounded, not real conformance);
+MORE ribs → *worse* (stiffer lever, margin 2.19). The **invariance of the contact
+band under every stiffness lever** is the diagnosis: a straight contact face only
+tangent-touches the cylinder, and the finger rotates about the pins rather than the
+rib lattice shearing into a conforming wrap. **Uniform parameters cannot fix this —
+the change must be structural.** **Decision:** (1) discriminating experiment — does
+*reversing the rib slant* flip the tip from away→toward? then (2) structural levers
+in `gripper.py` (rib-slant sign, wall stiffness gradient base→tip). NOT a concave
+face (that would kill adaptivity to other object shapes — the opposite of the goal).
