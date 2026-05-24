@@ -241,10 +241,21 @@ FR_BLADE_LEN = 90.0    # contact beam length, base -> tip
 FR_BASE_WIDTH = 22.0   # triangle base width in X
 FR_CONTACT_OFFSET = 1.0  # contact face sits this far inboard of the centreline
 FR_BASE_DROP = 9.0     # triangle base sits this far below the top pin
-FR_WALL = 2.8          # beam / rib wall thickness
+FR_WALL = 2.8          # beam / rib wall thickness (uniform default)
 FR_TIP_WIDTH = 5.0     # blade width at the blunt tip
 FR_N_RIBS = 10         # number of internal ribs (all same-direction slant)
 FR_RIB_SLANT_DEG = 38.0
+# Directional / graded wall thickness. None -> fall back to FR_WALL (the original
+# uniform behaviour). Setting *_TIP thinner than the base creates a stiffness
+# GRADIENT along the blade: a thinner SPINE toward the tip lets the contact face
+# wrap (conform) around an object instead of bending away as a stiff cantilever.
+# See fea/ITERATIONS.md for the FEA rationale.
+FR_CONTACT_WALL = None      # contact-beam wall at base (None -> FR_WALL)
+FR_CONTACT_WALL_TIP = None  # contact-beam wall at tip  (None -> FR_CONTACT_WALL)
+FR_SPINE_WALL = None        # spine-beam wall at base   (None -> FR_WALL)
+FR_SPINE_WALL_TIP = None    # spine-beam wall at tip    (None -> FR_SPINE_WALL)
+FR_RIB_WALL = None          # rib wall at base          (None -> FR_WALL)
+FR_RIB_WALL_TIP = None      # rib wall at tip           (None -> FR_RIB_WALL)
 FR_INSET_BASE = 4.0    # solid floor across the bottom
 FR_INSET_TIP = 3.0     # solid cap at the apex
 MOUNT_HOLE_R = PIN_R + PRINT_CLEAR   # finger pin bore (FDM clearance)
@@ -685,42 +696,60 @@ def finray_finger_closed(C0, D0, inner_dir, z0, thickness):
     bracket = link_bar(C0, D0, FR_BRACKET_W, z0, thickness, "bracket", TPU)
     shell = blade + bracket
 
-    # hollow it: subtract the inner cavity (leaves contact/spine/base/tip spars)
-    cav_contact_x = contact_x + into * FR_WALL
-    y_cav_lo = base_y + FR_INSET_BASE
+    # hollow it: subtract the inner cavity (leaves contact/spine/base/tip spars).
+    # Wall thicknesses may grade base->tip (directional compliance). None -> FR_WALL,
+    # which reproduces the original uniform quadrilateral cavity exactly.
+    cwb = FR_CONTACT_WALL if FR_CONTACT_WALL is not None else FR_WALL
+    cwt = FR_CONTACT_WALL_TIP if FR_CONTACT_WALL_TIP is not None else cwb
+    swb = FR_SPINE_WALL if FR_SPINE_WALL is not None else FR_WALL
+    swt = FR_SPINE_WALL_TIP if FR_SPINE_WALL_TIP is not None else swb
+
+    def _frac(yy):
+        return min(1.0, max(0.0, (yy - base_y) / (tip_y - base_y)))
+
+    def cav_contact_x(yy):
+        return contact_x + into * (cwb + (cwt - cwb) * _frac(yy))
 
     def cav_spine_x(yy):
-        return spine_x_at(yy) - into * FR_WALL
+        return spine_x_at(yy) - into * (swb + (swt - swb) * _frac(yy))
 
     def cav_w(yy):
-        return (cav_spine_x(yy) - cav_contact_x) * into
+        return (cav_spine_x(yy) - cav_contact_x(yy)) * into
 
+    y_cav_lo = base_y + FR_INSET_BASE
     MIN_CAV_W = 2.0
     y_cav_hi = tip_y - FR_INSET_TIP
     while y_cav_hi > y_cav_lo and cav_w(y_cav_hi) < MIN_CAV_W:
         y_cav_hi -= 0.5
-    cavity = _poly_solid(
-        [(cav_contact_x, y_cav_lo), (cav_spine_x(y_cav_lo), y_cav_lo),
-         (cav_spine_x(y_cav_hi), y_cav_hi), (cav_contact_x, y_cav_hi)],
-        z0 - 2.0, thickness + 4.0)
+    # sample both cavity edges (a graded wall tapers smoothly; with uniform walls
+    # the samples are collinear -> the same quadrilateral as before)
+    nseg = 12
+    ys = [y_cav_lo + (y_cav_hi - y_cav_lo) * i / nseg for i in range(nseg + 1)]
+    cav_pts = ([(cav_contact_x(y), y) for y in ys] +
+               [(cav_spine_x(y), y) for y in reversed(ys)])
+    cavity = _poly_solid(cav_pts, z0 - 2.0, thickness + 4.0)
     finger = shell - cavity
 
-    # add back the slanted parallel ribs (all same slant = Fin Ray signature)
+    # add back the slanted parallel ribs (all same slant = Fin Ray signature).
+    # Rib wall may grade base->tip (thinner ribs near tip = more compliant lattice).
     slant = math.radians(FR_RIB_SLANT_DEG)
     shear = (math.cos(slant) / math.sin(slant)) * into
+    rwb = FR_RIB_WALL if FR_RIB_WALL is not None else FR_WALL
+    rwt = FR_RIB_WALL_TIP if FR_RIB_WALL_TIP is not None else rwb
     y_rib_lo = base_y + FR_INSET_BASE
     y_rib_hi = tip_y - FR_INSET_TIP
     pitch = (y_rib_hi - y_rib_lo) / FR_N_RIBS
-    half = FR_WALL / 2.0
     x_a = contact_x + into * 0.3
     ribs = []
     for i in range(FR_N_RIBS + 1):
         yc = y_rib_lo + i * pitch
-        x_b = spine_x_at(yc) - into * (FR_WALL * 0.4)
+        rw = rwb + (rwt - rwb) * _frac(yc)        # graded rib thickness
+        half = rw / 2.0
+        x_b = spine_x_at(yc) - into * (rw * 0.4)
         if (x_b - x_a) * into <= 2.0:
             continue
         quad = [(x_a, yc - half), (x_b, yc - half),
-                (x_b + shear * FR_WALL, yc + half), (x_a + shear * FR_WALL, yc + half)]
+                (x_b + shear * rw, yc + half), (x_a + shear * rw, yc + half)]
         try:
             ribs.append(_poly_solid(quad, z0, thickness))
         except Exception:
@@ -790,7 +819,7 @@ def finray_finger_closed(C0, D0, inner_dir, z0, thickness):
             yy = c.Y
             if not (y_cav_lo - 0.5 < yy < y_cav_hi + 0.5):
                 continue
-            xin = (c.X - cav_contact_x) * into
+            xin = (c.X - cav_contact_x(yy)) * into
             xout = (cav_spine_x(yy) - c.X) * into
             if xin < -0.5 or xout < -0.5:
                 continue

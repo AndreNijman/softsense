@@ -42,7 +42,14 @@ GAP = 0.5
 # FR_* parameters the harness is allowed to vary (captured from gripper at import).
 FR_KEYS = ["FR_BLADE_LEN", "FR_BASE_WIDTH", "FR_TIP_WIDTH", "FR_WALL",
            "FR_N_RIBS", "FR_RIB_SLANT_DEG", "FR_INSET_BASE", "FR_INSET_TIP",
-           "FR_CONTACT_OFFSET", "FR_BASE_DROP"]
+           "FR_CONTACT_OFFSET", "FR_BASE_DROP",
+           "FR_CONTACT_WALL", "FR_CONTACT_WALL_TIP", "FR_SPINE_WALL",
+           "FR_SPINE_WALL_TIP", "FR_RIB_WALL", "FR_RIB_WALL_TIP"]
+PRESS_AT_REPORT = 8.0   # mm -- report metrics at this CLOSURE (the user's grasp
+                        # scenario). Closure is the actuator input -> fair across
+                        # variants; grip force is a reported result, not controlled.
+                        # (Grip-controlled reporting washed out: at low grip the
+                        # finger has barely closed and nothing can wrap yet.)
 
 os.environ["GRIPPER_OPEN"] = "0"; os.environ["GRIPPER_FINGER_SCALE"] = "1.0"
 import gripper
@@ -177,7 +184,7 @@ def run_fea(p2d, tris, lm, verbose=True):
     tip_node = tipc[np.argmin(np.abs(Xrest[tipc, 2] - (Z0 + Z1) / 2))]
 
     frames = []; vms_frames = []; grip = []; press_hist = []
-    cforce_node_final = None
+    cforce_list = []; vmtet_list = []
     for s in range(1, NSTEPS + 1):
         press = PRESS_MAX * s / NSTEPS; cx = xc0 + press; cy = YC
         for it in range(16):
@@ -225,23 +232,26 @@ def run_fea(p2d, tris, lm, verbose=True):
         dx = x[:, 0] - cx; dy = x[:, 1] - cy; rr = np.hypot(dx, dy) + 1e-9
         pen = R_NECK - rr; inside = pen > 0
         gfx = float(np.sum((KPEN * pen[inside]) * (dx[inside] / rr[inside]))) if inside.any() else 0.0
+        cf = np.zeros(nn); cf[inside] = KPEN * pen[inside]
         frames.append(x.astype(np.float32)); vms_frames.append(nodal.astype(np.float32))
+        cforce_list.append(cf.astype(np.float32)); vmtet_list.append(vm.astype(np.float32))
         grip.append(abs(gfx)); press_hist.append(press)
-        if s == NSTEPS:
-            cf = np.zeros(nn); cf[inside] = KPEN * pen[inside]
-            cforce_node_final = cf
-            vm_tet_final = vm
         if verbose:
             print(f"  step {s:2d}/{NSTEPS} press={press:5.2f} it={it+1} grip={abs(gfx):6.2f}N vmmax={nodal.max():.2f}", flush=True)
+    # frame at the report closure (fair grasp condition = same actuator input)
+    grip_arr = np.array(grip)
+    tgt = int(np.argmin(np.abs(np.array(press_hist) - PRESS_AT_REPORT)))
     return dict(rest=Xrest, tets=tets, frames=np.array(frames), vms=np.array(vms_frames),
-                grip=np.array(grip), press=np.array(press_hist), N2=N2, nlayers=NLAYERS,
+                grip=grip_arr, press=np.array(press_hist), N2=N2, nlayers=NLAYERS,
                 yc=YC, R_neck=R_NECK, xc0=xc0, tip_node=tip_node,
-                cforce_node=cforce_node_final, vm_tet=vm_tet_final, lm=lm)
+                cforce_list=cforce_list, vmtet_list=vmtet_list, target_idx=tgt, lm=lm)
 
 
 # ----------------------------------------------------------------- metrics
 def metrics(sol):
-    Xr = sol['rest']; cf = sol['cforce_node']; lm = sol['lm']
+    """Metrics at the target-grip frame (fair grasp condition across variants)."""
+    Xr = sol['rest']; lm = sol['lm']; tgt = sol['target_idx']
+    cf = sol['cforce_list'][tgt]; vm = sol['vmtet_list'][tgt]; xf = sol['frames'][tgt]
     base_y, tip_y = lm['base_y'], lm['tip_y']; L = tip_y - base_y
     inside = cf > 1e-9
     yk = Xr[inside, 1]; fk = cf[inside]
@@ -251,13 +261,13 @@ def metrics(sol):
     bot = fk[yk < thirds[1]].sum() / tot
     mid = fk[(yk >= thirds[1]) & (yk < thirds[2])].sum() / tot
     top = fk[yk >= thirds[2]].sum() / tot
-    # tip inward wrap (apex node moves toward object = -x)
-    xf = sol['frames'][-1]; tn = sol['tip_node']
-    tip_inward = float(Xr[tn, 0] - xf[tn, 0])
-    # stress spread: fraction of tets with vM > 0.3*max
-    vm = sol['vm_tet']; spread = float((vm > 0.3 * vm.max()).mean())
+    tn = sol['tip_node']
+    tip_inward = float(Xr[tn, 0] - xf[tn, 0])   # +ve = apex moved toward object
+    spread = float((vm > 0.3 * vm.max()).mean())
     maxvm = float(vm.max()); margin = TPU_STRENGTH / maxvm
+    g = float(sol['grip'][tgt])
     return dict(engage_y_frac=round(engage, 3),
+                contact_nodes=int(inside.sum()),
                 bot_third_force_frac=round(float(bot), 3),
                 mid_third_force_frac=round(float(mid), 3),
                 top_third_force_frac=round(float(top), 3),
@@ -265,7 +275,8 @@ def metrics(sol):
                 stress_spread_frac=round(spread, 3),
                 max_von_mises_MPa=round(maxvm, 3),
                 margin_x=round(float(margin), 2),
-                grip_N=round(float(sol['grip'][-1]), 2),
+                grip_at_press_N=round(g, 2),
+                press_mm=round(float(sol['press'][tgt]), 2),
                 contact_y_min=round(float(yk.min()), 1) if inside.any() else None,
                 contact_y_max=round(float(yk.max()), 1) if inside.any() else None)
 
@@ -276,25 +287,27 @@ def plot_all(sol, m, outdir, title):
     # mid-plane triangulation: first-layer nodes + original tris (reconstruct)
     # use the surface tris from layer 0 by taking tets' bottom faces is messy; instead
     # plot nodes colored by vM at 4 stages (scatter, like the reference image).
-    F = sol['frames']; V = sol['vms']; pr = sol['press']
+    F = sol['frames']; V = sol['vms']; pr = sol['press']; tgt = sol['target_idx']
     midz = (Z0 + Z1) / 2; layer = np.argmin(np.abs(np.unique(Xr[:, 2]) - midz))
     zlevels = np.unique(Xr[:, 2]); zsel = zlevels[layer]
     sel = np.abs(Xr[:, 2] - zsel) < 1e-6
-    vmax = float(np.percentile(V[-1][sel], 99))
-    idxs = [0, NSTEPS // 3, 2 * NSTEPS // 3, NSTEPS - 1]
+    vmax = float(np.percentile(V[tgt][sel], 99)) + 1e-6
+    idxs = [0, max(1, tgt // 2), tgt, len(F) - 1]   # 3rd panel = target-grip frame
     fig, axs = plt.subplots(1, 4, figsize=(15, 7))
     for ax, i in zip(axs, idxs):
         P = F[i][sel]
         sc = ax.scatter(P[:, 0], P[:, 1], c=V[i][sel], s=4, cmap='inferno', vmin=0, vmax=vmax)
         cx = sol['xc0'] + pr[i]; th = np.linspace(0, 2 * np.pi, 80)
         ax.plot(cx + R_NECK * np.cos(th), YC + R_NECK * np.sin(th), c='c', lw=1.5)
-        ax.set_aspect('equal'); ax.set_title(f"press={pr[i]:.1f}mm grip={sol['grip'][i]:.1f}N")
+        ax.set_aspect('equal')
+        tag = " (target grip)" if i == tgt else ""
+        ax.set_title(f"press={pr[i]:.1f}mm grip={sol['grip'][i]:.1f}N{tag}", fontsize=8)
         ax.set_xlim(-30, 35); ax.set_ylim(20, 130)
     fig.suptitle(title, fontsize=11)
     fig.colorbar(sc, ax=axs, fraction=0.02, label="von Mises (MPa)")
     fig.savefig(os.path.join(outdir, "wrap_stages.png"), dpi=120); plt.close(fig)
-    # force-vs-y distribution
-    cf = sol['cforce_node']; inside = cf > 1e-9; lm = sol['lm']
+    # force-vs-y distribution (at the target-grip frame)
+    cf = sol['cforce_list'][tgt]; inside = cf > 1e-9; lm = sol['lm']
     fig2, ax2 = plt.subplots(figsize=(4, 6))
     if inside.any():
         ax2.hist(Xr[inside, 1], bins=18, weights=cf[inside], color='#c33',

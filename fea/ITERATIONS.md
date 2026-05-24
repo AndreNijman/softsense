@@ -46,6 +46,9 @@ first. Then land the winning FR_* values into `gripper.py` and regenerate.
 | r1_tip16 | FR_TIP_WIDTH 5→16 | 0.073 | 0.00 | −11.8 | 0.074 | 5.65 | 4.42 | no top engage |
 | r1_tipcap05 | FR_INSET_TIP 3→0.5 | 0.073 | 0.00 | −11.5 | 0.041 | 8.02 | 3.12 | no top engage |
 | r1_slant22 | FR_RIB_SLANT 38→22 | 0.053 | 0.00 | −10.9 | 0.031 | 8.17 | 3.06 | worse engage |
+| — | *rows above at full press=10mm; rows below at the corrected 8mm closure (grip in parens)* | | | | | | | |
+| iter00b | baseline @8mm closure (grip 24.5N) | 0.053 | 0.00 | −9.4 | 0.198 | 3.87 | 6.46 | reference (contact=22 nodes) |
+| r2_spinetip10 | spine 2.8→1.0 @tip (grip 21.5N) | 0.053 | 0.00 | −9.1 | 0.219 | 3.46 | 7.22 | DEAD — contact still 22, no wrap |
 
 ## Log
 
@@ -77,3 +80,29 @@ the change must be structural.** **Decision:** (1) discriminating experiment —
 *reversing the rib slant* flip the tip from away→toward? then (2) structural levers
 in `gripper.py` (rib-slant sign, wall stiffness gradient base→tip). NOT a concave
 face (that would kill adaptivity to other object shapes — the opposite of the goal).
+
+### Discriminator — reversed rib slant (FR_RIB_SLANT_DEG=−38): NEGATIVE
+Reversing the slant did NOT flip the tip toward the object (tip −12.5, slightly
+worse; contact band still y 72–79, 26 nodes). So the slant *sign* is not the cause
+— it is the **contact-area problem**: a straight contact face only tangent-touches
+the cylinder, and the finger bends like a tapered cantilever (tip away from a mid
+push) rather than the lattice conforming.
+
+### Methodology change — closure-controlled reporting (important)
+Metrics are now read at a **fixed closure (press = 8 mm**, the user's grasp
+scenario from the image), not at a fixed grip force. Reason: grip-controlled
+reporting at 5 N washed out all discrimination — at 5 N the finger has closed only
+~2.5 mm and is barely touching, so every variant looked identical (7 contact nodes).
+Closure is the actuator input (fair across variants); grip force is now a reported
+result. Added `gripper.py` graded/directional wall params (`FR_CONTACT_WALL`,
+`FR_SPINE_WALL`, `FR_RIB_WALL` + `_TIP`, None→uniform, byte-identical when unused)
+and a `reeval_npz.py` to re-score saved solutions at any closure without re-solving.
+
+### Round 2a — spine stiffness gradient (FR_SPINE_WALL_TIP=1.0): DEAD
+Hypothesis: thin the spine toward the tip so the back yields and the contact face
+wraps. Result at 8 mm closure: **contact_nodes 22→22 (no growth)**, top-third still
+0.00, tip still −9 mm (away); only softened the finger (grip 24.5→21.5 N, margin
+6.5→7.2). The spine-yields hypothesis does not grow the contact patch. **Decision:**
+the away-bending (simple cantilever) mode dominates the Fin Ray curl. Next test the
+opposite stiffness distribution — **stiff beams + thin ribs** — to suppress the
+cantilever mode and free the rib-shear/curl mode.
