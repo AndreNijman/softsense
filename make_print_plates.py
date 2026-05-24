@@ -112,7 +112,9 @@ ORIENT = {
         rot=[("x", 180)], qty=1, group="rigid",
         note="flip 180 about X: flat outer face on bed, 4 snap clips point +Z up "
              "as self-supporting vertical cantilevers. Hook underlips are small "
-             "bridges. Supportless.",
+             "bridges. The 1.2 mm outer-perimeter chamfer lands on the bed as a "
+             "small first-layer bevel (no support needed; trims a little elephant "
+             "foot). Supportless.",
     ),
     "snap_pin_axle": dict(
         # Exported pose: head disc at +Z (top), barb/lead-in tip at -Z (bottom).

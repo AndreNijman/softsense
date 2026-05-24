@@ -38,7 +38,7 @@ same geometric collar-in-pocket principle as the axle dowels — no new creep ri
 | 5 | Retention geometry present | ✅ PASS | counterbore shoulder 1.05 mm + lip catch 0.6 mm; dowel −Z 0.8 / +Z 1.3 mm; 4 clips, 1.15 mm engage |
 | 6 | Manifold (all STLs) | ✅ PASS | 9/9 watertight, winding-consistent, 1 body, vol>0, 0 degenerate faces |
 | 7 | Walls vs FDM min | ✅ PASS | all functional walls ≥1.0 mm; none <0.8 mm absolute; marginals by-design |
-| 8 | Vents / flood / no enclosed void | ✅ PASS | Bottom drains (4 × 2) + 2 side drains + 4 windows + 4 axle-flood + journal-bore clearance + 2 cover vents; every part single shell |
+| 8 | Vents / flood / no enclosed void | ✅ PASS | Bottom drains (4 × 2) + 2 side drains + 4 windows + 4 axle-flood + journal-bore clearance + 3 cover vents; every part single shell |
 | 9 | Finger-scale param 0.7 / 1.6 | ✅ PASS | builds clean, finger-vs-rest CLEAN; C-D span=20.0, mount r=2.6, bolts fixed at all scales |
 | 10 | Assembly order feasibility | ✅ PASS | dowels-before-cover required & possible; C/D pivots above housing → fingers after |
 
@@ -153,8 +153,9 @@ features, not structural walls. PASS.
   X=−12); 2 side-wall drains Ø5.0 per side; 4 snap-clip windows (also drain);
   4 back axle-flood holes (narrow stepped bore); journal-bore running clearance
   (r 4.3 bore vs r 4.0 shaft = 0.3 mm radial gap, open both ends).
-- **2 cover vent holes Ø1.8 at (±34, +12)** — both verified to fully pierce the
-  cover plate (0 material in hole core).
+- **3 cover vent holes Ø1.8 at (−34 / 0 / +34, +12)** — all verified to fully
+  pierce the cover plate (0 material in hole core). (The 4 cover axle-boss bores
+  are now BLIND cavity-side pockets — they do not pierce the outer face.)
 - Every one of the 17 assembly solids is single solid / single shell → **no
   fully-enclosed void** anywhere; the housing floods/drains in any orientation.
 

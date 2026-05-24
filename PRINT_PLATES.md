@@ -44,16 +44,16 @@ Re-run for a smaller printer, e.g. a 220 mm Ender bed:
 python make_print_plates.py --bed 220 220
 ```
 At 220×220 everything still lands on the same 3 plates (rigid footprint is only
-~240×112 — it re-packs onto a couple more shelves but fits).
+~236×108 — it re-packs onto a couple more shelves but fits).
 
 ## Plate layout (256 × 256 mm, 5 mm spacing)
 
-### `plate_rigid_1.stl` — PA12-GF — **11 parts**, footprint ≈ 240 × 112 × 36 mm
+### `plate_rigid_1.stl` — PA12-GF — **11 parts**, footprint ≈ 236 × 108 × 33 mm
 
 | Part | Qty | Oriented bbox (mm) | Orientation |
 |---|---|---|---|
-| `enclosure` | 1 | 96.0 × 41.0 × 36.0 | open slot/cavity face **+Z up**, drain-floor on bed (as-exported) |
-| `front_cover` | 1 | 102.4 × 36.0 × 23.5 | **flip 180° about X**: flat outer face on bed, snap clips point up |
+| `enclosure` | 1 | 96.0 × 41.0 × 30.0 | open slot/cavity face **+Z up**, drain-floor on bed (as-exported); slimmer 4 mm back wall |
+| `front_cover` | 1 | 102.4 × 36.0 × 23.5 | **flip 180° about X**: flat outer face on bed (1.2 mm perimeter chamfer = small first-layer bevel), snap clips point up |
 | `drive_arm_L` | 1 | 26.5 × 51.2 × 8.0 | flat plate face-down (as-exported); crown gear on +Z face; no integral shaft |
 | `drive_arm_R` | 1 | 26.6 × 51.2 × 5.0 | flat plate face-down (as-exported) |
 | `follower` | **2** | 11.2 × 40.0 × 5.0 | flat bar face-down (as-exported) |

@@ -260,7 +260,7 @@ the enclosure top, not through the cover plate. The task-standard order is:
 
 ### Step 9 — Mount via the bottom flange
 
-1. The **bottom flange** carries **5 × M4 clearance holes** positioned around
+1. The **bottom flange** carries **4 × M4 clearance holes** positioned around
    the shaft exit. Attach the gripper to your robot arm or mount with M4 bolts
    through these holes. The actuator couples below the flange to the D-shaft.
 2. **Galvanic isolation:** if your robot arm is metal, use **nylon or PTFE
@@ -291,13 +291,13 @@ The gripper is designed to **flood completely** — there are no sealed air
 pockets inside. Trapped air would add buoyancy and create pressure differential
 on the walls, so verifying full flooding matters.
 
-1. **Drain/flood holes clear:** confirm the 5 bottom-face holes, the 4 low
-   side-wall holes, the 4 snap-clip windows, and the 2 front-cover vent holes
+1. **Drain/flood holes clear:** confirm the 8 bottom-face drain holes, the 4 low
+   side-wall holes, the 4 snap-clip windows, and the 3 front-cover vent holes
    are all open and unobstructed (not bridged shut by print artefacts).
-2. **Cover vent holes:** the front cover carries **2 × Ø1.8 mm vent holes**
-   at (±34, +12) mm, positioned over the open cavity toward the finger side.
-   These let trapped air escape when the gripper is oriented front-up. Confirm
-   both holes are clear through the cover plate.
+2. **Cover vent holes:** the front cover carries **3 × Ø1.8 mm vent holes**
+   in a symmetric row at (−34 / 0 / +34, +12) mm, positioned over the open cavity
+   toward the finger side. These let trapped air escape when the gripper is
+   oriented front-up. Confirm all three holes are clear through the cover plate.
 3. **Submerge and watch bubbles:** lower the gripper **mouth-down** first,
    then **mouth-up** — bubbles must escape both ways and the cavity must fully
    flood. Cycle the jaws open↔closed underwater to flush any last trapped air.

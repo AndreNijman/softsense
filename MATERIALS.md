@@ -149,7 +149,7 @@ can need tooling in PA12-GF — another reason to lengthen the arm (lower force
   L 15.5 → ~20.5 → nominal **1.50 %**, worst-tight **1.90 %** → both **inside
   the conservative PA12-GF ~1.5–2.0 % allowable → true PASS** (vs hard FAIL
   before), still PASS/firm in PETG-HF. Verified collision-free: the arm runs on
-  the outer X side wall at Z 1.5–22; the back flange is at Z −16…−12 and the
+  the outer X side wall at Z 1.5–22; the back flange is at Z −16…−6 and the
   cavity floor far away — no clash, hook/window/engagement unchanged (engagement
   stays 1.5 mm nominal / 1.10 mm worst-loose ✔). **Bonus:** the longer arm cuts
   bending stiffness ~(15.5/20.5)³ ≈ 0.43×, which *more than offsets* PA12-GF's

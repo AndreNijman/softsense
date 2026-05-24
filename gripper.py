@@ -857,7 +857,11 @@ def finger(side_pose, ref_pose, inner_dir, color, label):
 # --------------------------------------------------------------------------
 ENC_X = (-48.0, 48.0)        # outer width
 ENC_Y = (-20.0, 16.0)        # bottom -> top of top wall (top LOWERED to 16)
-ENC_Z = (-12.0, 24.0)        # back -> front
+ENC_Z = (-6.0, 24.0)         # back -> front (back wall slimmed 10->4 mm: the old
+                             # 10 mm back wall was legacy from the removed horizontal
+                             # shaft; the vertical drive needs no depth there. Cuts
+                             # the housing depth 36->30 mm for a slimmer profile. The
+                             # stepped axle flood hole (nz0 = ENC_Z[0]-3) still exits.
 WALL = 3.0
 TOP_WALL_Y0 = 14.5           # inside face of the thin top wall (y 14.5..16)
 CAV_X = (-45.0, 45.0)        # interior clear cavity (holds the mechanism)
@@ -888,20 +892,33 @@ _GEAR_TIP_Y = -(R_GEAR + 0.45 * GEAR_TOOTH_H)            # -13.35 (gear teeth re
 DRIVE_BOSS_Y = (CAV_Y[0], min(PINION_Y[0] - 0.3, _GEAR_TIP_Y - 0.3))  # -17 .. -13.65
 DRIVE_BOSS_R = SHAFT_R + 2.4                 # boss OD -> >=2 mm wall around bore
 BOT_FLANGE_Y = (-25.0, ENC_Y[0])            # bottom mounting flange: y -25 .. -20
-BOT_FLANGE_X = (-42.0, 42.0)
-BOT_FLANGE_Z = (-8.0, 22.0)                  # flange depth in model-Z (under cavity)
+BOT_FLANGE_X = ENC_X                          # flush with the body sides: the base is
+                                             # a seamless continuation of the shell
+                                             # (no tacked-on narrower lip, and no
+                                             # downward side-overhang to support)
+BOT_FLANGE_Z = (ENC_Z[0], 22.0)              # back flush with the body; front stops at
+                                             # the cavity (front frame + cover above)
 FLANGE_TY = (BOT_FLANGE_Y[1] - BOT_FLANGE_Y[0])   # flange thickness in Y (5)
 BOLT_R = 2.25                # M4 clearance
-# bolt holes on the bottom flange, around (but clear of) the shaft exit at x=-12
-BOLT_XZ = [(-32.0, -2.0), (-32.0, 16.0), (8.0, -2.0), (8.0, 16.0), (32.0, 6.0)]
-R_VERT = 4.0
+# bolt holes on the bottom flange: a clean symmetric 4 at the flange corners, clear
+# of the shaft exit (x=-12, z=10.52), its lower bore, and the drains (was an
+# asymmetric 5 that read as random).
+BOLT_XZ = [(-38.0, 2.0), (38.0, 2.0), (-38.0, 18.0), (38.0, 18.0)]
+R_VERT = 6.0                 # vertical corner radius (4->6: rounder uprights read
+                             # as a designed enclosure, not a brick; still clears the
+                             # cavity wall at the slim back corners)
 R_TOP = 2.0
+CHAM_EDGE = 1.5              # break/finish chamfer for the body & base perimeter edges
+CHAM_COVER = 1.2            # matching chamfer on the front-cover outer perimeter
+                            # (shared edge language -> the body/cover seam reads as an
+                            # intentional shadow line, not a parts mismatch)
 
 # --- underwater drainage / flood holes (so the housing floods & drains) ---
 # With model -Y now WORLD-DOWN, the model -Y bottom wall is the low point. Drains
 # there let water in/out; the +Y top slots are the high vent (no trapped pocket).
 DRAIN_R = 2.5
-DRAIN_BOTTOM_X = [-32.0, 0.0, 16.0, 32.0]   # bottom-wall row (clear of shaft x=-12)
+DRAIN_BOTTOM_X = [-30.0, 0.0, 16.0, 30.0]   # bottom-wall rows (clear of shaft x=-12
+                                            # and of the corner bolts at x=+-38)
 DRAIN_SIDE_YZ = [(-14.0, 4.0), (-14.0, 16.0)]      # low side-wall holes (along X)
 
 # --- assembly split: open-front body + bolt-on front cover ---------------
@@ -947,7 +964,8 @@ COVER_Z = (22.0, 25.0)                 # bolt-on cover plate
 # [-45,45]), biased +Y so they are the high point fingers-up, one near each side
 # to cover roll, clear of the 3 cover axle bosses and the snap-clip windows. ---
 COVER_VENT_R = 0.9                      # 1.8 mm dia (> 1.5 mm bubble/FDM floor)
-COVER_VENT_XY = [(34.0, 12.0), (-34.0, 12.0)]   # >=8 mm from any boss centre
+COVER_VENT_XY = [(-34.0, 12.0), (0.0, 12.0), (34.0, 12.0)]   # clean symmetric row,
+                                        # >=8 mm from any boss centre
 
 # --- snap-clip front cover (tool-free, zero hardware) -------------------
 SNAP_Y = [-9.0, 7.0]                 # clip y-centres on each side wall
@@ -1036,6 +1054,14 @@ def build_enclosure():
     flange = _box_between(*BOT_FLANGE_X, *BOT_FLANGE_Y, *BOT_FLANGE_Z)
     flange = fillet(flange.edges().filter_by(Axis.Y), radius=R_VERT)
     body += flange
+
+    # finishing chamfer around the base (bed-face) perimeter -> a crisp, polished
+    # bottom edge instead of a raw 90 deg corner. Lowest-Y edge group; fail loud if
+    # the selection is empty (a silent miss is how rough edges have shipped before).
+    base_edges = [e for e in body.edges().group_by(Axis.Y)[0] if e.length > 1.0]
+    if not base_edges:
+        raise RuntimeError("base perimeter chamfer: no bottom edges selected")
+    body = chamfer(base_edges, length=CHAM_EDGE)
 
     for (px, py) in AXLE_PIVOTS:
         body += Cylinder(radius=BOSS_OD_R, height=(BACK_BOSS_Z[1] - BACK_BOSS_Z[0])).moved(
@@ -1128,6 +1154,13 @@ def build_front_cover():
                 plate = fillet([e], radius=R_VERT)
             except Exception:
                 pass
+    # matching chamfer on the cover's EXPOSED outer-face perimeter (Z = COVER_Z[1]);
+    # shared edge language with the body so the cover/body seam reads as a deliberate
+    # shadow line. The INNER mating face (COVER_Z[0]) is left flat so it seats.
+    cover_outer = [e for e in plate.edges().group_by(Axis.Z)[-1] if e.length > 1.0]
+    if not cover_outer:
+        raise RuntimeError("cover perimeter chamfer: no outer-face edges selected")
+    plate = chamfer(cover_outer, length=CHAM_COVER)
     for (px, py) in AXLE_PIVOTS:
         plate += Cylinder(radius=BOSS_OD_R, height=(COVER_BOSS_Z[1] - COVER_BOSS_Z[0])).moved(
             Location((px, py, (COVER_BOSS_Z[0] + COVER_BOSS_Z[1]) / 2.0)))
@@ -1137,9 +1170,14 @@ def build_front_cover():
                 plate = fillet([e], radius=0.8)
             except Exception:
                 pass
+    # axle-boss bores are BLIND drainage/clearance pockets (they do NOT pierce the
+    # exposed outer face -> clean front). The dowel head seats on the boss FACE
+    # (z=COVER_BOSS_Z[0]); these bores hold nothing. They open to the flooded cavity
+    # and stop CHAM_COVER+0.3 short of the outer face so a solid skin remains.
+    blind_top = COVER_Z[1] - (CHAM_COVER + 0.3)
     for (px, py) in AXLE_PIVOTS:
-        plate -= Cylinder(radius=AXLE_SCREW_R, height=(COVER_Z[1] - COVER_BOSS_Z[0]) + 4.0).moved(
-            Location((px, py, (COVER_BOSS_Z[0] + COVER_Z[1]) / 2.0)))
+        plate -= Cylinder(radius=AXLE_SCREW_R, height=(blind_top - COVER_BOSS_Z[0]) + 0.02).moved(
+            Location((px, py, (COVER_BOSS_Z[0] + blind_top) / 2.0)))
     # vent holes through the cover plate (front-up air escape, audit C-6)
     for (vx, vy) in COVER_VENT_XY:
         plate -= Cylinder(radius=COVER_VENT_R, height=(COVER_Z[1] - COVER_Z[0]) + 4.0).moved(

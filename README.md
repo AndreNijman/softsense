@@ -40,7 +40,7 @@ in flexible **TPU** (ether-based for sustained immersion — see `UNDERWATER.md`
 
 Hollow gearbox housing: rounded slate body. The **drive input exits the housing
 bottom** — the vertical input shaft passes through two journal bearings in the
-bottom wall and a bottom mounting flange with **5× M4 bolt holes** surrounds the
+bottom wall and a bottom mounting flange with **4 × M4 bolt holes** surrounds the
 shaft exit. Fingers point up. The two top slots are sized to the **measured arm
 sweep** so the four-bar links never clip the case. **Drain/flood holes** (a
 bottom row around the shaft exit + low side holes) let it flood and drain — no

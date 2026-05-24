@@ -8,7 +8,7 @@ STL mesh tolerance: `0.05 mm` (linear), `0.1` (angular). Each part is translated
 
 | Part | Qty | Printable | Material | Bbox (mm) | Instances | Print orientation |
 |------|-----|-----------|----------|-----------|-----------|-------------------|
-| `enclosure.step`/`.stl` | 1 | yes | PETG / Nylon | 96.0 x 41.0 x 36.0 | enclosure | open cavity face UP on the bed (back flange down); supports only inside the shaft bore. |
+| `enclosure.step`/`.stl` | 1 | yes | PETG / Nylon | 96.0 x 41.0 x 30.0 | enclosure | open cavity face UP on the bed (back flange down); supports only inside the shaft bore. |
 | `drive_arm_R.step`/`.stl` | 1 | yes | PA12-GF | 26.6 x 51.2 x 5.0 | drive_arm_R | lay the flat gear+arm plate face-down on the bed (5 mm thick). Both arms ride on snap-pin axles (no integral shaft). |
 | `drive_arm_L.step`/`.stl` | 1 | yes | PA12-GF | 26.5 x 51.2 x 8.0 | drive_arm_L | lay the flat gear+arm plate face-down on the bed (5 mm thick). Both arms ride on snap-pin axles (no integral shaft). |
 | `follower.step`/`.stl` | 2 | yes | PETG / Nylon | 11.2 x 40.0 x 5.0 | follower_R, follower_L | lay the flat link bar face-down on the bed (5 mm thick). |

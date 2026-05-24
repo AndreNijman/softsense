@@ -134,9 +134,9 @@ could trap air is open to the exterior:
 - **Snap-pin cross-slot** — the `+` slot is cut through to the barb tip (open
   end), not a blind pocket. Vents.
 - **Axle dowel sockets (A_R, B_R, B_L)** — the enclosure bore runs Z −15…+1
-  (through to the **back exterior**, back face at −12) and the cover bore runs
-  Z 20…25 (through to the **front exterior**), with a 0.3 mm annular gap around
-  the 2.3 mm dowel. Open both ends → floods/drains.
+  (through to the **back exterior**, back face at −6) and the cover bore runs
+  Z 20…25 (blind cavity-side pockets, not through front exterior), with a 0.3 mm annular gap around
+  the 2.3 mm dowel. Open cavity-side only → internal flood/drain.
 - **Input-shaft journal bores** — upper bore (r 4.3, len 2 mm in the cavity
   boss) and lower bore (r 4.3, len 7 mm through the bottom wall) around the
   Ø8 mm shaft (0.3 mm radial gap). Both bores are open both ends → floods and
@@ -176,7 +176,7 @@ low point in the deployed orientation:
   unequalized crush load — so guaranteeing the flood matters.
 
 **Recommended fix for the front-up case (constraint for the cover/snap agent):**
-add **2 vent holes (≥1.5 mm dia) through the front cover plate** at the +Y
+add **3 vent holes (≥1.5 mm dia) through the front cover plate** in a symmetric row at the +Y
 (finger-side) corners, above the cavity, so air against the cover ceiling
 escapes directly regardless of orientation. Cheap insurance; see CONSTRAINTS.
 

@@ -128,7 +128,7 @@ head clashes the cover boss (6.2 mm³). Trapped both ways.
 | `AXLE_FLOOD_R` | — (new) | 1.5 | narrow flood hole below the step |
 | `AXLE_DOWEL_Z0/Z1` | (−1, 19) | **0 / 18** | sandwich length: head on cover boss, shank end on step |
 | `COVER_VENT_R` | — (new) | 0.9 | 1.8 mm-dia front-cover vent (C-6) |
-| `COVER_VENT_XY` | — (new) | (±34, 12) | 2 vents over the open cavity, +Y biased |
+| `COVER_VENT_XY` | — (new) | (−34/0/+34, 12) | 3 vents over the open cavity, +Y biased |
 
 Functions touched: `snap_pin` (narrow pilot tip for `barb=False` dowels),
 `link_bar` (new `counterbores` param + local eye boss + `_counterbore_cut`),

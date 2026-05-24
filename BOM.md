@@ -37,8 +37,8 @@ build — see note below the table.
 
 | Part | Qty | **FINAL material** | Test-print | Rough filament | Role / key detail |
 |---|---|---|---|---|---|
-| `enclosure` | 1 | **PA12-GF (Nylon 12 glass-filled)** | PETG-HF | ~80–110 g | Flooded gearbox body. Open front, bottom mounting flange (5 × M4 holes around shaft exit), top link slots, 4 back-wall axle bosses + stepped bores (wide running bore + narrow flood hole), upper + lower journal bores + collar pocket for the vertical input shaft in the bottom wall, bottom drains (4 positions × 2 Z = 8 holes) + 2 side drains, 4 snap-clip catch windows in the long side walls. Never PLA. |
-| `front_cover` | 1 | **PA12-GF** | PETG-HF | ~20–30 g | Closes the open front; 4 inner-face bosses cap the axle-dowel heads (+Z dowel stop); **4 integral cantilever snap clips** (2 per long side, `SNAP_Z0=1.5` — lengthened arm, 1.85 % worst-tight strain, within PA12-GF allowable) latch into body side-wall windows; **2 × Ø1.8 mm vent holes** at (±34, +12). Push on to click; flex 4 hooks outward to release. |
+| `enclosure` | 1 | **PA12-GF (Nylon 12 glass-filled)** | PETG-HF | ~80–110 g | Flooded gearbox body. Open front, flush, full-width integrated base with chamfered bottom perimeter (4 × M4 clearance holes), top link slots, 4 back-wall axle bosses + stepped bores (wide running bore + narrow flood hole), upper + lower journal bores + collar pocket for the vertical input shaft in the bottom wall, bottom drains (4 positions × 2 Z = 8 holes) + 2 side drains, 4 snap-clip catch windows in the long side walls. Never PLA. |
+| `front_cover` | 1 | **PA12-GF** | PETG-HF | ~20–30 g | Closes the open front; 4 inner-face bosses cap the axle-dowel heads (+Z dowel stop); **4 integral cantilever snap clips** (2 per long side, `SNAP_Z0=1.5` — lengthened arm, 1.85 % worst-tight strain, within PA12-GF allowable) latch into body side-wall windows; **3 × Ø1.8 mm vent holes** at (±34, +12). Push on to click; flex 4 hooks outward to release. |
 | `drive_arm_R` | 1 | **PA12-GF** | PETG-HF | ~12–18 g | Right gear sector + crank arm. Clearance-bored at A_R (rides on axle dowel `pin_A_R`). Counterbored C-eye exit (−Z face) for `pin_C_R` geometric capture. Flat plate; prints face-down. |
 | `drive_arm_L` | 1 | **PA12-GF** | PETG-HF | ~12–18 g | Left gear sector + crank arm + **integral CROWN gear** on its +Z face (driven by the input pinion via the right-angle stage). Clearance-bored at A_L (rides on axle dowel `pin_A_L`). Counterbored C-eye for `pin_C_L`. Flat plate; prints face-down. |
 | `input_pinion_shaft` | 1 | **PA12-GF** | PETG-HF | ~8–12 g | ONE printed part: spur input pinion + vertical shaft + integral capture collar + bottom D-profile coupler (r 5.0, D-flat depth 1.4, length 12 mm). Axis vertical (exits the housing bottom). Two journal bearings in the housing (upper 2 mm, lower 7 mm); collar (OD 5.8 mm) trapped in a housing pocket between the two bore-mouth shoulders for axial capture (zero hardware). Print shaft-axis vertical for a self-supporting cylinder. |
@@ -177,7 +177,7 @@ flooded. Printed bores flush clean with a fresh-water rinse.
 | Item | Qty | Notes |
 |---|---|---|
 | Waterproof servo / actuator | 1 | Couples to the **bottom D-profile coupler** on `input_pinion_shaft` (exits the housing bottom). Coupler: radius 5.0 mm, D-flat depth 1.4 mm, length 12 mm. Use an IP68/submersible servo, a potted hobby servo, or a sealed/oil-filled actuator with a pressure compensator for depth. The actuator is the only real waterproofing burden in the system. Servo coupling/horn is user-supplied or printed separately. See `UNDERWATER.md` §6. |
-| M4 bolts (robot-arm mount) | 5 | Attach the **bottom flange** to your robot arm or mount. The flange carries 5 × M4 clearance holes positioned around (but clear of) the shaft exit. These are **arm hardware, not gripper hardware** — choose grade and length to suit your arm. If the arm is metal, add nylon or PTFE shoulder bushings + isolating washers at each bolt (see `UNDERWATER.md` §5). The gripper itself contributes no metal to this joint. |
+| M4 bolts (robot-arm mount) | 4 | Attach the **bottom flange** to your robot arm or mount. The flange carries 4 × M4 clearance holes positioned around (but clear of) the shaft exit. These are **arm hardware, not gripper hardware** — choose grade and length to suit your arm. If the arm is metal, add nylon or PTFE shoulder bushings + isolating washers at each bolt (see `UNDERWATER.md` §5). The gripper itself contributes no metal to this joint. |
 
 ---
 
@@ -186,7 +186,7 @@ flooded. Printed bores flush clean with a fresh-water rinse.
 | Group | Qty | Material (FINAL) |
 |---|---|---|
 | `enclosure` | 1 | PA12-GF |
-| `front_cover` (4 integral clips + 2 vent holes) | 1 | PA12-GF |
+| `front_cover` (4 integral clips + 3 vent holes) | 1 | PA12-GF |
 | `drive_arm_R` | 1 | PA12-GF |
 | `drive_arm_L` (integral crown gear; rides on `pin_A_L`) | 1 | PA12-GF |
 | `input_pinion_shaft` (pinion + shaft + collar + D-coupler) | 1 | PA12-GF |
