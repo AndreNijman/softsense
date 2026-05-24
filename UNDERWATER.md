@@ -115,8 +115,9 @@ mechanical capture, and the wall material above each window physically blocks
 the cover lifting. That is **geometric capture, not pure preload**, so it does
 **not** fail the same way — the hook can only release if the arm flexes 1.5 mm
 outward. **RISK** only: over long immersion the cantilever arm (`SNAP_ARM_T =
-2.8 mm`) can stress-relax and reduce hold-down preload (cover rattle), but it
-will not spontaneously unlatch. Acceptable; the fix (deeper engagement / stiffer
+2.0 mm`) can stress-relax and reduce hold-down preload (cover rattle), but it
+will not spontaneously unlatch (the geometric 1.15 mm hook-in-window capture, not
+the spring, holds the cover). Acceptable; the fix (deeper engagement / stiffer
 material) is in the constraints block.
 
 > The hard, quantified requirements for fixing 2a/2b are in the
