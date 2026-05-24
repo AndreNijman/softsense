@@ -193,8 +193,10 @@ as an order-of-magnitude check; calibrate on a single printed pin per
 - **Builds**: `GRIPPER_OPEN = 0.0 / 0.5 / 1.0` all build, 17 children each, all
   children `is_valid`.
 - **Interference** (project recipe; ignores pin-vs-anything,
-  drive_arm_R↔drive_arm_L, enclosure↔front_cover; flags >0.5 mm³):
-  **CLEAN at 0.0, 0.5, 1.0.**
+  drive_arm_R↔drive_arm_L; flags >0.5 mm³): **CLEAN at 0.0, 0.5, 1.0.**
+  `enclosure↔front_cover` is now genuinely **0 mm³** (the front-wall perimeter rim
+  that the cover plate used to interpenetrate by ~736 mm³ is cut to `COVER_Z[0]`,
+  so the cover seats flush) — no longer in the ignore set.
 - **Pin-vs-NON-receiving-part** (separate check, since pins are in the ignore
   set and now intentionally engage their bores): **CLEAN at 0.0, 0.5, 1.0** —
   the new counterbore/lip/boss geometry does not make any pin clash with a part

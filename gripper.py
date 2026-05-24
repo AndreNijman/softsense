@@ -1077,6 +1077,14 @@ def build_enclosure():
     body -= _box_between(*CAV_X, *CAV_Y, *CAV_Z)
     body -= _box_between(CAV_X[0], CAV_X[1], CAV_Y[0], CAV_Y[1],
                          FRONT_WALL_Z[0] - 0.5, ENC_Z[1] + 1.0)
+    # Remove the FULL front-wall perimeter rim (Z COVER_Z[0]..front), not just the
+    # cavity footprint. The "old solid front wall, now removed" cut above only spans
+    # the cavity, so a 2 mm perimeter rim (Z 22..24) was left behind and the bolt-on
+    # cover plate (Z 22..25) interpenetrated it by ~740 mm^3 -> the cover could not
+    # seat. Cutting the rim down to COVER_Z[0] makes that face the cover's flush -Z
+    # seating datum. (Bottoms at exactly COVER_Z[0], not -0.5, so there is no gap.)
+    body -= _box_between(ENC_X[0] - 1.0, ENC_X[1] + 1.0, ENC_Y[0] - 1.0, ENC_Y[1] + 1.0,
+                         COVER_Z[0], ENC_Z[1] + 1.0)
     body -= _box_between(SLOT_R[0], SLOT_R[1], TOP_WALL_Y0 - 1.0, ENC_Y[1] + 1.0,
                          SLOT_Z[0] - 0.5, SLOT_Z[1] + 0.5)
     body -= _box_between(SLOT_L[0], SLOT_L[1], TOP_WALL_Y0 - 1.0, ENC_Y[1] + 1.0,

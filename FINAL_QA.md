@@ -66,9 +66,14 @@ same geometric collar-in-pocket principle as the axle dowels — no new creep ri
 ### 2 — Interference across motion ✅
 Recipe: for open∈{0,.25,.5,.75,1}, reload `gen_step()` in a fresh process
 (module-level `OPEN_NORM` is read at import), take all unordered child pairs
-whose bboxes overlap, exclude the ignore set (any pin; `drive_arm_R↔drive_arm_L`;
-`enclosure↔front_cover`), compute `(a&b).volume`, flag >0.5 mm³.
+whose bboxes overlap, exclude the ignore set (any pin; `drive_arm_R↔drive_arm_L`),
+compute `(a&b).volume`, flag >0.5 mm³.
 **Result: 0 flags at every pose.** CLEAN.
+- `enclosure↔front_cover` is now genuinely **0.000 mm³** and no longer needs an
+  exclusion: a latent 2 mm front-wall **perimeter rim** (Z 22…24) was left behind
+  by the old cavity-only front cut and the cover plate interpenetrated it by
+  ~736 mm³ (the cover could not seat). The rim is now cut down to `COVER_Z[0]`,
+  giving the cover a flush -Z seating datum; overlap drops 736 → 0.
 - Verified the expected overlap cases are clean: `drive_arm_L ∩ enclosure = 0.0 mm³`
   (drive_arm_L is now a flat plate; its A_L bore runs with 0.3 mm clearance on
   `pin_A_L`). `input_pinion_shaft ∩ enclosure = 0.0 mm³` (shaft r4.0 in bore
@@ -172,8 +177,9 @@ Built at GRIPPER_FINGER_SCALE = 0.7 and 1.6 (also 1.0 baseline), open 0 and 1:
 ASSEMBLY.md order (mesh arms → drop in housing → drop `input_pinion_shaft` into
 bottom journals → 4 axle dowels → snap cover → fingers → 4 finger pins) is
 geometrically valid:
-- Enclosure is open-front (front wall removed, cavity open at Z≥22); cover
-  plate Z(22,25) snaps onto it.
+- Enclosure is open-front (front wall **fully** removed — cavity *and* perimeter
+  rim — so the front face ends at Z=22); cover plate Z(22,25) snaps on and seats
+  flush on that Z=22 rim (its -Z datum).
 - Axle dowel +Z stop **is** the cover boss Z(20,22) → dowels **must** precede
   the cover, and can be dropped head-up into the open front. Consistent.
 - C/D finger pivots are at Y≈33.6/40.4, well above the housing top wall (Y=16),
