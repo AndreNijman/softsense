@@ -9,6 +9,30 @@ Each iteration changes **one geometry lever** on the real `gripper.py` Fin Ray
 finger, re-runs a high-quality 3D FEA, and is committed + pushed with its data,
 pictures, and notes. Harness: `fea/scripts/iter_harness.py`.
 
+> ## ⚠️ CORRECTION (read first — supersedes the metric used in iter00–r3/f2)
+> **The `tip_inward` (apex-displacement) metric was WRONG and the "doesn't wrap"
+> conclusion built on it was wrong.** On a base-clamped Fin Ray (robot-gripper
+> config, unlike the free-base fish-fin demo) the apex correctly moves *with* the
+> push; the wrap is the **contact face curving to conform** to the object, with the
+> apex ending on the object's FAR side. A validation (`loadtest.py`) showed even a
+> textbook symmetric base-clamped Fin Ray has the apex follow the load — i.e. that
+> is *correct* behaviour, confirmed by two independent solvers (2D StVK + 3D
+> corotational), not an FEA bug.
+>
+> **Corrected finding: the production finger DOES wrap.** With the right metric —
+> contact-patch growth with closure — the contact patch grows **0→7→14→22→23 nodes**
+> as the finger closes (24 N at 8 mm), with ~20% stress spread: the face is
+> conforming to the object's reachable arc. The "**top gets nothing**" the user saw
+> is real but **geometric and largely unfixable**: the object (R=22, centre y≈80)
+> spans y≈58–102, while the finger tip is at y=122 — the top ~20 mm of finger is
+> simply *above the object*, so there is no surface there to load. That is not a
+> finger defect.
+>
+> The correct success metrics going forward: **contact_nodes growth with closure**
+> and **stress-spread along the contact arc** — NOT apex direction. The iter00–r3
+> and f2 variant rankings below were scored on the wrong metric and should not be
+> used for design conclusions.
+
 ## Method (frozen across all iterations for fair comparison)
 - **FEA:** full 3D corotational finite-element (linear tets, 3 z-layers,
   ~25k tets / ~20k DOF), penalty contact, Newton–Raphson, displacement-stepped.
