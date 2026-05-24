@@ -324,7 +324,10 @@ def plot_all(sol, m, outdir, title):
 
 # ----------------------------------------------------------------- main
 def main():
+    global YC
     name = sys.argv[1]; params = json.loads(sys.argv[2]) if len(sys.argv) > 2 else {}
+    if len(sys.argv) > 3:            # optional override of the neck-centre y (scenario test)
+        YC = float(sys.argv[3]); print(f"[{name}] YC override = {YC}")
     outdir = os.path.join(ITERDIR, name); os.makedirs(outdir, exist_ok=True)
     t0 = time.time()
     print(f"[{name}] params={params}")

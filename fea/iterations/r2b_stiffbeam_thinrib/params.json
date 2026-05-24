@@ -1,0 +1,18 @@
+{
+  "FR_BLADE_LEN": 90.0,
+  "FR_BASE_WIDTH": 22.0,
+  "FR_TIP_WIDTH": 5.0,
+  "FR_WALL": 2.8,
+  "FR_N_RIBS": 10,
+  "FR_RIB_SLANT_DEG": 38.0,
+  "FR_INSET_BASE": 4.0,
+  "FR_INSET_TIP": 3.0,
+  "FR_CONTACT_OFFSET": 1.0,
+  "FR_BASE_DROP": 9.0,
+  "FR_CONTACT_WALL": 4.0,
+  "FR_CONTACT_WALL_TIP": null,
+  "FR_SPINE_WALL": 4.0,
+  "FR_SPINE_WALL_TIP": null,
+  "FR_RIB_WALL": 1.2,
+  "FR_RIB_WALL_TIP": null
+}

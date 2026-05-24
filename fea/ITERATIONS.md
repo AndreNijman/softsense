@@ -49,6 +49,8 @@ first. Then land the winning FR_* values into `gripper.py` and regenerate.
 | — | *rows above at full press=10mm; rows below at the corrected 8mm closure (grip in parens)* | | | | | | | |
 | iter00b | baseline @8mm closure (grip 24.5N) | 0.053 | 0.00 | −9.4 | 0.198 | 3.87 | 6.46 | reference (contact=22 nodes) |
 | r2_spinetip10 | spine 2.8→1.0 @tip (grip 21.5N) | 0.053 | 0.00 | −9.1 | 0.219 | 3.46 | 7.22 | DEAD — contact still 22, no wrap |
+| r2b_stiffbeam_thinrib | contact4/spine4/rib1.2 (grip 19.8N) | 0.029 | 0.00 | −7.1 | 0.038 | 5.88 | 4.25 | DEAD — contact 14 (fewer) |
+| r2c_thinrib_only | rib 2.8→1.2 (grip 11.1N) | 0.024 | 0.00 | −5.8 | 0.024 | 5.48 | 4.56 | DEAD — contact 10 (fewer) |
 
 ## Log
 
@@ -106,3 +108,20 @@ wraps. Result at 8 mm closure: **contact_nodes 22→22 (no growth)**, top-third 
 the away-bending (simple cantilever) mode dominates the Fin Ray curl. Next test the
 opposite stiffness distribution — **stiff beams + thin ribs** — to suppress the
 cantilever mode and free the rib-shear/curl mode.
+
+### Round 2b — stiff-beam / thin-rib decoupling: DEAD (and the key result)
+Stiff beams + thin ribs (contact 4 / spine 4 / rib 1.2) and thin-ribs-only both
+**reduced** the contact patch (14 and 10 nodes vs baseline's 22) and left top-third
+at 0.00. The baseline actually has the *most* contact of any variant. **Conclusion,
+now firmly established across ~14 variants: no internal stiffness change (uniform,
+graded, directional, slant) grows the contact patch or engages the top. The limit
+is GEOMETRIC, not material.** Visual (`r2c_thinrib_only/wrap_stages.png`): the
+finger below the contact curls toward the object (it's driven, sitting between the
+clamp and the load), but the free cantilever ABOVE the contact has **no driving
+load** — the cylinder only tangent-touches one y on the straight vertical contact
+face, so nothing pushes the upper finger toward the object; it bends away. **The fix
+must put more of the finger face near the object**, two candidates: (#2, free) the
+object may sit too low — the finger tip is 20 mm above the object top; test yc=95.
+(#1) flip the taper so the CONTACT face narrows toward the tip (angled-but-straight,
+preserves adaptivity; not a concave face) so the upper face approaches the object as
+the gripper closes. Testing #2 first (one run, no geometry change).
