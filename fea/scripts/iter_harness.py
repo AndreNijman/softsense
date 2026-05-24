@@ -272,17 +272,28 @@ def metrics(sol):
     mid = fk[(yk >= thirds[1]) & (yk < thirds[2])].sum() / tot
     top = fk[yk >= thirds[2]].sum() / tot
     tn = sol['tip_node']
-    tip_inward = float(Xr[tn, 0] - xf[tn, 0])   # +ve = apex moved toward object
+    tip_inward = float(Xr[tn, 0] - xf[tn, 0])   # apex motion (NOT a success metric)
     spread = float((vm > 0.3 * vm.max()).mean())
     maxvm = float(vm.max()); margin = TPU_STRENGTH / maxvm
     g = float(sol['grip'][tgt])
-    return dict(engage_y_frac=round(engage, 3),
-                contact_nodes=int(inside.sum()),
+    # --- WRAP-QUALITY metrics (the correct ones): how much of the object's arc the
+    # contact face conforms to, and how evenly the pressure is distributed ---
+    cx = sol['xc0'] + sol['press'][tgt]
+    if inside.sum() >= 2:
+        angd = np.degrees(np.arctan2(xf[inside, 1] - YC, xf[inside, 0] - cx))
+        contact_arc = float(angd.max() - angd.min())
+        pcov = float(fk.std() / (fk.mean() + 1e-12))
+    else:
+        contact_arc = 0.0; pcov = 0.0
+    return dict(contact_nodes=int(inside.sum()),
+                contact_arc_deg=round(contact_arc, 1),
+                pressure_cov=round(pcov, 2),
+                stress_spread_frac=round(spread, 3),
+                engage_y_frac=round(engage, 3),
                 bot_third_force_frac=round(float(bot), 3),
                 mid_third_force_frac=round(float(mid), 3),
                 top_third_force_frac=round(float(top), 3),
                 tip_inward_mm=round(tip_inward, 2),
-                stress_spread_frac=round(spread, 3),
                 max_von_mises_MPa=round(maxvm, 3),
                 margin_x=round(float(margin), 2),
                 grip_at_press_N=round(g, 2),

@@ -208,3 +208,24 @@ above it has no driving load and bends away, regardless of internal topology.
 Diagnostic next: does the finger wrap when the object sits near the TIP (no free
 cantilever above)? — to separate "object position" from "object size" and confirm
 the finger can wrap at all.
+
+### Wrap-quality optimization (CORRECT metrics: contact arc + pressure evenness)
+After the metric correction, re-scored on what actually matters: the angular
+**contact arc** the face conforms to around the object, **pressure evenness**
+(`pressure_cov`, lower = more even), and **margin** (keep gentle). Operating point
+= 8 mm closure. Renderer `fea/scripts/render_wrap.py` shows the finger mesh
+(coloured by von Mises) conforming to the SOLID object + closing animations.
+
+| variant | change | contact | arc° | pcov | grip | margin | note |
+|---|---|---|---|---|---|---|---|
+| w0_base | baseline | 22 | 12 | 0.74 | 24 | 3.6 | reference |
+| w1_contactgrad15 | contact wall →1.5 @tip | 22 | 12 | **0.53** | 24 | 3.5 | more EVEN pressure, same arc |
+| w2_ribs16 | 16 ribs | 18 | 11 | 0.64 | 35 | 2.9 | stiffer, worse margin |
+| w3_ribs16_cgrad | 16 ribs + contact grad | 16 | 7 | 0.50 | 35 | 2.8 | stiffer, smaller arc |
+
+Finding: the contact **arc is only ~12°** (a small patch, not a big wrap) and
+margin is low (3.6) because the contact is concentrated. More ribs = stiffer =
+worse. The contact-wall gradient (w1) evens the pressure (pcov 0.74→0.53) for free.
+The lever to GROW the arc and lift the margin is a more compliant **contact beam**
+(thinner) so the face curves around more of the cylinder at lower peak pressure —
+Round 2 (w4–w6) testing FR_CONTACT_WALL 1.2–1.6.
