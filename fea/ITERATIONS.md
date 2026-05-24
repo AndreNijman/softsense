@@ -53,6 +53,11 @@ first. Then land the winning FR_* values into `gripper.py` and regenerate.
 | r2c_thinrib_only | rib 2.8→1.2 (grip 11.1N) | 0.024 | 0.00 | −5.8 | 0.024 | 5.48 | 4.56 | DEAD — contact 10 (fewer) |
 | exp_yc95 | baseline, object centre y=80→95 | 0.029 | 0.00 | −10.4 | 0.035 | 4.61 | 5.42 | position not the lever (contact 13, band just moves up) |
 | r3_len58 | shorten FR_BLADE_LEN 90→58 | 0.076 | **1.00** | −9.6 | 0.186 | 5.94 | 4.21 | top‑⅓=1.0 is a METRIC ARTIFACT (band near short tip); tip still −9.6 away, contact still a 19‑node band, margin worse |
+| — | *Round 4: free-topology generator (finray2), full control of beam angles + rib dir/angle* | | | | | | | |
+| f2_default | finray2 = production shape | 0.029 | 0.00 | −7.0 | — | 5.2 | 4.8 | validates same failure mode (tip away) |
+| f2_ribrev | reverse rib direction | 0.029 | 0.00 | −6.6 | — | 5.3 | 4.7 | tip STILL away |
+| f2_ribsteep | rib angle 38→65° | 0.029 | 0.00 | −7.7 | — | 5.7 | 4.4 | tip STILL away |
+| f2_symmetric | contact face angled to centre (isoceles) | 0.000 | 0.00 | −0.2 | — | — | 0 | barely touches (face moved off the object) |
 
 ## Log
 
@@ -165,3 +170,17 @@ finger does not conform-wrap a 44 mm cylinder — it tangent-contacts and the fr
 portion bends away. True whole-finger wrap needs a topology change (R&D), not a
 parameter. Surfaced to the user for a direction decision (kept gripper.py at its
 original, working geometry — only added the unused graded-wall params).**
+
+### Round 4 — free-topology scan (user chose "topology redesign"): apex never wraps
+Built `fea/scripts/finray2.py`, a fully-parametric Fin Ray section generator (free
+beam endpoints, rib direction, rib angle, wall split) decoupled from the production
+finger, and scanned fundamental topologies. **Result: NO topology flips the apex
+toward the object.** Default, reversed ribs (rib_dir −1), steep ribs (65°) all keep
+`tip_inward ≈ −7` (apex bends AWAY) with top-third = 0; the symmetric/isoceles form
+just moves the contact face off the object (grip 0). So the failure is **not** the
+rib scheme — it is structural to a passive Fin Ray clamped at the base with contact
+at mid-span: the portion below the contact is driven and wraps, the free cantilever
+above it has no driving load and bends away, regardless of internal topology.
+Diagnostic next: does the finger wrap when the object sits near the TIP (no free
+cantilever above)? — to separate "object position" from "object size" and confirm
+the finger can wrap at all.

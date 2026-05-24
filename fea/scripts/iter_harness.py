@@ -61,15 +61,22 @@ _BASE_FR = {k: getattr(gripper, k) for k in FR_KEYS}
 def regen_section(params, workdir):
     """Apply FR_* overrides, build the finger, section the top face, gmsh-mesh it.
     Returns p(N,2), tris(M,3 0-based), and landmarks (C,D,r_bore,base_y,tip_y)."""
-    for k, v in _BASE_FR.items():      # reset to baseline first (clean state)
-        setattr(gripper, k, v)
-    for k, v in params.items():
-        setattr(gripper, k, v)
-
+    params = dict(params)
+    gen = params.pop("_gen", None)
     refR = gripper.solve_side_right(0.0)
     C, D = refR["C"], refR["D"]
-    fng = gripper.finray_finger_closed(C, D, -1, gripper.Z_FINGER0, gripper.T_FINGER)
-    top = fng.faces().filter_by(Axis.Z).sort_by(Axis.Z)[-1]
+    if gen == "finray2":               # topology-R&D generator
+        import finray2
+        solid, lm_g = finray2.build(C, D, gripper.Z_FINGER0, gripper.T_FINGER, params)
+        top = solid.faces().filter_by(Axis.Z).sort_by(Axis.Z)[-1]
+    else:                              # production finger with FR_* overrides
+        for k, v in _BASE_FR.items():  # reset to baseline first (clean state)
+            setattr(gripper, k, v)
+        for k, v in params.items():
+            setattr(gripper, k, v)
+        fng = gripper.finray_finger_closed(C, D, -1, gripper.Z_FINGER0, gripper.T_FINGER)
+        top = fng.faces().filter_by(Axis.Z).sort_by(Axis.Z)[-1]
+        lm_g = None
     step = os.path.join(workdir, "section.step")
     export_step(top, step)
 
@@ -89,10 +96,13 @@ def regen_section(params, workdir):
             tris = np.array([[tag2i[int(n)] for n in tri]
                              for tri in en.reshape(-1, 3)], dtype=np.int64)
     gmsh.finalize()
-    base_y = max(C[1], D[1]) - gripper.FR_BASE_DROP
-    tip_y = base_y + gripper.FR_BLADE_LEN * gripper.FINGER_SCALE
-    lm = dict(C=list(C), D=list(D), r_bore=gripper.MOUNT_HOLE_R,
-              base_y=base_y, tip_y=tip_y)
+    if lm_g is not None:
+        lm = lm_g
+    else:
+        base_y = max(C[1], D[1]) - gripper.FR_BASE_DROP
+        tip_y = base_y + gripper.FR_BLADE_LEN * gripper.FINGER_SCALE
+        lm = dict(C=list(C), D=list(D), r_bore=gripper.MOUNT_HOLE_R,
+                  base_y=base_y, tip_y=tip_y)
     return coords, tris, lm
 
 
@@ -324,8 +334,10 @@ def plot_all(sol, m, outdir, title):
 
 # ----------------------------------------------------------------- main
 def main():
-    global YC
+    global YC, R_NECK
     name = sys.argv[1]; params = json.loads(sys.argv[2]) if len(sys.argv) > 2 else {}
+    if "_R" in params:              # optional object-radius override (scenario test)
+        R_NECK = float(params.pop("_R")); print(f"[{name}] R_NECK override = {R_NECK}")
     if len(sys.argv) > 3:            # optional override of the neck-centre y (scenario test)
         YC = float(sys.argv[3]); print(f"[{name}] YC override = {YC}")
     outdir = os.path.join(ITERDIR, name); os.makedirs(outdir, exist_ok=True)
