@@ -970,7 +970,17 @@ COVER_VENT_XY = [(-34.0, 12.0), (0.0, 12.0), (34.0, 12.0)]   # clean symmetric r
 # --- snap-clip front cover (tool-free, zero hardware) -------------------
 SNAP_Y = [-9.0, 7.0]                 # clip y-centres on each side wall
 SNAP_ARM_W = 9.0                     # clip width along Y (flexing beam width)
-SNAP_ARM_T = 2.8                     # arm radial thickness (X)
+SNAP_ARM_T = 2.0                     # arm radial thickness (X) -- thinned 2.8->2.0:
+                                     # cuts outward protrusion 3.2->2.4 mm (sleeker,
+                                     # blade-like tab) AND, since bending strain is
+                                     # LINEAR in thickness (eps = 3*t*d/(2*L^2)),
+                                     # DROPS worst-tight strain 1.90%->1.36% -- more
+                                     # PA12-GF margin, not less. Cost is a softer
+                                     # click (stiffness ~ t^3); retention is the
+                                     # geometric hook-in-window, not the spring.
+SNAP_TIP_CHAM = 1.0                  # bevel on the free-tip proud edge so the tab
+                                     # reads as an intentional blade, not a nub
+                                     # (free tip = print-top -> self-supporting)
 SNAP_GAP = 0.40                      # standoff: arm inner face clears wall outer
 SNAP_Z0 = 1.5                        # arm root region near hook (back end)
                                      # (was 6.5; lowered to lengthen the clip
@@ -988,6 +998,20 @@ _ARM_IN_R = _WALL_OUT_R + SNAP_GAP   # inner face of the arm
 _ARM_OUT_R = _ARM_IN_R + SNAP_ARM_T  # outer face of the arm
 _HOOK_TIP_R = ENC_X[1] - SNAP_HOOK_ENGAGE   # hook tip (clear of cavity)
 SNAP_ARM_Z1 = COVER_Z[0] + 1.0       # arm overlaps INTO the cover so it fuses
+
+# --- build-time strain gate (brittle PA12-GF cantilever, weakest across-layer) ---
+# Insertion bends the arm out by the hook engagement (+FDM tolerance worst-tight).
+# eps = 3*t*delta / (2*L^2), L = free cantilever length (root at cover -> free tip).
+# Fail the build LOUD if the worst-tight strain leaves the conservative allowable, so
+# nobody can re-thicken the arm or shorten it past the brittle limit unnoticed.
+SNAP_FREE_L = COVER_Z[0] - SNAP_Z0                       # 20.5 mm cantilever length
+SNAP_DELTA_WORST = SNAP_HOOK_ENGAGE + 2 * 0.2           # 1.9 mm (eng + FDM each side)
+SNAP_STRAIN_WORST = 3 * SNAP_ARM_T * SNAP_DELTA_WORST / (2 * SNAP_FREE_L ** 2)
+SNAP_STRAIN_ALLOW = 0.015                               # 1.5% conservative PA12-GF gate
+assert SNAP_STRAIN_WORST < SNAP_STRAIN_ALLOW, (
+    f"snap-clip worst-tight bending strain {SNAP_STRAIN_WORST*100:.2f}% exceeds the "
+    f"{SNAP_STRAIN_ALLOW*100:.1f}% PA12-GF gate (t={SNAP_ARM_T}, L={SNAP_FREE_L}); "
+    f"thin the arm or lengthen it (lower SNAP_Z0) -- never reduce SNAP_HOOK_ENGAGE")
 
 
 def _box_between(x0, x1, y0, y1, z0, z1):
@@ -1020,6 +1044,13 @@ def _one_clip(side, yc):
         clip = fillet([inner_edge], radius=min(SNAP_LEADIN, SNAP_HOOK_ENGAGE - 0.2))
     except Exception:
         pass
+    # free-tip bevel on the OUTER (proud) edge -> the tab end reads as a blade, not a
+    # nub. Free tip = lowest Z = print-top in the flipped cover orientation, so the
+    # bevel is self-supporting. OUTER edge only: never the high-stress root (rounding
+    # the root would shorten the effective cantilever and raise strain). Fail loud.
+    tip_ys = clip.edges().filter_by(Axis.Y).group_by(Axis.Z)[0]
+    outer_edge = sorted(tip_ys, key=lambda e: abs(e.center().X))[-1]
+    clip = chamfer([outer_edge], length=SNAP_TIP_CHAM)
     clip.label = f"snap_clip_{'R' if side > 0 else 'L'}_{yc:+.0f}"
     clip.color = COVER_COLOR
     return clip

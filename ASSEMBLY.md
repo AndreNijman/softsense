@@ -207,7 +207,9 @@ on its axle dowel like the right arm.
 1. Align `front_cover` over the open front, the 4 hook clips facing the four
    side-wall windows (2 per long side).
 2. **Push it straight on** until all **4 cantilever clips click** into their
-   windows. The cover's inner-face bosses now **cap all 4 axle-dowel heads** —
+   windows (the click is a little softer now that the tabs are slimmer, but the
+   geometric hook capture — not the spring force — holds the cover). The cover's
+   inner-face bosses now **cap all 4 axle-dowel heads** —
    each dowel is sandwiched between the back-wall bore step and the cover boss
    and **cannot fall out in either direction**. No tools, no fasteners.
 3. Verify: tug each axle-dowel head — it should have essentially no axial slop

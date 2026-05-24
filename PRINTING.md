@@ -326,7 +326,7 @@ import the plate STLs directly and set "no supports" in your slicer.
 | Part | Qty | Rotation from export pose | Build height | Support area | Notes |
 |---|---|---|---|---|---|
 | `enclosure` | 1 | None (as-exported) | 40.0 mm | ~1272 mm² (bridges interior ceilings) | Bottom flange down; check slicer for journal-bore overhangs |
-| `front_cover` | 1 | 180° about X | 18.5 mm | 184 mm² (hook underlips bridge) | Flat outer face on bed; clips point up |
+| `front_cover` | 1 | 180° about X | 18.5 mm | 184 mm² (hook underlips bridge) | Flat outer face on bed; the 4 slim (2.0 mm) clips point up, their chamfered free tips at the print-top and self-supporting (hook-underlip bridge area unchanged) |
 | `drive_arm_L` | 1 | None (as-exported) | 5.0 mm | 0 | Flat plate face-down (no integral shaft; crown ring prints as a ring at the top face) |
 | `drive_arm_R` | 1 | None (as-exported) | 5.0 mm | 0 | Flat plate face-down |
 | `input_pinion_shaft` | 1 | Shaft-axis vertical (coupler down) | ~40–50 mm | ~12 mm² (collar ring bridge) | Shaft as self-supporting vertical cylinder; pinion and collar print as rings; 100% infill, 6 perimeters, slow |

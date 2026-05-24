@@ -107,7 +107,7 @@ ring solid 8.40 mm³).
   over the flood-hole step; +Z stop = head 1.30 mm over the cover-boss bore;
   back boss Z(−2,1) + cover boss Z(20,22) trap the shank with 0.20 mm seat gap.
 - **[C] Cover snap clips:** 4 cantilever clips; hook reach 1.5 mm − 0.35 clear =
-  **1.15 mm net engagement**; arm thk 2.8 mm; window Z(6.65,10.35) over hook
+  **1.15 mm net engagement**; arm thk 2.0 mm; window Z(6.65,10.35) over hook
   Z(7.0,10.0); 2.0 mm Y slack.
 
 ### 6 — Manifold ✅
@@ -136,7 +136,7 @@ shell each.
 | enclosure WALL | 3.000 | ✓ FDM min |
 | cover plate thk | 3.000 | ✓ |
 | FR_WALL (finger beam) | 2.800 | ✓ |
-| SNAP_ARM_T (clip arm) | 2.800 | ✓ |
+| SNAP_ARM_T (clip arm) | 2.000 | ✓ |
 | axle-boss wall (BOSS_OD_R−AXLE_SCREW_R) | 2.000 | ✓ |
 | snap-pin head flange T | 1.800 | ✓ |
 | BUSH boss wall | 1.600 | ✓ |

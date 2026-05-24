@@ -53,7 +53,7 @@ At 220×220 everything still lands on the same 3 plates (rigid footprint is only
 | Part | Qty | Oriented bbox (mm) | Orientation |
 |---|---|---|---|
 | `enclosure` | 1 | 96.0 × 41.0 × 30.0 | open slot/cavity face **+Z up**, drain-floor on bed (as-exported); slimmer 4 mm back wall |
-| `front_cover` | 1 | 102.4 × 36.0 × 23.5 | **flip 180° about X**: flat outer face on bed (1.2 mm perimeter chamfer = small first-layer bevel), snap clips point up |
+| `front_cover` | 1 | 102.4 × 36.0 × 23.5 | **flip 180° about X**: flat outer face on bed (1.2 mm perimeter chamfer = small first-layer bevel), the 4 slim (2.0 mm) snap clips point up — their chamfered free tips are at the print-top, so they self-support too |
 | `drive_arm_L` | 1 | 26.5 × 51.2 × 8.0 | flat plate face-down (as-exported); crown gear on +Z face; no integral shaft |
 | `drive_arm_R` | 1 | 26.6 × 51.2 × 5.0 | flat plate face-down (as-exported) |
 | `follower` | **2** | 11.2 × 40.0 × 5.0 | flat bar face-down (as-exported) |

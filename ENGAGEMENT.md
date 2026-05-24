@@ -158,7 +158,7 @@ D-5).
 | **Axle dowel** head past cover bore (+Z) † | mm | 1.30 | 1.70 | 0.90 | loose >0 → head can't enter cover bore ✔ |
 | **Axle dowel** residual axial slop | mm | ~0 | — | ~0.40 | trapped both ends ✔ |
 | **Cover hook** engagement | mm | 1.50 | 1.90 | **1.10** | loose >1.0 → geometric (≥1.5 nom) ✔ |
-| **Cover hook** worst-tight insertion strain | % | 2.62 | **3.32** | — | < PETG yield ~4–5 % ✔ |
+| **Cover hook** worst-tight insertion strain | % | 1.07 | **1.36** | — | < 1.5 % PA12-GF build gate ✔ |
 
 † The +Z stop is a **face-to-face seat**: the head bottom face bears on the
 cover-boss face (0.2 mm seating clearance). The 1.30/1.70/0.90 mm figures are the
@@ -171,7 +171,7 @@ Insertion-strain figures use a cantilever surface-strain estimate
 `L = SNAP_SLOT_LEN = 9 mm` and an effective slotted-quadrant thickness
 `t_eff ≈ 1.5 mm` (estimate, not a closed-form for a cross-slotted barb — treat
 as an order-of-magnitude check; calibrate on a single printed pin per
-`PRINTING.md` "Fit tuning"). For the cover clip `L = 15.5 mm`, `t = 2.8 mm`.
+`PRINTING.md` "Fit tuning"). For the cover clip `L = 20.5 mm`, `t = SNAP_ARM_T = 2.0 mm`.
 
 ### Axle-dowel capture, top and bottom
 
@@ -225,7 +225,7 @@ as an order-of-magnitude check; calibrate on a single printed pin per
 
 - **Cover secondary detent (C-4): NOT added.** The cover hook is already
   geometric (1.5 mm nominal, 1.10 mm worst-loose) with a healthy insertion
-  strain (2.62 % nominal, 3.32 % worst-tight, both < PETG/ASA yield). A detent
+  strain (1.07 % nominal, 1.36 % worst-tight, both inside the PA12-GF allowable). A detent
   on the same window would risk the verified-clean interference for marginal
   gain; skipped deliberately.
 - **Enclosure flange-underside chamfer (D-4): NOT added.** The flange overhang

@@ -13,8 +13,9 @@ The user has now **pinned the production material to glass-filled Nylon 12
 > and the **barbed finger pins** — were originally tuned to PETG's elastic band
 > and did NOT clear PA12-GF's allowable strain as drawn. **Both issues are now
 > fixed in `gripper.py` (verified, interference CLEAN all poses):**
-> - Cover clip: `SNAP_Z0` changed 6.5 → 1.5 → cantilever lengthened, worst-tight
->   strain 3.32 % → **1.85 %**, inside PA12-GF allowable. **PASS.**
+> - Cover clip: `SNAP_Z0` changed 6.5 → 1.5 (cantilever lengthened) and arm
+>   `SNAP_ARM_T` thinned 2.8 → 2.0 mm → worst-tight strain 3.32 % → **1.36 %**
+>   (1.07 % nominal), inside PA12-GF allowable. **PASS.**
 > - Finger-pin barb: 4 barbed pins (`snap_pin_finger`) assigned **PETG-HF for the
 >   final build** (2.78 % insertion strain inside PETG-HF's 2.5–3.5 % allowable;
 >   pull-out carried by the rigid PA12-GF counterbore shoulder). **PASS.**
@@ -79,10 +80,13 @@ one-time-assembly design strain from §1.
 ### 2a. Re-derivation from `gripper.py` (confirms ENGAGEMENT.md)
 
 **Cover clip** (`_one_clip` / `_all_snap_clips`): arm thickness
-`t = SNAP_ARM_T = 2.8 mm`; insertion deflection = the hook must ride out by
-`SNAP_HOOK_ENGAGE = 1.5 mm` (nominal) → 1.9 mm worst-tight (+0.2 FDM each side);
-calibrated free length `L = 15.5 mm`. ε = 3·2.8·1.5/(2·15.5²) = **2.62 %**
-nominal, **3.32 %** worst-tight. ✔ matches ENGAGEMENT.md exactly.
+`t = SNAP_ARM_T = 2.0 mm` (thinned from 2.8); insertion deflection = the hook must
+ride out by `SNAP_HOOK_ENGAGE = 1.5 mm` (nominal) → 1.9 mm worst-tight (+0.2 FDM
+each side); free length `L = COVER_Z[0] − SNAP_Z0 = 20.5 mm`.
+ε = 3·2.0·1.9/(2·20.5²) = **1.36 %** worst-tight (**1.07 %** nominal at δ=1.5).
+✔ matches ENGAGEMENT.md. **Build-time gate:** `gripper.py` now asserts the
+worst-tight strain stays under the conservative 1.5 % PA12-GF ceiling
+(`SNAP_STRAIN_ALLOW = 0.015`) and fails the build loud if it does not.
 
 **Finger-pin barb** (`snap_pin(barb=True)`): split "+" cantilever flexes inward
 by `SNAP_BARB_PROUD = 0.9 mm` (nominal) → ~1.0 mm worst-tight; effective slotted
@@ -117,7 +121,7 @@ or a cracked pin, so the margin is taken on purpose, not by recall.
 > | Snap feature | Insertion strain (nom / worst-tight) | **PA12-GF** (allow ~1.5–2.0 %) | **PETG-HF** (allow ~2.5–3.5 %) | Status |
 > |---|---|---|---|---|
 > | **Cover clip** (`_one_clip`) — *as drawn* | 2.62 % / **3.32 %** | ~~FAIL~~ — worst-tight 3.32 % > 2.0 % ceiling | PASS — firm click | **FIXED** |
-> | **Cover clip** (`_one_clip`) — *after `SNAP_Z0` 6.5→1.5* | **1.50 % / 1.85 %** | **PASS — both nominal (1.50 %) and worst-tight (1.85 %) inside allowable** | PASS | **PASS** (resolved) |
+> | **Cover clip** (`_one_clip`) — *after `SNAP_Z0` 6.5→1.5 + arm thinned 2.8→2.0* | **1.07 % / 1.36 %** | **PASS — both nominal (1.07 %) and worst-tight (1.36 %) inside allowable, under the 1.5 % build gate** | PASS | **PASS** (resolved) |
 > | **Finger-pin barb** (`snap_pin barb`) — *assigned material PETG-HF* | 2.50 % / **2.78 %** | N/A — pins are PETG-HF (final build; PA12-GF not used here) | **PASS — 2.78 % inside 2.5–3.5 % band** | **PASS** (resolved by material assignment) |
 > | **Axle dowel** (`snap_pin barb=False`) | n/a — **no flexure** (rigid sandwiched dowel, geometric capture) | **PASS** (trivial — nothing flexes) | **PASS** | PASS (unchanged) |
 > | **Counterbore lip seat** (rigid shoulder, PA12-GF eye) | n/a — static bearing, not a flex | **PASS** (rigid material is *better* here; 0.30 mm floor gap confirmed, 1.05 mm capture intact) | **PASS** | PASS (fixed/confirmed) |
@@ -144,18 +148,23 @@ can need tooling in PA12-GF — another reason to lengthen the arm (lower force
 
 ## 3. Fix summary (full constants in the delimited section at the end)
 
-- **Cover clip — CLEAN top-level fix.** Lengthen the cantilever:
-  **`SNAP_Z0 = 6.5 → 1.5`** (drop the arm root 5 mm down the outer wall).
-  L 15.5 → ~20.5 → nominal **1.50 %**, worst-tight **1.90 %** → both **inside
-  the conservative PA12-GF ~1.5–2.0 % allowable → true PASS** (vs hard FAIL
+- **Cover clip — CLEAN top-level fix.** Lengthen the cantilever
+  (**`SNAP_Z0 = 6.5 → 1.5`**, drop the arm root 5 mm down the outer wall, L 15.5
+  → ~20.5) **and thin the arm `SNAP_ARM_T = 2.8 → 2.0 mm`** (outward tab
+  protrusion 3.2 → 2.4 mm, sleeker blade-like tab; still ≥ the 1.5 mm functional
+  wall floor). Strain is *linear* in thickness, so thinning the arm LOWERED the
+  strain → worst-tight **1.90 % → 1.36 %** (1.07 % nominal) → **more PA12-GF
+  margin, not less**, still **inside the conservative PA12-GF ~1.5–2.0 %
+  allowable and under the new 1.5 % build-time gate → true PASS** (vs hard FAIL
   before), still PASS/firm in PETG-HF. Verified collision-free: the arm runs on
   the outer X side wall at Z 1.5–22; the back flange is at Z −16…−6 and the
   cavity floor far away — no clash, hook/window/engagement unchanged (engagement
-  stays 1.5 mm nominal / 1.10 mm worst-loose ✔). **Bonus:** the longer arm cuts
-  bending stiffness ~(15.5/20.5)³ ≈ 0.43×, which *more than offsets* PA12-GF's
-  ~2× modulus → net insertion force ≈ **0.86×** of today's PETG clip — i.e. the
-  PA12-GF clip with this fix is *no harder* to hand-assemble than the current
-  PETG one.
+  stays 1.5 mm nominal / 1.10 mm worst-loose ✔). **Bonus:** bending stiffness
+  goes as t³, so thinning the arm drops it to ~(2.0/2.8)³ ≈ 0.36× the previous
+  (lengthened) clip — net insertion force ≈ **0.31×** of the old PETG clip, a
+  noticeably softer, lighter tactile click that is easier to seat by hand, while
+  **retention is unchanged** (it is the geometric 1.15 mm hook-in-window
+  engagement that holds the cover, not the spring force).
 - **Finger-pin barb — the obvious knob is inert; two real options:**
   - **Preferred: per-part material exception.** Print the **4 barbed finger
     pins (`snap_pin_finger`: pin_C_R/L, pin_D_R/L) in PETG-HF even for the final
@@ -182,7 +191,7 @@ All issues resolved. No open items. Verdicts below reflect applied fixes.
 | Part | Qty | **FINAL material** | Test-print | **Verdict** |
 |---|---|---|---|---|
 | `enclosure` | 1 | **PA12-GF** | PETG-HF | **PASS** — rigid box, no flexure; thick walls (3.0 mm) easily handle PA12-GF. Stiffer is better. |
-| `front_cover` | 1 | **PA12-GF** | PETG-HF | **PASS** — cover plate PASS; integral clip cantilever lengthened (`SNAP_Z0` 6.5→1.5), worst-tight strain 1.85 % inside PA12-GF allowable. Fix applied in `gripper.py`, verified interference-clean. |
+| `front_cover` | 1 | **PA12-GF** | PETG-HF | **PASS** — cover plate PASS; integral clip cantilever lengthened (`SNAP_Z0` 6.5→1.5) and arm thinned (`SNAP_ARM_T` 2.8→2.0, tab protrusion 3.2→2.4 mm), worst-tight strain 1.36 % inside PA12-GF allowable (under the 1.5 % build gate). Fix applied in `gripper.py`, verified interference-clean. |
 | `drive_arm_L` | 1 | **PA12-GF** | PETG-HF | **PASS** — load-bearing arm with integral crown gear. PA12-GF's higher modulus/strength is an upgrade. Rides on axle dowel `pin_A_L` like the right arm. |
 | `input_pinion_shaft` | 1 | **PA12-GF** | PETG-HF | **PASS** — spur pinion + vertical shaft + integral capture collar + D-coupler, one part. Runs in two flooded journal bores (2 mm upper, 7 mm lower). Collar (OD 5.8 mm, length 2.0 mm) is a **rigid trapped shoulder** — not a flexing snap — so no creep concern; geometry locks both ±Y with ~0.25 mm axial play. PA12-GF's low creep keeps journals round under sustained load. Crown mesh is representative (straight-flank), coupon-tunable. |
 | `drive_arm_R` | 1 | **PA12-GF** | PETG-HF | **PASS** — same. Counterbored C-eye is a *rigid* feature (PA12-GF improves pull-out bearing). |
@@ -309,18 +318,28 @@ if the host arm is metal — but the gripper contributes no metal, per UNDERWATE
 A coupon fit-test in real materials is still recommended (§5/§8) before the
 full run.**
 
-### CHANGE 1 — Cover clip cantilever (**APPLIED**)
+### CHANGE 1 — Cover clip cantilever + thinned arm (**APPLIED**)
 
-- **Constant changed:** `SNAP_Z0` **6.5 → 1.5** — arm root moved 5 mm down the
-  outer wall, lengthening the cantilever free length L 15.5 → ~20.5 mm.
-- **Effect:** Insertion strain drops: nominal **2.62 % → 1.50 %**, worst-tight
-  **3.32 % → 1.85 %**.
-- **PA12-GF (allow ~1.5–2.0 %):** both nominal (1.50 %) and worst-tight (1.85 %)
-  are inside the allowable → **true PASS** (was a hard FAIL at 3.32 %).
+- **Constants changed:** `SNAP_Z0` **6.5 → 1.5** — arm root moved 5 mm down the
+  outer wall, lengthening the cantilever free length L 15.5 → ~20.5 mm — **and**
+  `SNAP_ARM_T` **2.8 → 2.0 mm** (arm thinned; outward tab protrusion beyond the
+  side wall 3.2 → 2.4 mm, a sleeker blade-like tab; still ≥ the 1.5 mm functional
+  wall floor). A 1.0 mm free-tip outer-edge chamfer (`SNAP_TIP_CHAM`) reads the
+  tab as an intentional blade; at the print-top in the flipped cover orientation
+  it is self-supporting (no support, no new overhang).
+- **Effect:** Strain is *linear* in thickness, so thinning the arm LOWERED the
+  strain further. Worst-tight **3.32 % → 1.36 %**, nominal **2.62 % → 1.07 %**
+  (ε = 3·2.0·1.9/(2·20.5²)). Thinning *increased* PA12-GF margin, not reduced it.
+- **PA12-GF (allow ~1.5–2.0 %):** both nominal (1.07 %) and worst-tight (1.36 %)
+  are inside the allowable → **true PASS** (was a hard FAIL at 3.32 %). A new
+  build-time assert in `gripper.py` fails the build if worst-tight strain ≥ 1.5 %
+  (`SNAP_STRAIN_ALLOW`), a guardrail against future regressions.
 - **PETG-HF (allow ~2.5–3.5 %):** well inside band. **PASS.**
-- **Insertion force:** longer arm drops bending stiffness ~0.43×, more than
-  offsetting PA12-GF's ~2× modulus → net force ≈ **0.86×** of the old PETG clip.
-  The fixed PA12-GF clip is no harder to seat by hand.
+- **Insertion force / click:** bending stiffness goes as t³, so the thinner arm
+  drops to ~(2.0/2.8)³ ≈ 0.36× the previous (lengthened) clip → net insertion
+  force ≈ **0.31×** the old PETG clip: a noticeably softer, lighter tactile
+  click, easier to seat by hand. **Retention is unchanged** — the geometric
+  1.15 mm hook-in-window engagement holds the cover, not the spring force.
 - **Collision:** arm runs on ±X outer side wall at Z 1.5–22; back flange at
   Z −16…−12; no clash. **Interference check verified CLEAN all poses.**
 - **Capture unchanged:** hook lip, window, `SNAP_HOOK_ENGAGE = 1.5` untouched;
@@ -380,7 +399,7 @@ section (§1.2) and part count summary updated to match.
 
 | Issue | As-drawn / as-found | Fix applied | Assigned material | Result |
 |---|---|---|---|---|
-| Cover clip insertion strain | 3.32 % worst-tight — FAIL in PA12-GF | `SNAP_Z0` 6.5→1.5 (longer cantilever) | PA12-GF | **PASS** — 1.85 % worst-tight (nom 1.50 %), inside PA12-GF allowable |
+| Cover clip insertion strain | 3.32 % worst-tight — FAIL in PA12-GF | `SNAP_Z0` 6.5→1.5 (longer cantilever) + `SNAP_ARM_T` 2.8→2.0 (thinner arm) | PA12-GF | **PASS** — 1.36 % worst-tight (nom 1.07 %), inside PA12-GF allowable, under the 1.5 % build gate |
 | Finger-pin barb insertion strain | 2.78 % worst-tight — FAIL in PA12-GF | Material assignment: PETG-HF for these 4 pins | **PETG-HF** | **PASS** — 2.78 % inside PETG-HF's 2.5–3.5 % allowable |
 | Closed-pose pin collision | pin gap < 0 — FAIL | `THETA_CLOSED` 104→102° | PA12-GF | **PASS** — gap ~9.86 mm, no interference |
 | Counterbore floor-gap bug | floor gap misreported — FAIL | Geometry bug fixed | PA12-GF | **PASS** — 0.30 mm floor gap; 1.05 mm shoulder capture intact |
