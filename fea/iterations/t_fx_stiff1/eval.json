@@ -1,0 +1,62 @@
+{
+  "name": "t_fx_stiff1",
+  "gen": "flexure",
+  "mode": "screen",
+  "params": {
+    "flex_side": "spine",
+    "precurve": 0,
+    "n_flex": 2,
+    "flex_t": 3.0,
+    "flex_h": 2.0
+  },
+  "score": 0.0517,
+  "base": 0.3014,
+  "grip_incon": 0.899,
+  "n_nodes": 419,
+  "objects": [
+    {
+      "shape": "circle",
+      "R": 16,
+      "yc": 80,
+      "metrics": {
+        "contact_nodes": 4,
+        "contact_arc_deg": 0.1,
+        "pressure_cov": 0.34,
+        "stress_spread_frac": 0.011,
+        "engage_y_frac": 0.0,
+        "bot_third_force_frac": 0.0,
+        "mid_third_force_frac": 1.0,
+        "top_third_force_frac": 0.0,
+        "tip_inward_mm": -24.91,
+        "max_von_mises_MPa": 4.953,
+        "margin_x": 5.05,
+        "grip_at_press_N": 7.28,
+        "press_mm": 8.0,
+        "contact_y_min": 73.3,
+        "contact_y_max": 73.3
+      }
+    },
+    {
+      "shape": "box",
+      "R": 20,
+      "yc": 80,
+      "metrics": {
+        "contact_nodes": 8,
+        "contact_arc_deg": 6.9,
+        "pressure_cov": 0.27,
+        "stress_spread_frac": 0.011,
+        "engage_y_frac": 0.026,
+        "bot_third_force_frac": 1.0,
+        "mid_third_force_frac": 0.0,
+        "top_third_force_frac": 0.0,
+        "tip_inward_mm": -62.25,
+        "max_von_mises_MPa": 21.365,
+        "margin_x": 1.17,
+        "grip_at_press_N": 137.55,
+        "press_mm": 8.0,
+        "contact_y_min": 59.2,
+        "contact_y_max": 61.5
+      }
+    }
+  ]
+}

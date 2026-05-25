@@ -28,13 +28,15 @@ DEFAULTS = dict(
     t_contact=2.8, t_spine=2.8, t_rib=2.8,
     n_ribs=10, rib_angle_deg=38.0, rib_dir=+1, # +1 = slant up toward spine
     bracket_w=13.0,
+    blade_len=None,                            # None -> gripper.FR_BLADE_LEN (90 mm)
 )
 
 
 def build(C, D, z0, thickness, P=None):
     p = dict(DEFAULTS); p.update(P or {})
     base_y = max(C[1], D[1]) - gripper.FR_BASE_DROP
-    tip_y = base_y + gripper.FR_BLADE_LEN * gripper.FINGER_SCALE
+    blade_len = p["blade_len"] if p["blade_len"] else gripper.FR_BLADE_LEN * gripper.FINGER_SCALE
+    tip_y = base_y + blade_len
     cxb, cxt = p["contact_x_base"], p["contact_x_tip"]
     sxb, sxt = p["spine_x_base"], p["spine_x_tip"]
 

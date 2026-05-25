@@ -1,0 +1,83 @@
+{
+  "name": "val_flex",
+  "gen": "flexure",
+  "mode": "screen",
+  "params": {
+    "flex_side": "spine",
+    "precurve": 10,
+    "n_flex": 4,
+    "flex_t": 1.2
+  },
+  "score": -0.1352,
+  "base": 0.073,
+  "grip_incon": 0.816,
+  "n_nodes": 1192,
+  "objects": [
+    {
+      "shape": "circle",
+      "R": 14,
+      "yc": 80,
+      "metrics": {
+        "contact_nodes": 4,
+        "contact_arc_deg": 0.0,
+        "pressure_cov": 0.48,
+        "stress_spread_frac": 0.006,
+        "engage_y_frac": 0.0,
+        "bot_third_force_frac": 0.0,
+        "mid_third_force_frac": 1.0,
+        "top_third_force_frac": 0.0,
+        "tip_inward_mm": -0.5,
+        "max_von_mises_MPa": 0.038,
+        "margin_x": 660.98,
+        "grip_at_press_N": 0.0,
+        "press_mm": 7.86,
+        "contact_y_min": 81.6,
+        "contact_y_max": 81.6
+      }
+    },
+    {
+      "shape": "circle",
+      "R": 26,
+      "yc": 80,
+      "metrics": {
+        "contact_nodes": 4,
+        "contact_arc_deg": 0.0,
+        "pressure_cov": 0.49,
+        "stress_spread_frac": 0.006,
+        "engage_y_frac": 0.0,
+        "bot_third_force_frac": 0.0,
+        "mid_third_force_frac": 1.0,
+        "top_third_force_frac": 0.0,
+        "tip_inward_mm": -0.69,
+        "max_von_mises_MPa": 0.052,
+        "margin_x": 485.18,
+        "grip_at_press_N": 0.01,
+        "press_mm": 7.86,
+        "contact_y_min": 82.5,
+        "contact_y_max": 82.5
+      }
+    },
+    {
+      "shape": "box",
+      "R": 20,
+      "yc": 80,
+      "metrics": {
+        "contact_nodes": 3,
+        "contact_arc_deg": 0.0,
+        "pressure_cov": 0.48,
+        "stress_spread_frac": 0.007,
+        "engage_y_frac": 0.0,
+        "bot_third_force_frac": 0.0,
+        "mid_third_force_frac": 0.0,
+        "top_third_force_frac": 1.0,
+        "tip_inward_mm": -4.53,
+        "max_von_mises_MPa": 0.282,
+        "margin_x": 88.5,
+        "grip_at_press_N": 0.02,
+        "press_mm": 7.86,
+        "contact_y_min": 99.4,
+        "contact_y_max": 99.4
+      }
+    }
+  ]
+}

@@ -12,22 +12,40 @@ import sys, os, json, numpy as np
 import matplotlib; matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.tri import Triangulation
-from matplotlib.patches import Circle
+from matplotlib.patches import Circle, Rectangle
 from matplotlib.animation import FuncAnimation, PillowWriter
 
 R_NECK, YC, GAP = 22.0, 80.0, 0.5
 OBJ_COLOR = "#5a7d99"
 PRESS_AT = 8.0
+GRIP_TARGET = 12.0   # render the grasp at EQUAL grip force (fair across stiff/soft
+                     # fingers) -- a soft finger needs more closure to reach it.
 
 
-def statline(d):
-    try:
-        m = json.load(open(os.path.join(d, "metrics.json")))
-        return ("arc %.0f°  pcov %.2f  margin %.1fx\ncontact %d  grip %.0fN"
-                % (m["contact_arc_deg"], m["pressure_cov"], m["margin_x"],
-                   m["contact_nodes"], m["grip_at_press_N"]))
-    except Exception:
-        return ""
+def contact_stats(S, i=None):
+    """Contact arc / evenness / span computed AT the rendered frame (default the
+    equal-grip op frame), from the deformed mid-plane nodes + the rigid object."""
+    if i is None:
+        i = S["op"]
+    P = S["frames"][i][S["l0"]]
+    cx = S["xc0"] + S["press"][i]; cy = S["yc"]; R = S["rneck"]
+    dx = P[:, 0] - cx; dy = P[:, 1] - cy
+    if S.get("shape") == "box":            # signed: +inside, -outside (box SDF)
+        qx = np.abs(dx) - R; qy = np.abs(dy) - R
+        out = np.hypot(np.maximum(qx, 0), np.maximum(qy, 0))
+        pen = -(out + np.minimum(np.maximum(qx, qy), 0.0))
+    else:
+        pen = R - np.hypot(dx, dy)         # +inside, -outside
+    c = np.where(pen > -0.4)[0]            # nodes touching / within 0.4 mm of surface
+    span = float(P[c, 1].max() - P[c, 1].min()) if len(c) >= 1 else 0.0
+    return dict(n=int(len(c)), span=span,
+                grip=float(S["grip"][i]), closure=float(S["press"][i]))
+
+
+def statline(S):
+    s = contact_stats(S)
+    return ("contact spans %.0f mm of finger\ngrip %.0f N  @ %.1f mm closure"
+            % (s["span"], s["grip"], s["closure"]))
 
 
 def load2d(d):
@@ -46,11 +64,14 @@ def load2d(d):
             tris.append(sorted(base))
     tris = np.unique(np.array(tris), axis=0)
     tris_local = np.array([[g2l[n] for n in tri] for tri in tris])
-    xc0 = rest[:, 0].min() - rneck - GAP
-    # operating frame = closest to PRESS_AT
-    op = int(np.argmin(np.abs(press - PRESS_AT)))
+    xc0 = float(z["xc0"]) if "xc0" in z else rest[:, 0].min() - rneck - GAP
+    shape = str(z["obj_shape"]) if "obj_shape" in z else "circle"
+    # operating frame = first closure reaching the target grip force (fair across
+    # stiff/soft fingers); fall back to peak grip if never reached.
+    _hit = np.where(grip >= GRIP_TARGET)[0]
+    op = int(_hit[0]) if len(_hit) else int(np.argmax(grip))
     return dict(l0=l0, tris=tris_local, frames=frames, vms=vms, press=press,
-                grip=grip, xc0=xc0, yc=yc, rneck=rneck, op=op,
+                grip=grip, xc0=xc0, yc=yc, rneck=rneck, op=op, shape=shape,
                 vmax=float(np.percentile(vms[op][l0], 99)) + 1e-6)
 
 
@@ -58,7 +79,12 @@ def _draw(ax, S, i, title=None, vmax=None):
     ax.clear()
     P = S["frames"][i][S["l0"]]; vm = S["vms"][i][S["l0"]]
     cx = S["xc0"] + S["press"][i]
-    ax.add_patch(Circle((cx, S["yc"]), S["rneck"], color=OBJ_COLOR, alpha=0.95, zorder=0))
+    if S.get("shape") == "box":
+        H = S["rneck"]
+        ax.add_patch(Rectangle((cx - H, S["yc"] - H), 2 * H, 2 * H,
+                               color=OBJ_COLOR, alpha=0.95, zorder=0))
+    else:
+        ax.add_patch(Circle((cx, S["yc"]), S["rneck"], color=OBJ_COLOR, alpha=0.95, zorder=0))
     tri = Triangulation(P[:, 0], P[:, 1], S["tris"])
     ax.tripcolor(tri, vm, shading="gouraud", cmap="inferno",
                  vmin=0, vmax=vmax or S["vmax"], zorder=2)
@@ -76,19 +102,19 @@ def render_one(d):
     # still at grasp
     fig, ax = plt.subplots(figsize=(4.2, 7.0), dpi=140)
     i = S["op"]
-    _draw(ax, S, i, f"{name}\nclosure {S['press'][i]:.1f}mm  grip {S['grip'][i]:.0f}N", S["vmax"])
+    _draw(ax, S, i, f"{name}\n{statline(S)}", S["vmax"])
     cb = fig.colorbar(sm, ax=ax, fraction=0.045, pad=0.02); cb.set_label("von Mises (MPa)", fontsize=7)
     cb.ax.tick_params(labelsize=6)
     fig.savefig(os.path.join(d, "wrap_render.png"), bbox_inches="tight"); plt.close(fig)
     # closing animation
     fig, ax = plt.subplots(figsize=(4.2, 7.0), dpi=110)
-    order = list(range(len(S["press"]))) + [len(S["press"]) - 1] * 4
+    order = list(range(S["op"] + 1)) + [S["op"]] * 5     # close to the grasp, hold
     def upd(k):
         i = order[k]
         _draw(ax, S, i, f"{name}\nclosure {S['press'][i]:.1f}mm  grip {S['grip'][i]:.0f}N", S["vmax"])
     anim = FuncAnimation(fig, upd, frames=len(order), blit=False)
     anim.save(os.path.join(d, "wrap_anim.gif"), writer=PillowWriter(fps=8)); plt.close(fig)
-    print(f"  {name}: wrap_render.png + wrap_anim.gif")
+    print(f"  {name}: wrap_render.png + wrap_anim.gif (op frame {S['op']}, grip {S['grip'][S['op']]:.0f}N)")
 
 
 def render_compare(outdir, dirs):
@@ -99,20 +125,20 @@ def render_compare(outdir, dirs):
     fig, axs = plt.subplots(1, n, figsize=(3.0 * n, 6.8), dpi=130)
     if n == 1: axs = [axs]
     for ax, d, (nm, S) in zip(axs, dirs, Ss):
-        i = S["op"]; _draw(ax, S, i, f"{nm}\n{statline(d)}", vmax)
+        i = S["op"]; _draw(ax, S, i, f"{nm}\n{statline(S)}", vmax)
     fig.colorbar(sm, ax=axs, fraction=0.012, pad=0.01, label="von Mises (MPa)")
     fig.savefig(os.path.join(outdir, "compare.png"), bbox_inches="tight"); plt.close(fig)
     # animation: all close together
-    nf = min(len(S["press"]) for _, S in Ss)
     fig, axs = plt.subplots(1, n, figsize=(3.0 * n, 6.5), dpi=100)
     if n == 1: axs = [axs]
-    order = list(range(nf)) + [nf - 1] * 4
+    nf = 26
+    fracs = [i / (nf - 1) for i in range(nf)] + [1.0] * 5   # each finger -> its grasp
     def upd(k):
-        i = order[k]
+        f = fracs[k]
         for ax, (nm, S) in zip(axs, Ss):
-            j = min(i, len(S["press"]) - 1)
+            j = int(round(f * S["op"]))
             _draw(ax, S, j, f"{nm}\n{S['press'][j]:.1f}mm {S['grip'][j]:.0f}N", vmax)
-    anim = FuncAnimation(fig, upd, frames=len(order), blit=False)
+    anim = FuncAnimation(fig, upd, frames=len(fracs), blit=False)
     anim.save(os.path.join(outdir, "compare.gif"), writer=PillowWriter(fps=8)); plt.close(fig)
     print(f"  compare.png + compare.gif ({n} iterations) -> {outdir}")
 

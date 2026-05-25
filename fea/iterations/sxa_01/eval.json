@@ -1,0 +1,67 @@
+{
+  "name": "sxa_01",
+  "gen": "flexure",
+  "mode": "screen",
+  "params": {
+    "flex_side": "spine",
+    "n_flex": 2,
+    "flex_t": 2.8,
+    "precurve": 3
+  },
+  "score": 0.5125,
+  "base": 0.5305,
+  "grip_incon": 0.436,
+  "n_nodes": 571,
+  "objects": [
+    {
+      "shape": "circle",
+      "R": 16,
+      "yc": 80,
+      "metrics": {
+        "contact_nodes": 6,
+        "contact_arc_deg": 6.7,
+        "pressure_cov": 0.72,
+        "closure_at_target": 10.0,
+        "reached_target": false,
+        "locked": false,
+        "stress_spread_frac": 0.012,
+        "engage_y_frac": 0.021,
+        "bot_third_force_frac": 0.0,
+        "mid_third_force_frac": 1.0,
+        "top_third_force_frac": 0.0,
+        "tip_inward_mm": -30.03,
+        "max_von_mises_MPa": 5.031,
+        "margin_x": 4.97,
+        "grip_at_press_N": 5.82,
+        "press_mm": 10.0,
+        "contact_y_min": 72.2,
+        "contact_y_max": 74.1
+      }
+    },
+    {
+      "shape": "box",
+      "R": 20,
+      "yc": 80,
+      "metrics": {
+        "contact_nodes": 4,
+        "contact_arc_deg": 0.0,
+        "pressure_cov": 0.28,
+        "closure_at_target": 2.5,
+        "reached_target": true,
+        "locked": false,
+        "stress_spread_frac": 0.02,
+        "engage_y_frac": 0.0,
+        "bot_third_force_frac": 1.0,
+        "mid_third_force_frac": 0.0,
+        "top_third_force_frac": 0.0,
+        "tip_inward_mm": -10.14,
+        "max_von_mises_MPa": 1.9,
+        "margin_x": 13.16,
+        "grip_at_press_N": 14.82,
+        "press_mm": 2.5,
+        "contact_y_min": 61.0,
+        "contact_y_max": 61.0
+      }
+    }
+  ]
+}

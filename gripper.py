@@ -242,24 +242,27 @@ FR_BASE_WIDTH = 22.0   # triangle base width in X
 FR_CONTACT_OFFSET = 1.0  # contact face sits this far inboard of the centreline
 FR_BASE_DROP = 9.0     # triangle base sits this far below the top pin
 FR_WALL = 2.8          # beam / rib wall thickness (uniform default)
-FR_TIP_WIDTH = 5.0     # blade width at the blunt tip
-FR_N_RIBS = 10         # number of internal ribs (all same-direction slant)
+FR_TIP_WIDTH = 2.0     # blade width at the blunt tip (sharp compliant taper)
+FR_N_RIBS = 14         # number of internal ribs (all same-direction slant)
 FR_RIB_SLANT_DEG = 38.0
+FR_RIB_DIR = -1        # rib slant direction (+1 = up-toward-spine; -1 = reversed)
 # Directional / graded wall thickness. None -> fall back to FR_WALL (the original
-# uniform behaviour). Setting *_TIP thinner than the base creates a stiffness
-# GRADIENT along the blade: a thinner SPINE toward the tip lets the contact face
-# wrap (conform) around an object instead of bending away as a stiff cantilever.
-# See fea/ITERATIONS.md for the FEA rationale.
-# FEA-optimized (fea/ITERATIONS.md "wrap-quality optimization"): a more compliant
-# contact beam, thinning base->tip, lets the contact face curve around the object
-# -> +40% wrap arc (12deg->17deg) and a gentler peak stress (margin 3.6->4.2x) at a
-# still-secure ~18 N grip. 1.2 mm tip stays >= the 2.5-perimeter FDM floor.
-FR_CONTACT_WALL = 1.8       # contact-beam wall at base (was uniform FR_WALL=2.8)
-FR_CONTACT_WALL_TIP = 1.2   # contact-beam wall at tip (compliant -> conforms/wraps)
-FR_SPINE_WALL = None        # spine-beam wall at base   (None -> FR_WALL)
-FR_SPINE_WALL_TIP = None    # spine-beam wall at tip    (None -> FR_SPINE_WALL)
-FR_RIB_WALL = None          # rib wall at base          (None -> FR_WALL)
-FR_RIB_WALL_TIP = None      # rib wall at tip           (None -> FR_RIB_WALL)
+# uniform behaviour). Per-member walls + a sharp spine taper set the finger's
+# compliance distribution.
+# UNIVERSAL-FINGER FEA result (fea/UNIVERSAL_FINGER.md): tested across a battery of
+# objects (small+large circles AND square blocks, several heights). The winner is a
+# thin compliant CONTACT beam (1.2 mm) + a sharply tapered (FR_TIP_WIDTH 2) compliant
+# SPINE (1.8 mm) + fine ribs (1.6 mm, 14 of them, reversed slant). It distributes
+# pressure far more evenly than the old finger (circle pressure-CoV 0.8->0.35), wraps
+# BOTH square sizes (88 deg, old finger wrapped only the one it was tuned for), and
+# grips every size a consistent safe ~12 N (old finger swung 7x). Universal score
+# 0.65 vs 0.56 (old). All walls >= the ~1.0 mm / 2.5-perimeter FDM-TPU floor.
+FR_CONTACT_WALL = 1.2       # contact-beam wall (thin -> conforms, even pressure)
+FR_CONTACT_WALL_TIP = 1.2   # contact-beam wall at tip
+FR_SPINE_WALL = 1.8         # spine-beam wall at base
+FR_SPINE_WALL_TIP = 1.8     # spine-beam wall at tip
+FR_RIB_WALL = 1.6           # rib wall at base
+FR_RIB_WALL_TIP = 1.6       # rib wall at tip
 FR_INSET_BASE = 4.0    # solid floor across the bottom
 FR_INSET_TIP = 3.0     # solid cap at the apex
 MOUNT_HOLE_R = PIN_R + PRINT_CLEAR   # finger pin bore (FDM clearance)
@@ -737,7 +740,7 @@ def finray_finger_closed(C0, D0, inner_dir, z0, thickness):
     # add back the slanted parallel ribs (all same slant = Fin Ray signature).
     # Rib wall may grade base->tip (thinner ribs near tip = more compliant lattice).
     slant = math.radians(FR_RIB_SLANT_DEG)
-    shear = (math.cos(slant) / math.sin(slant)) * into
+    shear = FR_RIB_DIR * (math.cos(slant) / math.sin(slant)) * into
     rwb = FR_RIB_WALL if FR_RIB_WALL is not None else FR_WALL
     rwt = FR_RIB_WALL_TIP if FR_RIB_WALL_TIP is not None else rwb
     y_rib_lo = base_y + FR_INSET_BASE

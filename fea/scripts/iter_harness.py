@@ -38,13 +38,40 @@ MESH_MIN, MESH_MAX = 0.5, 1.3
 E_TPU, NU = 40.0, 0.42
 TPU_STRENGTH = 25.0   # MPa (conservative low end) for margin
 GAP = 0.5
+OBJ_SHAPE = "circle"  # "circle" (R=R_NECK) or "box" (square, half-size=R_NECK).
+                      # A UNIVERSAL gripper must conform to non-round shapes too,
+                      # so iterations are scored on circles AND a square block.
+
+
+def obj_contact(x, cx, cy):
+    """Rigid-object penetration for penalty contact. Returns (pen, nrm, inside):
+    pen>=0 depth, nrm outward unit normal (nn,3), inside bool mask. Supports a
+    circle (radius R_NECK) or an axis-aligned square (half-size R_NECK)."""
+    if OBJ_SHAPE == "box":
+        dx = x[:, 0] - cx; dy = x[:, 1] - cy; H = R_NECK
+        qx = np.abs(dx) - H; qy = np.abs(dy) - H
+        inside = (qx < 0) & (qy < 0)
+        usex = qx >= qy                                  # nearest face is an x-face
+        pen = np.where(usex, -qx, -qy)
+        nrm = np.zeros((x.shape[0], 3))
+        sgx = np.where(dx >= 0, 1.0, -1.0); sgy = np.where(dy >= 0, 1.0, -1.0)
+        nrm[usex, 0] = sgx[usex]; nrm[~usex, 1] = sgy[~usex]
+        return np.where(inside, pen, 0.0), nrm, inside
+    dx = x[:, 0] - cx; dy = x[:, 1] - cy; rr = np.hypot(dx, dy) + 1e-9
+    pen = R_NECK - rr; inside = pen > 0
+    nrm = np.zeros((x.shape[0], 3)); nrm[:, 0] = dx / rr; nrm[:, 1] = dy / rr
+    return np.where(inside, pen, 0.0), nrm, inside
 
 # FR_* parameters the harness is allowed to vary (captured from gripper at import).
 FR_KEYS = ["FR_BLADE_LEN", "FR_BASE_WIDTH", "FR_TIP_WIDTH", "FR_WALL",
-           "FR_N_RIBS", "FR_RIB_SLANT_DEG", "FR_INSET_BASE", "FR_INSET_TIP",
+           "FR_N_RIBS", "FR_RIB_SLANT_DEG", "FR_RIB_DIR", "FR_INSET_BASE", "FR_INSET_TIP",
            "FR_CONTACT_OFFSET", "FR_BASE_DROP",
            "FR_CONTACT_WALL", "FR_CONTACT_WALL_TIP", "FR_SPINE_WALL",
            "FR_SPINE_WALL_TIP", "FR_RIB_WALL", "FR_RIB_WALL_TIP"]
+REPORT_MODE = "closure"  # "closure" -> report at PRESS_AT_REPORT; "grip" -> report
+                         # at the FIRST closure reaching TARGET_GRIP (fair across
+                         # stiff/compliant fingers: same grip force, compare the wrap).
+TARGET_GRIP = 12.0       # N -- force-targeted report level
 PRESS_AT_REPORT = 8.0   # mm -- report metrics at this CLOSURE (the user's grasp
                         # scenario). Closure is the actuator input -> fair across
                         # variants; grip force is a reported result, not controlled.
@@ -65,9 +92,13 @@ def regen_section(params, workdir):
     gen = params.pop("_gen", None)
     refR = gripper.solve_side_right(0.0)
     C, D = refR["C"], refR["D"]
-    if gen == "finray2":               # topology-R&D generator
+    if gen == "finray2":               # free-topology Fin Ray generator
         import finray2
         solid, lm_g = finray2.build(C, D, gripper.Z_FINGER0, gripper.T_FINGER, params)
+        top = solid.faces().filter_by(Axis.Z).sort_by(Axis.Z)[-1]
+    elif gen == "flexure":             # monolithic compliant flexure generator
+        import flexure_finger
+        solid, lm_g = flexure_finger.build(C, D, gripper.Z_FINGER0, gripper.T_FINGER, params)
         top = solid.faces().filter_by(Axis.Z).sort_by(Axis.Z)[-1]
     else:                              # production finger with FR_* overrides
         for k, v in _BASE_FR.items():  # reset to baseline first (clean state)
@@ -189,7 +220,18 @@ def run_fea(p2d, tris, lm, verbose=True):
 
     Ke0 = P['Ke0']; invJm = P['invJm']; edof = P['edof']; Iidx = P['I']; Jidx = P['J']
     Xvec = P['Xvec']; Ntet = P['Ntet']
-    xc0 = Xrest[:, 0].min() - R_NECK - GAP
+    # object placement: a concave-arc finger declares obj_cx so the rigid object
+    # seats CONCENTRIC with the designed arc at the report frame (cx=obj_cx at
+    # press=PRESS_AT_REPORT). Otherwise approach the finger's nearest face point.
+    if "obj_cx" in lm:
+        xc0 = lm["obj_cx"] - PRESS_AT_REPORT
+    else:
+        # place the object against the finger portion AT THE OBJECT'S HEIGHT (not the
+        # global min-x, which for a curved/pre-curved finger is the tip) so every
+        # candidate is pressed on its contact face, fairly.
+        band = np.abs(Xrest[:, 1] - YC) < max(6.0, R_NECK * 0.8)
+        mx = Xrest[band, 0].min() if band.any() else Xrest[:, 0].min()
+        xc0 = mx - R_NECK - GAP
     tipc = np.where(Xrest[:, 1] > Xrest[:, 1].max() - 1.0)[0]
     tip_node = tipc[np.argmin(np.abs(Xrest[tipc, 2] - (Z0 + Z1) / 2))]
 
@@ -207,12 +249,10 @@ def run_fea(p2d, tris, lm, verbose=True):
             Rb = np.zeros((Ntet, 12, 12))
             for k in range(4): Rb[:, 3 * k:3 * k + 3, 3 * k:3 * k + 3] = R
             Ke = np.einsum('nij,njk,nlk->nil', Rb, Ke0, Rb)
-            dx = x[:, 0] - cx; dy = x[:, 1] - cy; rr = np.hypot(dx, dy) + 1e-9
-            pen = R_NECK - rr; inside = pen > 0
+            pen, nrm, inside = obj_contact(x, cx, cy)
             f_ext = np.zeros(ndof)
             K = coo_matrix((Ke.reshape(-1), (Iidx, Jidx)), shape=(ndof, ndof)).tocsr()
             if np.any(inside):
-                nrm = np.zeros((nn, 3)); nrm[:, 0] = dx / rr; nrm[:, 1] = dy / rr
                 fc = (KPEN * pen)[:, None] * nrm; fc[~inside] = 0
                 f_ext[0::3] += fc[:, 0]; f_ext[1::3] += fc[:, 1]
                 ii = np.where(inside)[0]; rows = []; cols = []; vals = []
@@ -239,18 +279,21 @@ def run_fea(p2d, tris, lm, verbose=True):
         nodal = np.zeros(nn); cnt = np.zeros(nn)
         np.add.at(nodal, tets.reshape(-1), np.repeat(vm, 4)); np.add.at(cnt, tets.reshape(-1), 1)
         nodal /= np.maximum(cnt, 1)
-        dx = x[:, 0] - cx; dy = x[:, 1] - cy; rr = np.hypot(dx, dy) + 1e-9
-        pen = R_NECK - rr; inside = pen > 0
-        gfx = float(np.sum((KPEN * pen[inside]) * (dx[inside] / rr[inside]))) if inside.any() else 0.0
+        pen, nrm, inside = obj_contact(x, cx, cy)
+        gfx = float(np.sum(KPEN * pen[inside] * nrm[inside, 0])) if inside.any() else 0.0
         cf = np.zeros(nn); cf[inside] = KPEN * pen[inside]
         frames.append(x.astype(np.float32)); vms_frames.append(nodal.astype(np.float32))
         cforce_list.append(cf.astype(np.float32)); vmtet_list.append(vm.astype(np.float32))
         grip.append(abs(gfx)); press_hist.append(press)
         if verbose:
             print(f"  step {s:2d}/{NSTEPS} press={press:5.2f} it={it+1} grip={abs(gfx):6.2f}N vmmax={nodal.max():.2f}", flush=True)
-    # frame at the report closure (fair grasp condition = same actuator input)
+    # report frame: force-targeted (first closure reaching TARGET_GRIP) or fixed closure
     grip_arr = np.array(grip)
-    tgt = int(np.argmin(np.abs(np.array(press_hist) - PRESS_AT_REPORT)))
+    if REPORT_MODE == "grip":
+        idx = np.where(grip_arr >= TARGET_GRIP)[0]
+        tgt = int(idx[0]) if len(idx) else int(np.argmax(grip_arr))
+    else:
+        tgt = int(np.argmin(np.abs(np.array(press_hist) - PRESS_AT_REPORT)))
     return dict(rest=Xrest, tets=tets, frames=np.array(frames), vms=np.array(vms_frames),
                 grip=grip_arr, press=np.array(press_hist), N2=N2, nlayers=NLAYERS,
                 yc=YC, R_neck=R_NECK, xc0=xc0, tip_node=tip_node,
@@ -285,9 +328,16 @@ def metrics(sol):
         pcov = float(fk.std() / (fk.mean() + 1e-12))
     else:
         contact_arc = 0.0; pcov = 0.0
+    closure = float(sol['press'][tgt])
+    # "locked" = the structure blew past target grip without graceful compliance and
+    # is over-stressed -> a rigid jaw that crushes, not a gripper that conforms.
+    locked = bool(maxvm > 0 and margin < 1.5 and g > 1.6 * TARGET_GRIP)
     return dict(contact_nodes=int(inside.sum()),
                 contact_arc_deg=round(contact_arc, 1),
                 pressure_cov=round(pcov, 2),
+                closure_at_target=round(closure, 2),
+                reached_target=bool(g >= 0.9 * TARGET_GRIP),
+                locked=locked,
                 stress_spread_frac=round(spread, 3),
                 engage_y_frac=round(engage, 3),
                 bot_third_force_frac=round(float(bot), 3),
@@ -345,9 +395,11 @@ def plot_all(sol, m, outdir, title):
 
 # ----------------------------------------------------------------- main
 def main():
-    global YC, R_NECK
+    global YC, R_NECK, OBJ_SHAPE
     name = sys.argv[1]; params = json.loads(sys.argv[2]) if len(sys.argv) > 2 else {}
-    if "_R" in params:              # optional object-radius override (scenario test)
+    if "_shape" in params:          # "circle" | "box" (universality test)
+        OBJ_SHAPE = str(params.pop("_shape")); print(f"[{name}] OBJ_SHAPE = {OBJ_SHAPE}")
+    if "_R" in params:              # optional object-radius/half-size override
         R_NECK = float(params.pop("_R")); print(f"[{name}] R_NECK override = {R_NECK}")
     if len(sys.argv) > 3:            # optional override of the neck-centre y (scenario test)
         YC = float(sys.argv[3]); print(f"[{name}] YC override = {YC}")
@@ -362,7 +414,8 @@ def main():
     np.savez_compressed(os.path.join(outdir, "fea3d_solution.npz"),
                         rest=sol['rest'], tets=sol['tets'].astype(np.int32),
                         frames=sol['frames'], vms=sol['vms'], grip=sol['grip'],
-                        press=sol['press'])
+                        press=sol['press'], xc0=sol['xc0'], yc=YC, R_neck=R_NECK,
+                        obj_shape=OBJ_SHAPE)
     json.dump({k: getattr(gripper, k) for k in FR_KEYS},
               open(os.path.join(outdir, "params.json"), "w"), indent=2)
     json.dump(m, open(os.path.join(outdir, "metrics.json"), "w"), indent=2)

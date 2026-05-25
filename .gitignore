@@ -7,3 +7,8 @@ fea_pull/
 render_bundle.tar.gz
 fea_work/
 render_bundle/
+
+# FEA iteration scratch — large/regenerable (keep eval.json/metrics.json + renders)
+fea/iterations/**/*.npz
+fea/iterations/**/section.step
+fea/iterations/_*.log

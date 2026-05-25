@@ -1,9 +1,22 @@
 # Fin Ray finger — design-iteration log (FEA-driven)
 
-Goal: make the grasp load **distribute across the whole finger** and make the
-**top of the finger morph over the object** (wrap), instead of all the load sitting
-in the lower-mid ribs while the tip stays straight and unloaded (the problem in the
-first 3D FEA, `fea/fea3d/wrap_stages.png`).
+> ## ➡️ SUPERSEDED BY THE UNIVERSAL-FINGER STUDY — read `fea/UNIVERSAL_FINGER.md`
+> The iterations below optimised wrap/pressure against **one** object (the R=22
+> cylinder). That over-fits — a real gripper must work on **every shape and size**.
+> A later study added a **square object + a size/height battery** and a **universal
+> scorer** (`fea/scripts/eval_finger.py`), mass-iterated **two finger families**
+> (Fin Ray truss + monolithic flexure) with an **agent swarm** (~90 FEA runs), and
+> shipped a finger that distributes pressure across the whole finger on flat/large
+> objects and grips round ones safely + evenly across sizes. Key results: the
+> flexure family is structurally unstable on round objects (ruled out); a passive
+> single-piece finger cannot actively curl around a small *round* object without a
+> tendon (which the underwater/no-maintenance goal forbids). The shipped `gripper.py`
+> `FR_*` values come from that study, not from the single-object tuning below.
+
+Goal (original, single-object): make the grasp load **distribute across the whole
+finger** and make the **top of the finger morph over the object** (wrap), instead of
+all the load sitting in the lower-mid ribs while the tip stays straight and unloaded
+(the problem in the first 3D FEA, `fea/fea3d/wrap_stages.png`).
 
 Each iteration changes **one geometry lever** on the real `gripper.py` Fin Ray
 finger, re-runs a high-quality 3D FEA, and is committed + pushed with its data,

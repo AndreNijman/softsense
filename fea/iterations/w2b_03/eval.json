@@ -1,0 +1,94 @@
+{
+  "name": "w2b_03",
+  "gen": "finray2",
+  "mode": "screen",
+  "params": {
+    "n_ribs": 14,
+    "t_rib": 1.6,
+    "t_contact": 1.0,
+    "t_spine": 1.8,
+    "rib_angle_deg": 38,
+    "rib_dir": -1
+  },
+  "score": 0.6449,
+  "base": 0.6449,
+  "grip_incon": 0.065,
+  "n_nodes": 467,
+  "objects": [
+    {
+      "shape": "circle",
+      "R": 12,
+      "yc": 80,
+      "metrics": {
+        "contact_nodes": 5,
+        "contact_arc_deg": 11.2,
+        "pressure_cov": 0.6,
+        "closure_at_target": 10.0,
+        "reached_target": true,
+        "locked": false,
+        "stress_spread_frac": 0.116,
+        "engage_y_frac": 0.026,
+        "bot_third_force_frac": 0.0,
+        "mid_third_force_frac": 1.0,
+        "top_third_force_frac": 0.0,
+        "tip_inward_mm": -9.98,
+        "max_von_mises_MPa": 4.794,
+        "margin_x": 5.21,
+        "grip_at_press_N": 12.71,
+        "press_mm": 10.0,
+        "contact_y_min": 75.7,
+        "contact_y_max": 78.0
+      }
+    },
+    {
+      "shape": "circle",
+      "R": 30,
+      "yc": 80,
+      "metrics": {
+        "contact_nodes": 11,
+        "contact_arc_deg": 9.0,
+        "pressure_cov": 0.56,
+        "closure_at_target": 9.17,
+        "reached_target": true,
+        "locked": false,
+        "stress_spread_frac": 0.104,
+        "engage_y_frac": 0.052,
+        "bot_third_force_frac": 0.0,
+        "mid_third_force_frac": 1.0,
+        "top_third_force_frac": 0.0,
+        "tip_inward_mm": -8.61,
+        "max_von_mises_MPa": 4.772,
+        "margin_x": 5.24,
+        "grip_at_press_N": 12.91,
+        "press_mm": 9.17,
+        "contact_y_min": 73.3,
+        "contact_y_max": 78.0
+      }
+    },
+    {
+      "shape": "box",
+      "R": 20,
+      "yc": 80,
+      "metrics": {
+        "contact_nodes": 8,
+        "contact_arc_deg": 86.7,
+        "pressure_cov": 1.05,
+        "closure_at_target": 5.0,
+        "reached_target": true,
+        "locked": false,
+        "stress_spread_frac": 0.062,
+        "engage_y_frac": 0.419,
+        "bot_third_force_frac": 0.984,
+        "mid_third_force_frac": 0.0,
+        "top_third_force_frac": 0.016,
+        "tip_inward_mm": -4.02,
+        "max_von_mises_MPa": 4.749,
+        "margin_x": 5.26,
+        "grip_at_press_N": 14.65,
+        "press_mm": 5.0,
+        "contact_y_min": 61.5,
+        "contact_y_max": 99.3
+      }
+    }
+  ]
+}

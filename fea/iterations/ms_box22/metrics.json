@@ -1,0 +1,17 @@
+{
+  "contact_nodes": 10,
+  "contact_arc_deg": 89.6,
+  "pressure_cov": 1.33,
+  "stress_spread_frac": 0.028,
+  "engage_y_frac": 0.489,
+  "bot_third_force_frac": 0.976,
+  "mid_third_force_frac": 0.0,
+  "top_third_force_frac": 0.024,
+  "tip_inward_mm": -6.81,
+  "max_von_mises_MPa": 11.775,
+  "margin_x": 2.12,
+  "grip_at_press_N": 47.87,
+  "press_mm": 7.92,
+  "contact_y_min": 58.5,
+  "contact_y_max": 102.5
+}
