@@ -60,6 +60,7 @@ guidance is in `UNDERWATER.md`.
 
 | File | What it is |
 |---|---|
+| **`TESTING_AND_SIMULATION.md`** | **How we tested & simulated everything** — in-depth, judge-facing account of every simulation (finger FEA + grip-texture model), the physics/numerics inside each, what they prove, fidelity honesty, and exact reproduce commands. Start here for "how do you know it works?". |
 | `gripper.py` | Parametric build123d generator + four-bar solver + Fin Ray finger + enclosure (source of truth). Env vars: `GRIPPER_OPEN` = 0…1 (pose), `GRIPPER_FINGER_SCALE` = 0.6…2.5 (finger size). |
 | `gripper_interactive.step` + `.gripper_interactive.step.js` | **Interactive** — drag the `open` slider to rotate the shaft live in CAD Explorer. |
 | `gripper_closed/mid/open.step` | Static poses at open = 0 / 0.5 / 1. |
