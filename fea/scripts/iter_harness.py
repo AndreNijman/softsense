@@ -28,7 +28,8 @@ from scipy.sparse.linalg import spsolve
 # the default NumPy/SciPy CPU path runs UNCHANGED. The CPU run_fea is never altered;
 # the GPU path is a separate mirror (_run_fea_gpu) so the validated CPU results stand.
 _np = np
-_WANT_GPU = os.environ.get("GRIPPER_FEA_GPU", "0") == "1"
+# .strip()/lower so a stray trailing space (cmd.exe `set VAR=1 &&` quirk) still works
+_WANT_GPU = os.environ.get("GRIPPER_FEA_GPU", "0").strip().lower() in ("1", "true", "yes", "on")
 GPU = False
 if _WANT_GPU:
     try:
