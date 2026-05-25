@@ -35,8 +35,12 @@ KPEN = 2000.0
 NLAYERS = 3
 Z0, Z1 = 13.0, 23.0
 MESH_MIN, MESH_MAX = 0.5, 1.3
+# Material = eSUN eTPU-95A (the selected filament). eSUN TDS: tensile strength 35 MPa
+# (injection-molded) -> ~25 MPa printed (typical FDM derate); modulus NOT published by
+# eSUN, so E=40 MPa is an estimate (margins are modulus-insensitive at force-targeted
+# reporting -- see PRINT_PROFILE_P1S_TPU.md / fea sensitivity E=30/40/60). nu~0.42 (TPU).
 E_TPU, NU = 40.0, 0.42
-TPU_STRENGTH = 25.0   # MPa (conservative low end) for margin
+TPU_STRENGTH = 25.0   # MPa -- eSUN eTPU-95A printed strength (35 MPa IM derated); margin basis
 GAP = 0.5
 OBJ_SHAPE = "circle"  # "circle" (R=R_NECK) or "box" (square, half-size=R_NECK).
                       # A UNIVERSAL gripper must conform to non-round shapes too,

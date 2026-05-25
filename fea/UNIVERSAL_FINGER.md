@@ -94,8 +94,7 @@ evenly, fool-proof, single TPU print.**
 
 ## 5. Shipped finger
 
-Winner of the search (`finray2` config, full-battery universal score **0.65** vs the
-production finger's **0.56**):
+Winning geometry from the search:
 
 ```
 n_ribs 14, rib_angle 38°, rib_dir -1 (reversed slant),
@@ -105,26 +104,40 @@ t_contact 1.2, t_spine 1.8, t_rib 1.6,  spine tip width 2 (sharp taper)
 Ported into `gripper.py` as `FR_N_RIBS=14`, `FR_RIB_DIR=-1`, `FR_TIP_WIDTH=2`,
 `FR_CONTACT_WALL=1.2`, `FR_SPINE_WALL=1.8`, `FR_RIB_WALL=1.6` (uniform). Verified:
 both fingers build as valid solids, **zero finger-finger interference** at the closed
-pose, four-bar closure unchanged, and the ported finger reproduces the FEA win
-(the friction grip-teeth cost a little vs the bare `finray2` shape).
+pose, four-bar closure unchanged.
 
-### Full-battery comparison (per object, at equal 12 N grip)
+**Three universal scores — read them carefully (honest):**
+- **0.559** — old production finger (full battery, with grip teeth).
+- **0.652** — the FEA-optimised *bare* geometry (`finray2`, **no grip teeth**) — the
+  search ceiling.
+- **0.584** — the **as-shipped `gripper.py` finger**: the winning geometry **plus the
+  friction grip-teeth** (which objects need so they don't slip), in **eSUN eTPU-95A**,
+  full 7-object battery (`FULL_esun`). The teeth cost ~0.07 vs the bare shape — they
+  add contact-pressure unevenness on round objects — but they're required for grip.
 
-| object | old arc / cov | **new arc / cov** | what changed |
+So the honest manufacturable gain is **0.559 → 0.584 (+4.5 %)** in aggregate. That
+understates the real fix, which is in the *failure modes* (below), not the average.
+
+### Full-battery comparison — as-shipped finger (with teeth), at equal 12 N grip
+
+| object | old (w7) arc / cov | **shipped (new) arc / cov** | change |
 |---|---|---|---|
-| circle Ø24 (R12) | 2° / 0.45 | **6° / 0.43** | more contact, even |
-| circle Ø44 (R22) | 7° / 0.74 | **13° / 0.67** | ~2× contact |
-| circle Ø70 (R35) | 11° / 0.68 | **17° / 0.80** | more contact |
-| **square 28 mm** | **1° / 0.83** | **88° / 0.81** | **now wraps it** |
-| square 44 mm | 88° / 1.23 | 88° / 1.01 | wraps, more even |
-| Ø44 low (y64) | 6° / 0.64 | **13° / 0.39** | 2× contact, much more even |
-| Ø44 high (y94) | 10° / 0.79 | 4° / 0.41 | softer at the tip, even |
-| **universal score** | **0.559** | **0.652** | **+17 %** |
+| circle Ø24 (R12) | 2° / 0.45 | 2° / 0.71 | similar contact; teeth raise cov |
+| circle Ø44 (R22) | 7° / 0.74 | **17° / 0.84** | ~2.5× contact arc |
+| circle Ø70 (R35) | 11° / 0.68 | 21° / 1.12 | ~2× arc, but less even |
+| **square 28 mm** | **1° / 0.83** | **87° / 0.98** | **now wraps it (was a near-miss)** |
+| square 44 mm | 88° / 1.23 | 87° / 1.00 | wraps, more even |
+| Ø44 low (y64) | 6° / 0.64 | 17° / 0.77 | ~2.5× contact arc |
+| Ø44 high (y94) | 10° / 0.79 | 6° / 0.76 | softer at the tip |
+| **universal score** | **0.559** | **0.584** | **+4.5 %** |
 
-The standout: the old finger only wrapped the **one** square size it happened to suit
-(44 mm: 88°; 28 mm: 1°). The new finger wraps **both** (88° each), roughly doubles
-contact on every cylinder, and grips every size a consistent safe ~12 N — where the
-old finger's grip swung 7× with object position. All von-Mises margins stay 6–9×.
+The real, robust wins (not the aggregate): the old finger only wrapped the **one**
+square size it suited (44 mm: 88°; 28 mm: **1°**); the new finger wraps **both** square
+sizes (≈87°), gives ~2–2.5× the contact arc on every cylinder, and grips every size a
+consistent safe ~12 N — where the **old finger's grip swung 7×** with object position.
+On round objects the new finger makes more contact but the grip-teeth keep
+pressure-evenness mixed (higher cov) — round-object *even wrap* is still the physics
+ceiling (§4). All von-Mises margins stay **5.7–8.6×** (eSUN printed strength 25 MPa).
 
 ### What changed on the part
 
@@ -135,7 +148,7 @@ old finger's grip swung 7× with object position. All von-Mises margins stay 6�
 | ribs | 10 × 2.8 mm | **14 × 1.6 mm** | finer, softer truss spreads load |
 | tip width | 5 mm | **2 mm** | sharp taper → soft conforming tip |
 | rib slant dir | +1 | **−1** (new `FR_RIB_DIR`) | the direction that distributes best in FEA |
-| **universal score** | **0.56** | **0.65** | **+17 % across the shape/size battery** |
+| **universal score (as shipped, with teeth)** | **0.559** | **0.584** | **+4.5 %** (bare geometry alone reaches 0.652) |
 
 ---
 

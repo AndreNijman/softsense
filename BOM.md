@@ -44,8 +44,8 @@ build — see note below the table.
 | `input_pinion_shaft` | 1 | **PA12-GF** | PETG-HF | ~8–12 g | ONE printed part: spur input pinion + vertical shaft + integral capture collar + bottom D-profile coupler (r 5.0, D-flat depth 1.4, length 12 mm). Axis vertical (exits the housing bottom). Two journal bearings in the housing (upper 2 mm, lower 7 mm); collar (OD 5.8 mm) trapped in a housing pocket between the two bore-mouth shoulders for axial capture (zero hardware). Print shaft-axis vertical for a self-supporting cylinder. |
 | `follower_R` | 1 | **PA12-GF** | PETG-HF | ~6–9 g | Right B→D link bar. Counterbored D-eye exit (−Z face) for `pin_D_R` geometric capture. Flat plate; prints face-down. |
 | `follower_L` | 1 | **PA12-GF** | PETG-HF | ~6–9 g | Left B→D link bar. Counterbored D-eye exit (−Z face) for `pin_D_L`. Same geometry as `follower_R` (mirrored in gen_step). |
-| `finger_R` | 1 | **Ether-based TPU ~95A** — NOT ester-based | TPU | ~25–35 g | Right Fin Ray compliant jaw. Grip ridges on contact face; internal slanted-rib truss; mount holes at C_R and D_R. Must flex — print in TPU only. |
-| `finger_L` | 1 | **Ether-based TPU ~95A** | TPU | ~25–35 g | Left Fin Ray compliant jaw (chiral mirror of `finger_R`). |
+| `finger_R` | 1 | **eSUN eTPU-95A** (ether/polyether ~95A — NOT ester) | TPU | ~30 g (ρ 1.21) | Right Fin Ray compliant jaw. Grip ridges on contact face; internal slanted-rib truss; mount holes at C_R and D_R. Must flex — print in TPU only. Print profile: `PRINT_PROFILE_P1S_TPU.md`. |
+| `finger_L` | 1 | **eSUN eTPU-95A** (ether/polyether ~95A) | TPU | ~30 g (ρ 1.21) | Left Fin Ray compliant jaw (chiral mirror of `finger_R`). |
 | `pin_A_R` | 1 | **PA12-GF** | PETG-HF | ~1–2 g | **Axle dowel** for right drive-arm pivot (A_R). Plain head + shank + narrow pilot tip. No barb — rigid geometric sandwich (head vs cover boss; shoulder vs stepped bore step). |
 | `pin_A_L` | 1 | **PA12-GF** | PETG-HF | ~1–2 g | **Axle dowel** for left drive-arm pivot (A_L). Same geometry as `pin_A_R`. Added because `drive_arm_L` no longer carries an integral horizontal shaft — it now rides on this snap-pin axle like the other arms. |
 | `pin_B_R` | 1 | **PA12-GF** | PETG-HF | ~1–2 g | **Axle dowel** for right follower pivot. Same geometry as `pin_A_R`. |
@@ -120,10 +120,15 @@ exits below the link eye.
   load. **Never TPU for any pin** (creeps under sustained load, wallows bores,
   loses snap retention).
 
-- **Fingers → ether-based TPU ~95A.** The Fin Ray grip principle is material
-  compliance — the fingers must flex to wrap around an object. **Ether-based**
-  TPU is hydrolysis-stable in sustained/warm immersion. **Ester-based TPU
-  hydrolyzes** and crumbles underwater — exclude it entirely. 95A shore
+- **Fingers → ether-based TPU ~95A; selected filament eSUN eTPU-95A.** The Fin Ray
+  grip principle is material compliance — the fingers must flex to wrap an object.
+  **Ether-based** TPU is hydrolysis-stable in sustained/warm immersion. **Ester-based
+  TPU hydrolyzes** and crumbles underwater — exclude it entirely. *eSUN eTPU-95A is
+  marketed with good hydrolysis/weather resistance (the polyether trait) so it reads
+  as a suitable polyether grade; eSUN does not state the polyol chemistry on its TDS,
+  so confirm polyether or soak-test for mission-critical immersion.* TDS: density
+  1.21 g/cm³, tensile strength 35 MPa (injection-molded; ~25 MPa printed), ≥800 %
+  elongation. Print profile + FEA validation: `PRINT_PROFILE_P1S_TPU.md`. 95A shore
   balances conformance with grip force; softer (85A) for delicate objects,
   stiffer (98A) for more grip force.
 

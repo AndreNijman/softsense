@@ -230,7 +230,11 @@ tendons / springs / pin-joints are corrosion + fouling + maintenance, which the
 **underwater + fool-proof** goal explicitly forbids. So the achievable universal
 answer is: **one geometry that distributes pressure across the whole finger on
 flat/large objects and grips round ones safely and evenly across sizes**, fool-proof,
-single TPU print — which is what shipped (0.65 vs 0.56).
+single TPU print. Scores (full battery): old production **0.559**; bare optimised
+geometry **0.652** (search ceiling, no grip teeth); **as-shipped finger with friction
+grip-teeth in eSUN eTPU-95A: 0.584** (`FULL_esun`) — the teeth cost ~0.07 but are
+needed for grip. Aggregate gain +4.5 %; the real win is the fixed failure modes
+(both square sizes now wrap; grip no longer swings 7× with object position).
 
 ---
 

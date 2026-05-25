@@ -17,6 +17,7 @@ from matplotlib.animation import FuncAnimation, PillowWriter
 
 R_NECK, YC, GAP = 22.0, 80.0, 0.5
 OBJ_COLOR = "#5a7d99"
+MATERIAL = "Material: eSUN eTPU-95A (ether ~95A)   FEA E≈40 MPa, σ_print≈25 MPa, ν=0.42"
 PRESS_AT = 8.0
 GRIP_TARGET = 12.0   # render the grasp at EQUAL grip force (fair across stiff/soft
                      # fingers) -- a soft finger needs more closure to reach it.
@@ -105,6 +106,7 @@ def render_one(d):
     _draw(ax, S, i, f"{name}\n{statline(S)}", S["vmax"])
     cb = fig.colorbar(sm, ax=ax, fraction=0.045, pad=0.02); cb.set_label("von Mises (MPa)", fontsize=7)
     cb.ax.tick_params(labelsize=6)
+    fig.text(0.5, 0.005, MATERIAL, ha="center", fontsize=6, color="#555")
     fig.savefig(os.path.join(d, "wrap_render.png"), bbox_inches="tight"); plt.close(fig)
     # closing animation
     fig, ax = plt.subplots(figsize=(4.2, 7.0), dpi=110)
@@ -127,6 +129,7 @@ def render_compare(outdir, dirs):
     for ax, d, (nm, S) in zip(axs, dirs, Ss):
         i = S["op"]; _draw(ax, S, i, f"{nm}\n{statline(S)}", vmax)
     fig.colorbar(sm, ax=axs, fraction=0.012, pad=0.01, label="von Mises (MPa)")
+    fig.text(0.5, 0.01, MATERIAL, ha="center", fontsize=7, color="#555")
     fig.savefig(os.path.join(outdir, "compare.png"), bbox_inches="tight"); plt.close(fig)
     # animation: all close together
     fig, axs = plt.subplots(1, n, figsize=(3.0 * n, 6.5), dpi=100)

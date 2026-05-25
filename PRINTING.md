@@ -243,6 +243,11 @@ brim on the snap pins and enclosure for adhesion.
 
 ### 3. TPU ether-based — ~95A Shore (fingers, final material)
 
+> **Selected filament: eSUN eTPU-95A on a Bambu Lab P1S (0.4 mm hardened nozzle).**
+> For the complete, importable Bambu Studio profiles (filament + process) and every
+> setting with rationale, see **`PRINT_PROFILE_P1S_TPU.md`**. The section below is the
+> general (slicer-agnostic) TPU guidance.
+
 The Fin Ray fingers are the compliance elements of the grip. They must flex
 repeatedly without fatigue cracking. Use **ether-based** TPU (not ester-based) —
 ether-based grades resist hydrolysis in seawater; ester-based grades degrade.
