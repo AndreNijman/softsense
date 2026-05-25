@@ -17,7 +17,7 @@ STL mesh tolerance: `0.05 mm` (linear), `0.1` (angular). Each part is translated
 | `snap_pin_axle.step`/`.stl` | 4 | yes | PETG | 7.8 x 7.8 x 20.8 | pin_A_R, pin_B_R, pin_A_L, pin_B_L | stand HEAD DOWN with the pin AXIS VERTICAL (barb tip up); no supports -- the split barb prints as a self-supporting cone and springs out past the far bore face to lock. |
 | `snap_pin_finger.step`/`.stl` | 4 | yes | PETG | 7.8 x 7.8 x 26.8 | pin_C_R, pin_D_R, pin_C_L, pin_D_L | stand HEAD DOWN with the pin AXIS VERTICAL (barb tip up); no supports -- the split barb prints as a self-supporting cone and springs out past the far bore face to lock. |
 | `front_cover.step`/`.stl` | 1 | yes | PETG / Nylon | 100.8 x 36.0 x 23.5 | front_cover | outer face DOWN on the bed, snap clips pointing UP; the clips print as unsupported cantilevers off the inner face -- no supports needed. |
-| `input_pinion_shaft.step`/`.stl` | 1 | yes | PA12-GF | 11.6 x 33.0 x 11.6 | input_pinion_shaft | print shaft-axis VERTICAL: rotate 90 about X so the shaft stands up; D-coupler/shoulder end DOWN on the bed (r=5.0mm, wider base), pinion teeth UP. Shaft cylinder = self-supporting rings. Collar mid-shaft bridges ~1.8mm radially (1-2 layers). SUPPORTLESS. |
+| `input_pinion_shaft.step`/`.stl` | 1 | yes | PA12-GF | 11.6 x 35.0 x 11.6 | input_pinion_shaft | print shaft-axis VERTICAL: rotate 90 about X so the shaft stands up; D-coupler/shoulder end DOWN on the bed (r=5.0mm, wider base), pinion teeth UP. Shaft cylinder = self-supporting rings. Collar mid-shaft bridges ~1.8mm radially (1-2 layers). SUPPORTLESS. |
 
 ## Notes
 

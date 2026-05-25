@@ -50,7 +50,8 @@ The only architecture that delivers **position *and* force on a single bus** wit
 no external sensor, no separate driver, and a **clean torque estimate held at
 stall** — the literal embodiment of the motor-current force-sensing pivot (the
 Robotiq principle). It is IP68 (body) and clears the ≥ 1.2 N·m continuous floor
-(≈ 1.9 N·m) with stall headroom (9.5 N·m). `present_current` at 2.69 mA/unit
+(≈ 1.9 N·m); its 9.5 N·m stall is **far above the drivetrain's safe torque**, so it
+must be current-limited (§Forward, `DRIVETRAIN.md`). `present_current` at 2.69 mA/unit
 resolves ≈ 0.005 N·m at the servo (S2 with margin) at ~100–200 Hz over RS-485
 (S3) — R10 satisfied outright.
 
@@ -113,10 +114,15 @@ adapter horn — is in scope.**
 
 ## Forward
 
-Phase 4 (`DRIVETRAIN.md`) re-checks the crown/pinion + sector-gear ratio against
-the **selected servo's torque/stall** and runs a **gear FEA at the motor stall
-torque** (does the printed mesh survive a commanded-limit fault?). Sensing
-(`SENSING.md`) builds the current→force model on the resulting drivetrain.
+Phase 4 (`DRIVETRAIN.md`) re-checked the crown/pinion + sector-gear ratio against
+the selected servo and ran a **gear FEA**. **Finding that updates the margin claim:**
+the printed crown/pinion is the gripper's binding structural limit — safe input
+torque **T_safe ≈ 0.03 N·m as-shipped, ≈ 0.4 N·m at the proposed re-size** — far
+below both servos' stall (XW540 9.5 N·m ≈ 12–280× T_safe; STS3215 2.94 N·m). So the
+"stall headroom" above is *not* free headroom: **the firmware current limit is the
+gear-protection mechanism, mandatory on both servos** ("one decision, two ESC
+profiles"). The ratio stays 2.667:1 (the STS3215 floor). Sensing (`SENSING.md`)
+builds the current→force model on this drivetrain.
 
 > **Rank-only caveat (carried from `grip/GRIP_MODEL.md`).** This selection ranks
 > actuators on sourced specs + judged scores; it does not certify an absolute

@@ -148,7 +148,11 @@ SHAFT_R = 4.0         # vertical input-shaft radius
 # the spur gears elsewhere in this model.
 CROWN_RC = 8.0        # crown-gear pitch radius on the A_L gear face
 CROWN_Z = (6.0, 9.0)  # crown ring model-Z span (sits on the A_L gear +Z face)
-CROWN_TOOTH_H = 1.6   # crown tooth RADIAL band half-width about the pitch circle
+CROWN_TOOTH_H = 3.0   # crown tooth RADIAL band half-width about the pitch circle
+                      # (raised 1.6->3.0 in the Phase-4 drivetrain restructure: the
+                      # radial band IS the crown tooth's load-bearing FACE WIDTH in
+                      # bending, so widening it ~halves root stress. See motor/DRIVETRAIN.md
+                      # gear FEA. Pitch radius CROWN_RC is unchanged -> mesh ratio intact.)
 CROWN_FACE_H = 2.8    # crown tooth AXIAL proud height (teeth stand this far in +Z
                       # from CROWN_Z[1] downward; the rest of the band is solid base).
                       # Tall teeth + deep MESH_DEPTH -> the pinion tips sit well down
@@ -157,7 +161,11 @@ CROWN_TEETH = 24      # crown face-tooth count (representative)
 PINION_RP = 3.0       # input-pinion pitch radius
 PINION_TEETH = 9      # pinion tooth count (representative; ratio CROWN/PINION)
 PINION_TOOTH_H = 1.6
-PINION_T = 4.0        # pinion thickness along its axis (model Y)
+PINION_T = 8.0        # pinion thickness along its axis (model Y)
+                      # (raised 4.0->8.0 in the Phase-4 restructure: pinion face width
+                      # is the safe strength lever -- root bending stress scales 1/face.
+                      # Pitch radius PINION_RP unchanged -> mesh ratio intact. See
+                      # motor/DRIVETRAIN.md; clearance re-verified by the interference check.)
 PINION_TIP = PINION_RP + 0.45 * PINION_TOOTH_H   # pinion tooth-tip radius
 MESH_DEPTH = 2.2      # how far the pinion tips dip into the crown teeth (deep enough
                       # that the tip sits in the valley with flank contact, not a graze)

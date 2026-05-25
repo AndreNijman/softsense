@@ -99,12 +99,27 @@ Keeps the subsea-sponsor narrative; is the genuine #2 at T2.
 - **(3) Re-cut `SHAFT_COUPLER_*` to a different profile —** not adopted; no
   selected actuator requires it.
 
-## D10 — Gear ratio retune: deferred to Phase 4 pending the gear FEA
-The selected servo torque (XW540 cont 1.9 / stall 9.5 N·m; STS3215 stall 2.94)
-vs the current 2.667:1 ratio is analysed in `DRIVETRAIN.md`, including a **gear
-FEA at motor stall torque** (does the printed crown/pinion + sector mesh survive
-a commanded-limit fault?). The ratio/teeth/module change (if any) is justified
-there, then `gripper.py` constants are updated and deliverables re-exported.
+## D10 — Gear FEA: the crown/pinion is the gripper's structural limit
+`DRIVETRAIN.md` / `gear_fea.py`. **Ratio KEPT at 2.667:1** (the STS3215 budget
+servo is the floor; dropping it loses 12 N at the tip). The FEA finding dominates
+Phase 4: the printed crown/pinion is grossly under-sized for the torque a 12 N grip
+needs (working ≈ 0.94 N·m at η 0.5; F_contact ≈ 313 N). Safe input torque
+**T_safe ≈ 0.02 N·m as-was**.
+
+- **D10-a — implemented + build-verified:** face-width strengthening
+  `PINION_T 4→8`, `CROWN_TOOTH_H 1.6→3.0` (pitch radii / four-bar untouched).
+  `check_drivetrain.py` → no new collisions; self-check unchanged. **T_safe → 0.034 N·m**
+  (helps ~1.7×, still ≪ working — face width alone is insufficient).
+- **D10-b — proposed, NOT implemented (needs CAD-render clearance validation):**
+  full module/radius re-size CROWN_RC 8→11, module 0.67→1.83, teeth 24/9→12/6, face 8
+  (i_g→2.0 as a by-product). **T_safe ≈ 0.40 N·m (realistic ~0.80)** → ~5–9 N safe
+  grip. Specified, not silently written (same rule as D9).
+- **Consequence:** T_safe is the **firmware current-limit ceiling** (the sensing
+  pivot is the gear protection); both servos' stall ≫ T_safe → current limit
+  mandatory on both. The compact right-angle stage caps grip below the finger's
+  12 N — a key campaign finding, and the structural argument for the magnetic-
+  coupling fallback (pole-slip torque scales with coupling diameter, not housing
+  radius). Deliverables re-exported (`export_parts.py`).
 
 ---
 
