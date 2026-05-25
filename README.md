@@ -29,12 +29,18 @@ the fingertips).
 
 ## Fin Ray fingers (TPU)
 
-Each finger is a compliant triangular truss — a near-straight contact beam, a
-slanting spine, joined by a row of **same-direction slanted ribs** with hollow
-cells. That asymmetric rib geometry is what makes the tip curl toward and
-conform around an object when the contact face is loaded. The contact face has
-**fine friction ridges** (≈2.2 mm pitch) so grasped objects don't slip. Printed
-in flexible **TPU** (ether-based for sustained immersion — see `UNDERWATER.md`).
+Each finger is a compliant triangular truss — a thin contact beam, a sharply
+tapered compliant spine, joined by a row of **same-direction slanted ribs** with
+hollow cells. The geometry (thin 1.2 mm contact beam, 1.8 mm spine, 14 fine
+1.6 mm reversed-slant ribs, sharp tip) was chosen by **multi-shape FEA** to grasp
+**universally** — it distributes contact pressure along the whole finger on
+flat/large objects and grips round objects safely and evenly across a wide size
+range (see `fea/UNIVERSAL_FINGER.md`). The contact face has **fine friction
+ridges** (≈2.2 mm pitch) so grasped objects don't slip. Printed in flexible
+**TPU** (ether-based for sustained immersion — see `UNDERWATER.md`). Note: a
+passive single-piece finger conforms to flat faces but cannot fully *curl around*
+a small round cylinder without an active tendon — see the ceiling discussion in
+`fea/DECISION_LOG.md` §10.
 
 ## Enclosure (flooded, underwater)
 
@@ -58,6 +64,9 @@ guidance is in `UNDERWATER.md`.
 | `gripper_hero_open.png`, `gripper_hero_closed.png` | 3D hero renders. |
 | `UNDERWATER.md` | Engineering guide: gears underwater, flooded vs sealed, material BOM, sealing, drainage, checklist. |
 | `DFM.md` | Design-for-3D-printing standards (walls, overhangs, holes, clearances, edge-breaks) and how each part complies. |
+| `fea/UNIVERSAL_FINGER.md` | **The finger design study** — how the Fin Ray geometry was chosen by multi-shape FEA across sizes for universal grasping. |
+| `fea/DECISION_LOG.md` | **Full decision log** — every approach tried, dead end, and number behind the finger redesign (~90 FEA runs, 2 families, agent swarm). |
+| `fea/FEA.md`, `fea/ITERATIONS.md` | FEA solver/method notes and the (earlier, single-object) iteration log. |
 
 ## Regenerate / re-pose
 

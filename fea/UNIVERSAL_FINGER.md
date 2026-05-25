@@ -8,6 +8,10 @@ This document records the full investigation: how we measured universality, the 
 finger families we mass-iterated with an agent swarm, what the FEA found, the physical
 ceiling we hit, and the finger we shipped.
 
+> **Full blow-by-blow decision log (every approach, dead end, and number):**
+> [`fea/DECISION_LOG.md`](DECISION_LOG.md). This file is the summary; that one is the
+> long form.
+
 ---
 
 ## 1. The problem with the old finger (and the old metric)
