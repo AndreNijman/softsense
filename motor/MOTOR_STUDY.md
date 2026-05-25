@@ -72,10 +72,12 @@ integration 0.10, holding 0.07, cost 0.08), swept ±50 %:
 (shallow) to magnetic-coupling (deep) as depth matters more.** That is the modular-
 product thesis, quantified.
 
-- **PRIMARY (T2): DYNAMIXEL XW540-T260** smart serial servo — IP68 body, ~1.9 N·m,
-  RS-485, native `present_current` (≈ 0.005 N·m/step) held cleanly at stall. The
-  **Feetech STS3215** (~AUD 34) is the same-class, same-interface **budget/bench**
-  member.
+- **PRIMARY (T2): DYNAMIXEL XW540-T260(-R)** smart serial servo — IP68 body, ~1.9 N·m,
+  RS-485, native `present_current` (≈ 0.005 N·m/step) held cleanly at stall.
+  **Buy:** [ROBOTIS US store — DYNAMIXEL XW540-T260-R](https://robotis.us/dynamixel-xw540-t260-r/),
+  **USD 1,241.89** (≈ AUD 1,925; official store, verified May 2026; the `-R` suffix
+  = RS-485, the multi-drop bus variant). The **Feetech STS3215** (~AUD 34) is the
+  same-class, same-interface **budget/bench** member.
 - **FALLBACK (T3): magnetic-coupling dry-pod** — no shaft penetration → depth set
   only by static pod seals; pole-slip is a built-in force limiter; sensing inherited
   from the pod motor.
