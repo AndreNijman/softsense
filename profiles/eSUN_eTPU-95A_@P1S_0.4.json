@@ -1,0 +1,54 @@
+{
+    "type": "filament",
+    "name": "eSUN eTPU-95A @P1S 0.4 (gripper fingers)",
+    "from": "User",
+    "instantiation": "true",
+    "inherits": "Generic TPU @base",
+    "filament_id": "GFUESUN95A",
+    "setting_id": "GFSESUN95A01",
+    "version": "01.00.00.00",
+    "filament_type": ["TPU"],
+    "filament_vendor": ["eSUN"],
+    "filament_density": ["1.21"],
+    "filament_cost": ["30"],
+    "filament_flow_ratio": ["0.95"],
+    "filament_max_volumetric_speed": ["3.0"],
+
+    "nozzle_temperature": ["235"],
+    "nozzle_temperature_initial_layer": ["240"],
+    "nozzle_temperature_range_low": ["220"],
+    "nozzle_temperature_range_high": ["250"],
+    "temperature_vitrification": ["30"],
+
+    "hot_plate_temp": ["45"],
+    "hot_plate_temp_initial_layer": ["45"],
+    "textured_plate_temp": ["45"],
+    "textured_plate_temp_initial_layer": ["45"],
+    "cool_plate_temp": ["35"],
+    "cool_plate_temp_initial_layer": ["35"],
+    "eng_plate_temp": ["45"],
+    "eng_plate_temp_initial_layer": ["45"],
+
+    "filament_retraction_length": ["0.8"],
+    "filament_retraction_speed": ["30"],
+    "filament_z_hop": ["0.4"],
+    "filament_z_hop_types": ["Auto Lift"],
+    "filament_wipe": ["0"],
+
+    "fan_min_speed": ["50"],
+    "fan_max_speed": ["80"],
+    "overhang_fan_speed": ["100"],
+    "overhang_fan_threshold": ["25%"],
+    "additional_cooling_fan_speed": ["70"],
+    "fan_cooling_layer_time": ["60"],
+    "slow_down_layer_time": ["8"],
+    "slow_down_min_speed": ["10"],
+    "close_fan_the_first_x_layers": ["3"],
+    "reduce_fan_stop_start_freq": ["1"],
+
+    "filament_start_gcode": ["; eSUN eTPU-95A — print from EXTERNAL spool, NOT the AMS. Dry 55C >4h."],
+    "filament_notes": ["Gripper Fin Ray fingers. Print from an EXTERNAL spool (not the AMS). Requires a hardened / abrasion-tolerant 0.4mm nozzle. Dry 55C >=4h before printing. Pair with the 'Gripper finger TPU 0.16mm @P1S 0.4' process profile."],
+    "compatible_printers": [
+        "Bambu Lab P1S 0.4 nozzle"
+    ]
+}

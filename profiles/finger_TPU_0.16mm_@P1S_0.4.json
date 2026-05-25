@@ -1,0 +1,68 @@
+{
+    "type": "process",
+    "name": "Gripper finger TPU 0.16mm @P1S 0.4",
+    "from": "User",
+    "instantiation": "true",
+    "inherits": "0.20mm Standard @BBL X1C",
+    "setting_id": "GPESUNFINGER01",
+    "version": "01.00.00.00",
+
+    "layer_height": "0.16",
+    "initial_layer_print_height": "0.20",
+
+    "wall_loops": "5",
+    "wall_generator": "classic",
+    "detect_thin_wall": "1",
+    "top_shell_layers": "4",
+    "bottom_shell_layers": "4",
+    "top_shell_thickness": "0.8",
+    "bottom_shell_thickness": "0.8",
+    "top_surface_pattern": "monotonic",
+
+    "sparse_infill_density": "100%",
+    "sparse_infill_pattern": "rectilinear",
+    "infill_combination": "0",
+
+    "line_width": "0.40",
+    "outer_wall_line_width": "0.40",
+    "inner_wall_line_width": "0.40",
+    "top_surface_line_width": "0.40",
+    "sparse_infill_line_width": "0.45",
+    "initial_layer_line_width": "0.50",
+
+    "outer_wall_speed": ["20"],
+    "inner_wall_speed": ["30"],
+    "sparse_infill_speed": ["40"],
+    "internal_solid_infill_speed": ["35"],
+    "top_surface_speed": ["20"],
+    "gap_infill_speed": ["25"],
+    "initial_layer_speed": ["18"],
+    "initial_layer_infill_speed": ["25"],
+    "travel_speed": ["200"],
+    "bridge_speed": ["20"],
+
+    "default_acceleration": ["3000"],
+    "outer_wall_acceleration": ["1500"],
+    "inner_wall_acceleration": ["2000"],
+    "initial_layer_acceleration": ["500"],
+    "travel_acceleration": ["5000"],
+    "top_surface_acceleration": ["2000"],
+
+    "seam_position": "back",
+
+    "brim_type": "outer_only",
+    "brim_width": "5",
+    "brim_object_gap": "0.10",
+    "elefant_foot_compensation": "0.15",
+
+    "enable_support": "0",
+    "ironing_type": "no ironing",
+    "reduce_crossing_wall": "1",
+    "wall_sequence": "inner wall/outer wall",
+
+    "compatible_printers": [
+        "Bambu Lab P1S 0.4 nozzle",
+        "Bambu Lab P1P 0.4 nozzle",
+        "Bambu Lab X1 Carbon 0.4 nozzle"
+    ]
+}

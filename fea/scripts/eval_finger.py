@@ -78,6 +78,12 @@ def evaluate(name, gen, params, mode="screen"):
     # --- scalability knobs (no effect at defaults) ---
     scale = float(params.pop("_scale", 1.0))       # FINGER_SCALE (blade size)
     grip_t = params.pop("_grip", None)             # grip-force target override (N)
+    E_ovr = params.pop("_E", None)                 # Young's modulus override (MPa)
+    str_ovr = params.pop("_strength", None)        # material strength override (MPa)
+    if E_ovr is not None:
+        H.E_TPU = float(E_ovr); H.D6 = H.Dmat(H.NU)   # recompute material matrix
+    if str_ovr is not None:
+        H.TPU_STRENGTH = float(str_ovr)
     battery = SCREEN if mode == "screen" else FULL
     outdir = os.path.join(ITER, name); os.makedirs(outdir, exist_ok=True)
     H.REPORT_MODE = "grip"                          # fair: compare wrap at equal grip
@@ -114,6 +120,7 @@ def evaluate(name, gen, params, mode="screen"):
     score, base, incon = universal(results)
     out = dict(name=name, gen=gen, mode=mode, params=params,
                scale=scale, target_grip=H.TARGET_GRIP,
+               E_MPa=H.E_TPU, strength_MPa=H.TPU_STRENGTH,
                score=round(score, 4), base=round(base, 4), grip_incon=round(incon, 3),
                n_nodes=int(p2d.shape[0]),
                objects=[dict(shape=s, R=R, yc=yc, metrics=m) for (s, R, yc, m) in results])
