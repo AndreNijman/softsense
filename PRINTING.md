@@ -251,9 +251,9 @@ There is no test-print substitute: print the fingers in final TPU from the start
 #### Direct drive is required, not optional
 
 High-retraction Bowden setups cannot handle TPU reliably at the wall thicknesses
-and infill densities needed. The `FR_WALL = 2.8 mm` ribs and the `FR_GRIP_DEPTH =
-0.6 mm` grip teeth require consistent extrusion control that only a direct-drive
-extruder provides.
+and infill densities needed. The thin finger walls (contact beam **1.2 mm**, ribs
+**1.6 mm**, spine **1.8 mm**) and the `FR_GRIP_DEPTH = 0.6 mm` grip teeth require
+consistent extrusion control that only a direct-drive extruder provides.
 
 #### Temperature and bed
 
@@ -281,8 +281,8 @@ perimeters slow.
 | Setting | Value |
 |---|---|
 | Layer height | 0.15–0.20 mm |
-| Perimeters | 3–4 (at `FR_WALL = 2.8 mm` and 0.4 mm nozzle: 3 perimeters = 1.2 mm each side → solid wall) |
-| Infill | ≥80% (100% preferred: the Fin Ray cells and grip-ridge insets must be dense) |
+| Perimeters | **wall-count = solid** at 0.4 mm nozzle: contact beam 1.2 mm = 3 perimeters, ribs 1.6 mm = 4, spine 1.8 mm ≈ 4–5. Set perimeters ≥ wall/0.4 so every member prints fully solid (no gaps inside a wall). |
+| Infill | **100%** (the thin walls are perimeter-only anyway; 100% keeps the solid base floor/cap, bracket and grip-ridge insets dense — and **all FEA stats assume 100%-dense walls**, `fea/UNIVERSAL_FINGER.md`). |
 | Seam | Rear/aligned; keep off the grip-ridge face |
 
 The Fin Ray truss prints flat on its 28×96 Z-face (build height = 10 mm, cells in

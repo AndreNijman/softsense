@@ -140,7 +140,8 @@ shell each.
 |------|----|------|
 | enclosure WALL | 3.000 | ✓ FDM min |
 | cover plate thk | 3.000 | ✓ |
-| FR_WALL (finger beam) | 2.800 | ✓ |
+| finger contact beam | 1.200 | thin by design (3 perimeters @0.4 nozzle) — FEA-chosen for compliance/even pressure |
+| finger spine / ribs | 1.8 / 1.6 | ✓ |
 | SNAP_ARM_T (clip arm) | 2.000 | ✓ |
 | axle-boss wall (BOSS_OD_R−AXLE_SCREW_R) | 2.000 | ✓ |
 | snap-pin head flange T | 1.800 | ✓ |
@@ -151,7 +152,10 @@ shell each.
 | journal-boss wall (DRIVE_BOSS_R−SHAFT_R_BORE) | 2.000 | upper journal boss wall; structural back/bottom wall is the full 3.0 mm WALL |
 
 No wall <0.8 mm absolute. The sub-1.5 mm items are all by-design functional
-features, not structural walls. PASS.
+features — including the **1.2 mm finger contact beam**, kept thin on purpose so
+the Fin Ray face conforms and spreads pressure (FEA-validated, `fea/UNIVERSAL_FINGER.md`);
+at a 0.4 mm nozzle it is 3 full perimeters = solid, ≥ the 0.8 mm / 2-perimeter
+floor. PASS.
 
 ### 8 — Vents / flood ✅
 - Bottom drains Ø5.0 at 4 X-positions × 2 Z-positions (clear of shaft at
@@ -170,8 +174,10 @@ Built at GRIPPER_FINGER_SCALE = 0.7 and 1.6 (also 1.0 baseline), open 0 and 1:
 - Finger-vs-rest interference: **CLEAN** (0 flags >0.5 mm³) at every scale/pose.
 - Finger–finger = 0 at all scales.
 - **Mount interface scale-invariant:** C-D span = 20.0 mm, mount-hole r = 2.6 mm,
-  FR_WALL = 2.8 mm, bracket eye = 13.0 mm, flange bolt XY unchanged at all
-  scales — only the blade length/width/tip scale, as designed.
+  finger walls (contact 1.2 / spine 1.8 / rib 1.6 mm), bracket eye = 13.0 mm,
+  flange bolt XY unchanged at all scales — only the blade length/width/tip scale,
+  as designed. Grasp quality vs scale is characterised in `fea/SCALABILITY.md`
+  (usable band ≈ 0.6–1.1×; walls are fixed, so up-scaling past ~1.5× goes floppy).
 
 ### 10 — Assembly feasibility ✅
 ASSEMBLY.md order (mesh arms → drop in housing → drop `input_pinion_shaft` into

@@ -7,7 +7,7 @@ column is how this model meets them.
 
 | Rule (FDM standard) | Target | This design |
 |---|---|---|
-| **Min wall thickness** | ≥0.8 mm (≥2 perimeters); 1.5 mm for functional walls | enclosure/cover walls **3.0 mm**; Fin Ray spars/ribs **2.8 mm**; snap-clip arm **2.0 mm**; axle-boss walls **2.0 mm** (`BOSS_OD_R = AXLE_SCREW_R + 2`); shaft-bushing wall **1.6 mm** — all ≥1.5 mm |
+| **Min wall thickness** | ≥0.8 mm (≥2 perimeters); 1.5 mm for functional walls | enclosure/cover walls **3.0 mm**; snap-clip arm **2.0 mm**; axle-boss walls **2.0 mm** (`BOSS_OD_R = AXLE_SCREW_R + 2`); shaft-bushing wall **1.6 mm**. Fin Ray finger: spine **1.8 mm**, ribs **1.6 mm**, contact beam **1.2 mm** — the contact beam is **intentionally below 1.5 mm** (3 full perimeters @0.4 nozzle = solid, ≥ the 0.8 mm / 2-perimeter floor) so the face stays compliant and spreads pressure (FEA-chosen, `fea/UNIVERSAL_FINGER.md`). |
 | **Overhang angle** | ≤45° from vertical without support | boxy parts print flat; gear teeth, Fin Ray ribs and grip teeth are in-plane (no Z overhang); snap-pin barb is a narrowing cone (self-supporting); cover clips print pointing up |
 | **Hole diameter** | ≥1 mm (vertical) / ≥2 mm (horizontal); oversize 0.2–0.4 mm | pivot bores Ø5.2 mm, drains Ø5 mm — all well above min, with built-in clearance |
 | **Mating clearance** | ~0.3 mm per side | `PRINT_CLEAR = 0.3` on every pivot/slide; `SNAP_CLEAR = 0.35` on snap engagements |
