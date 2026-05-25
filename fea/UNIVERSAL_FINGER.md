@@ -126,5 +126,61 @@ The standout: the old finger only wrapped the **one** square size it happened to
 contact on every cylinder, and grips every size a consistent safe ~12 N — where the
 old finger's grip swung 7× with object position. All von-Mises margins stay 6–9×.
 
-FEA renders (production vs new, round + square, still + animation, all at equal grip
-force) are in `fea/iterations/_panel_new/`, `_compare_circle/`, `_compare_box14/`.
+### What changed on the part
+
+| lever | old (`w7`) | new (shipped) | why |
+|---|---|---|---|
+| contact-beam wall | 1.8→1.2 mm graded | **1.2 mm** | thin compliant face conforms → even pressure |
+| spine wall | 2.8 mm (default) | **1.8 mm** | compliant back doesn't fight conformance |
+| ribs | 10 × 2.8 mm | **14 × 1.6 mm** | finer, softer truss spreads load |
+| tip width | 5 mm | **2 mm** | sharp taper → soft conforming tip |
+| rib slant dir | +1 | **−1** (new `FR_RIB_DIR`) | the direction that distributes best in FEA |
+| **universal score** | **0.56** | **0.65** | **+17 % across the shape/size battery** |
+
+---
+
+## 6. The result, in pictures
+
+All renders are at **equal 12 N grip force** (the fair basis — a softer finger needs
+more closure to reach the same grip). Colour = von-Mises stress (the load path
+through the finger); grey = the rigid object being grasped; "contact spans X mm" = how
+much of the finger length is engaged.
+
+### One finger, every shape & size
+
+![Universal grasp — still](iterations/_panel_new/compare.png)
+
+![Universal grasp — animation](iterations/_panel_new/compare.gif)
+
+The shipped finger gripping five objects — Ø24 / Ø44 / Ø70 mm cylinders, then 28 mm
+and 44 mm square blocks — each at a safe, consistent ~12 N. Engaged length grows
+**8 → 44 mm** as the object gets bigger/flatter: load distributes along the whole
+finger on flat/large objects, exactly the original goal. The animation shows each
+finger closing onto its object until it reaches the grasp.
+
+### Before / after — round object (Ø44 mm cylinder)
+
+![Cylinder, old vs new — still](iterations/_compare_circle/compare.png)
+
+![Cylinder, old vs new — animation](iterations/_compare_circle/compare.gif)
+
+Old finger (left) vs new (right). The new finger is more compliant (it reaches the
+same 12 N at more closure) and spreads stress more evenly along the ribs (circle
+pressure-CoV 0.74→0.67, and 0.64→0.39 at the off-centre height). **Honest caveat:**
+on a *round* object neither finger curls far around it — that is the physics ceiling
+(§4): a passive single-piece finger can't wrap a small cylinder without a tendon.
+
+### Before / after — flat object (28 mm square block)
+
+![Square, old vs new — still](iterations/_compare_box14/compare.png)
+
+![Square, old vs new — animation](iterations/_compare_box14/compare.gif)
+
+This is where the redesign clearly wins. The old finger (left), tuned only to the
+Ø44 cylinder, barely caught the small square (1° contact, grip reached at a tiny
+closure). The new finger (right) engages the flat face along its length and grips it
+firmly — and it does this for **both** square sizes, where the old finger only ever
+suited one.
+
+Source data and per-object plots for every run are under `fea/iterations/`; the full
+decision trail is in [`DECISION_LOG.md`](DECISION_LOG.md).

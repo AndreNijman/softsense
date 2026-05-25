@@ -250,7 +250,21 @@ committed.
 
 ## 12. Renders
 
-- `fea/iterations/_panel_new/` — new finger across 5 objects (still + animation).
-- `fea/iterations/_compare_circle/` — old vs new on Ø44 cylinder.
-- `fea/iterations/_compare_box14/` — old vs new on 28 mm square.
-- per-object: `render_{old,new}_{circle,box,c12,c35,box14}/wrap_render.png` + `wrap_anim.gif`.
+All at **equal 12 N grip**; colour = von-Mises stress; grey = rigid object.
+
+**Universality — the shipped finger across 5 objects** (still + animation):
+
+![panel](iterations/_panel_new/compare.png)
+![panel anim](iterations/_panel_new/compare.gif)
+
+**Before / after on a Ø44 cylinder** (old left, new right):
+
+![circle](iterations/_compare_circle/compare.png)
+
+**Before / after on a 28 mm square** (old left, new right):
+
+![box](iterations/_compare_box14/compare.png)
+
+Per-object stills + animations: `render_{old,new}_{circle,box,c12,c35,box14}/`
+(`wrap_render.png` + `wrap_anim.gif`). See `UNIVERSAL_FINGER.md` §6 for the
+explained side-by-sides.
