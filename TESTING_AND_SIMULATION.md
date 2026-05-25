@@ -359,7 +359,50 @@ solids with **0.0 mm³ interference** at the closed pose.
 
 ---
 
-# PART C — What the simulations do and do not establish
+# PART C — Motor, drivetrain & sensing simulation
+
+The third campaign (`motor/`) sizes the actuator, turns it into the grip-force sensor,
+and structurally re-checks the drivetrain. Same simulate-first, honest-fidelity method.
+
+## C.1 The torque↔force chain (exact kinematics)
+`motor/scripts/kinematics_chain.py` imports the live `gripper.py`: crown/pinion ratio
+`i_g = 24/9 = 2.667`, the 1:1 sector mesh (left gear carries both fingers), and the
+four-bar Jacobian `MA(P)` give `F = T_in·(i_g/2)·MA·η`. Efficiency is an estimate **band
+0.40–0.71**. Result: input torque **0.56–1.18 N·m** for 12 N/finger; full open↔close is
+only **122.7°** of input rotation (→ a limited-rotation servo suffices).
+
+## C.2 Survey + selection (12-agent swarm, weighted + ±50%)
+A concurrent **12-agent research swarm** (7 actuator classes × 5 sensing modalities)
+pulled datasheets (`motor/SURVEY.md`). A weighted score (`selection_score.py`) swept
+**±50% across the three depth tiers** shows the **actuator class flips with depth** —
+smart serial servo (T1/T2) → magnetic-coupling pod (T3) — the modular-product thesis,
+quantified.
+
+## C.3 The sensing pivot — the actuator is the force sensor
+Motor current → torque → drivetrain back-trace → tip force (the Robotiq/Maxon
+principle), so **no fingertip electronics** (`motor/SENSING.md`, `MOTOR_MODEL.md`). The
+forward model run backwards is the sensor; resolution `ΔF = K_t·ΔI·i_g·MA·η/2` clears the
+0.3 N target. It is **force-only, relative until load-cell-calibrated** — the rank-only
+caveat carries to the readout.
+
+## C.4 The gear-tooth FEA — the structural finding
+A **2D plane-stress Q4 tooth FEA** (`gear_fea.py`, the same machinery as the grip
+Tier-2, cross-checked vs the Lewis bending formula: 40 vs 38 MPa → no bug) found the
+printed **crown/pinion is the gripper's binding structural limit**: safe input torque
+**`T_safe` ≈ 0.034 N·m (shipped, face-width-strengthened + build-verified) / ≈ 0.40 N·m
+(proposed re-size)** — far below the 0.94 N·m a 12 N grip needs at η ≈ 0.5. So the **motor
+current limit (the sensing pivot) is the gear-protection ceiling**, and 12 N is the
+finger-FEA *report level*, not what the drivetrain can safely deliver.
+
+## C.5 The sims + sensitivity
+`torque_chain.py` (gear ceiling binds, not the servo), `slip_margin.py` (slimy is the
+worst object class, rank-only), `holding_stall.py` (back-drivable → active hold, but
+sub-amp holding current; stall sets the bus budget). `motor_sensitivity.py`: the
+headline conclusions are **invariant under ±50%** on η, `T_safe`, MA, `K_t`.
+
+---
+
+# PART D — What the simulations do and do not establish
 
 **Established:**
 - The Fin Ray finger wraps universally and gently — peak stress ~2.7 MPa, ~10× below TPU
@@ -369,6 +412,10 @@ solids with **0.0 mm³ interference** at the closed pose.
   uncertainty** (B.9); its contact mechanics and durability are **FEA-validated** (B.5,
   margins 14–24×).
 - The ported part **builds with zero interference** at full closure.
+- The drivetrain torque↔force chain + 122.7° travel (exact kinematics); the actuator
+  selection ranking + its ±50% robustness; the printed crown/pinion **structural limit
+  `T_safe`** and that the motor current limit is its protection; back-drivability; the
+  sensing resolution/rate budget; the object-slip ordering.
 
 **Not established (stated plainly):**
 - An **absolute holding force in newtons** for the texture — the Tier-1 model *ranks*
@@ -380,6 +427,9 @@ solids with **0.0 mm³ interference** at the closed pose.
   the stress/fragility field is the reliable output.
 - The **slimy and soft** object cases are a genuine physical grip ceiling, not a tuning
   miss.
+- For the motor: the **absolute grip force in newtons**, the **absolute depth rating**,
+  the current→force **calibration accuracy** on real hardware, endurance/wear, and whether
+  the proposed gear re-size's clearance is buildable — all need `motor/BENCH_TEST.md`.
 
 This is the simulate-first engineering case: we converged the design in software, with
 validated models and explicit honesty about fidelity, instead of printing and iterating
@@ -387,7 +437,7 @@ blindly.
 
 ---
 
-# PART D — Reproduce every simulation
+# PART E — Reproduce every simulation
 
 All commands assume the project venv: `source /home/andre/.cad-venv/bin/activate`.
 
@@ -409,10 +459,21 @@ python sensitivity.py 1500 concentric  # B4: same, excluding the sucker (tileabl
 python texture_fea.py                  # B5: Tier-2 plane-strain contact + durability FEA
 python eval_texture.py SHIP crosshatch '{"pitch":1.8,"land":1.26,"depth":0.6}'  # ship pt
 python make_figures.py                 # regenerate all campaign figures
+
+# --- Part C: motor, drivetrain & sensing ---
+cd ../../motor/scripts
+python kinematics_chain.py             # C1: torque<->force chain + travel
+python gear_fea.py                     # C4: gear-tooth FEA -> T_safe (+ proposed re-size)
+python check_drivetrain.py             # C4: interference of the strengthened gears
+python torque_chain.py                 # C5: motor -> tip force (plot)
+python slip_margin.py                  # C5: slip margin vs object class (plot)
+python holding_stall.py                # C5: holding/stall current + back-drive
+python selection_score.py             # C2: weighted selection + ±50% across depth tiers
+python motor_sensitivity.py            # C5: ±50% envelope
 ```
 
-Outputs land in `fea/iterations/` and `grip/iterations/` (per-run JSON) and
-`grip/pictures/` (figures).
+Outputs land in `fea/iterations/`, `grip/iterations/`, `motor/iterations/` (per-run
+JSON) and `grip/pictures/` + `motor/pictures/` (figures).
 
 ---
 

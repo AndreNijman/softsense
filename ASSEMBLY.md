@@ -176,7 +176,17 @@ The enclosure prints **open-front**. The mechanism drops straight in.
    flange. The shaft runs in flooded journal bores (no bushing needed); confirm
    it turns freely.
 4. **Verify the crown/pinion mesh:** rotate the shaft slightly by hand. Both
-   drive arms should move, confirming the crown/pinion stage is engaged.
+   drive arms should move, confirming the crown/pinion stage is engaged. (Note:
+   the crown/pinion faces were widened in the Phase-4 strengthening —
+   `PINION_T 8 mm`, `CROWN_TOOTH_H 3 mm` — but the mesh and assembly are unchanged;
+   `motor/DRIVETRAIN.md`.)
+5. **Couple the actuator:** fit the printed adapter horn from the selected
+   actuator (primary: DYNAMIXEL XW540-T260 smart serial servo; or the magnetic-
+   coupling dry-pod for >30 m) onto the D-coupler. **Set the actuator's firmware
+   current limit to the gear ceiling `T_safe`** before driving — the printed
+   crown/pinion is the structural limit and the current limit is its protection.
+   The same current telemetry is the gripper's grip-force sensor. See
+   `motor/SELECTION.md`, `motor/SENSING.md`, `motor/ELECTRICAL.md`.
 
 ---
 

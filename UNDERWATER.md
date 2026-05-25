@@ -31,7 +31,7 @@ decide *what to print it in* and how to run it wet here.
 | 3 | Flooded-correctness (no trapped air) | **PASS** (1 RISK) | **Every part is a single solid, 1 shell each → no sealed internal pocket anywhere** (cells, cross-slots, sockets, shaft bore all vent to exterior). 5 bottom drains + 4 side drains + 4 snap windows + 2 top slots + back bores. Floods/drains fingers-up, fingers-down, back-up. **RISK:** front-up (+Z up) vents only via the slot/cover corner — add a cover vent (see §3). |
 | 4 | Net buoyancy | **PASS** | Solid vol **98.5 cm³**, dry mass ~**124 g** (PETG+TPU, 100% infill). Flooded → displaces solid vol only → **net ≈ +23 g in seawater (sinks gently, near-neutral)**. No ballast needed. See §4. |
 | 5 | Galvanic corrosion | **PASS** | **Zero metal in the gripper.** All 8 pins and `input_pinion_shaft` are printed, snap-clip cover, no fasteners. No dissimilar-metal pair exists. See §5. |
-| 6 | Drive coupler / actuator | **FLAG (user)** | Bottom D-flat coupler on `input_pinion_shaft` (`SHAFT_COUPLER_R = 5.0`, `SHAFT_DFLAT = 1.4`, length 12 mm) needs a **user-supplied waterproof actuator** (IP68/sealed/flooded servo, potted servo, or magnetically-coupled drive) coupling from below. The gripper does NOT provide this. See §6. |
+| 6 | Drive coupler / actuator | **SELECTED** (force-sensing) | Bottom D-flat coupler on `input_pinion_shaft` drives a **smart serial-bus servo (DYNAMIXEL XW540-T260)** that doubles as the **grip-force sensor** (motor current → tip force); magnetic-coupling dry-pod is the >30 m fallback. The motor current limit must be set to the gear ceiling `T_safe` (the printed crown/pinion is the structural limit). Full campaign in `motor/`. See §6. |
 
 ---
 
@@ -223,26 +223,39 @@ itself contributes no metal to that joint.
 
 ---
 
-## 6. Drive coupler & actuator — FLAG for the user
+## 6. Drive coupler & actuator — selected (force-sensing), see `motor/`
 
 The **bottom D-flat coupler** on `input_pinion_shaft` (`SHAFT_COUPLER_R = 5.0 mm`,
 `SHAFT_DFLAT = 1.4 mm`, `SHAFT_COUPLER_LEN = 12 mm`) exits below the housing
-bottom flange. It transmits all drive torque and is the **only interface that
-needs a waterproof actuator**. The actuator couples from below.
+bottom flange, transmits all drive torque, and is the **modularity swap point**.
+The full actuator campaign — requirements, a 12-agent sourced survey, the weighted
+selection, the gear FEA, and the sensing model — lives in `motor/` (`MOTOR_STUDY.md`
+is the entry point). Summary:
 
-**FLAG (you must supply this — the gripper does not):** drive the coupler with
-one of:
+- **Selected primary (tier 2, ≤ 30 m): a smart serial-bus servo — DYNAMIXEL
+  XW540-T260** (IP68 body, ~1.9 N·m, RS-485). Chosen because **the actuator is also
+  the grip-force sensor**: motor current → torque → tip force (the Robotiq/Maxon
+  principle), so there are **no fingertip sensors or wires through the TPU** (the
+  old conductive-foam plan is dropped — `motor/DECISION_LOG.md` D5). Drives the
+  D-coupler via a printed adapter horn; **`SHAFT_COUPLER_*` is unchanged.**
+- **Budget/bench: Feetech STS3215** (same current telemetry, needs a canister).
+- **Tier-3 (> 30 m) fallback: a magnetically-coupled drive** — motor in a sealed
+  dry pod, torque across a barrier wall, **no shaft penetration** (the cleanest
+  deep option; its pole-slip is a built-in force limiter).
 
-- a **submersible / IP68-rated servo**, or a **potted/sealed hobby servo**, or
-- a **sealed or oil-filled actuator with a pressure compensator** for deeper/
-  longer work, or
-- a **magnetically-coupled drive** (no shaft penetration at all — cleanest for
-  deep work).
+Two non-negotiables, both in `motor/`:
 
-The flooded gripper has **no shaft seal and no dry cavity** — the printed shaft
-turns wet in flooded journal bores. **Do not** drive the coupler with a bare
-unsealed servo; that servo will flood and die. Match the actuator's depth rating
-to your dive — the actuator, not the gripper, sets the system depth limit.
+1. **T2 still needs a thin pressure canister** even for the IP68 servo (IP68 = 1 m
+   freshwater; 30 m ≈ 3.1 bar + seawater corrosion). The flooded gripper itself has
+   **no shaft seal and no dry cavity** — the printed shaft turns wet in flooded
+   journal bores; the sealing burden is entirely the actuator's.
+2. **The motor current limit must be set to the drivetrain gear ceiling `T_safe`**
+   (`motor/DRIVETRAIN.md`): the printed crown/pinion — not the actuator — is the
+   structural limit, and the current limit is its protection. Without it, a strong
+   servo's stall torque shears the printed teeth.
+
+Match the actuator's depth rating to your dive — **the actuator (and its canister/
+pod), not the gripper, sets the system depth limit.**
 
 ---
 

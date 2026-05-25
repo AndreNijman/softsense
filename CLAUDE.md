@@ -31,6 +31,18 @@
   `scripts/baseline_validate.py` (literature gate). Study: `GRIP_TEXTURE.md`,
   `DECISION_LOG.md`, `GRIP_MODEL.md`. Shipped texture = crosshatch micro-posts
   (`FR_GRIP_*` in `gripper.py`).
+- `motor/` — actuator selection + sensing + ROV integration. `scripts/kinematics_chain.py`
+  (input-torque↔tip-force chain), `gear_fea.py` (gear-tooth FEA → `T_safe`),
+  `torque_chain.py`/`slip_margin.py`/`holding_stall.py` (sims), `selection_score.py`
+  + `motor_sensitivity.py` (weighted pick + ±50%). Study: `MOTOR_STUDY.md`; also
+  `REQUIREMENTS.md`, `SURVEY.md`, `SELECTION.md`, `DRIVETRAIN.md`, `MOTOR_MODEL.md`,
+  `SENSING.md`, `ELECTRICAL.md`, `ROV_INTEGRATION.md`, `BENCH_TEST.md`,
+  `FAILURE_MODES.md`, `DECISION_LOG.md`. **Sensing pivot:** the actuator is the
+  grip-force sensor (motor current → torque → tip force); the printed crown/pinion
+  is the structural limit (`T_safe`) and the motor current-limit is its protection.
+  Selected: smart serial servo (DYNAMIXEL XW540-T260) primary, magnetic-coupling
+  dry-pod fallback. The drivetrain (gear teeth) in `gripper.py` is **unlocked**;
+  finger/texture/print-profile are locked.
 - `PRINT_PROFILE_P1S_TPU.md` + `profiles/` — print the fingers in **eSUN eTPU-95A on a
   Bambu P1S, 0.4 mm hardened nozzle** (importable Bambu Studio filament+process).
 - `regen.sh` — rebuild all derived artifacts (poses, parts, plates, heroes, GIF).
