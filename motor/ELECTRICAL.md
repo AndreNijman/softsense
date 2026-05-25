@@ -239,10 +239,13 @@ Same torque ceiling for both servos, different raw LSB threshold because K_t and
 mA/LSB differ. Target: **T_cmd ≤ T_safe**; for a useful grip on the proposed
 re-sized drivetrain: T_cmd ~ 0.3–0.4 N·m.
 
-| Servo | K_t (N·m/A, approx.) | T_cmd = 0.35 N·m → I_limit | DYNAMIXEL/SCS register |
-|---|---|---|---|
-| **XW540-T260** | ~0.37 N·m/A | **~0.95 A → raw ≈ 353 LSB** (353 × 2.69 mA) | `current_limit` (reg 38) AND `goal_current` (reg 102) |
-| **STS3215** | ~0.36 N·m/A | **~0.97 A → raw ≈ 149 LSB** (149 × 6.5 mA) | `goal_torque` or max-torque reg (model-specific) |
+K_t is the torque constant (= stall torque ÷ stall current = telemetry N·m per A;
+XW540 9.5 N·m ÷ 5.1 A ≈ STS3215 2.94 ÷ 2.7 ≈ the per-step torque ÷ per-step current):
+
+| Servo | K_t (N·m/A) | T_cmd = 0.35 N·m → I_limit | raw LSB | DYNAMIXEL/SCS register |
+|---|---|---|---|---|
+| **XW540-T260** | **1.86** | **~0.19 A** | ≈ 70 LSB (× 2.69 mA) | `current_limit` (reg 38) AND `goal_current` (reg 102) |
+| **STS3215** | **1.08** | **~0.32 A** | ≈ 50 LSB (× 6.5 mA) | `goal_torque` / max-torque reg (model-specific) |
 
 Set **both** `current_limit` (hardware ceiling, survives power-cycle) and
 `goal_current` (operating setpoint). `current_limit` is the backstop; `goal_current`
