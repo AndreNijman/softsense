@@ -69,6 +69,8 @@ guidance is in `UNDERWATER.md`.
 | `fea/SCALABILITY.md` | **Scalability study** — the finger across `FINGER_SCALE` 0.6–2.5: usable band ≈ 0.6–1.1× (down-scaling safe; up-scaling limited by fixed walls). |
 | `fea/FEA.md`, `fea/ITERATIONS.md` | FEA solver/method notes and the (earlier, single-object) iteration log. |
 | `PRINT_PROFILE_P1S_TPU.md` + `profiles/*.json` | **Importable Bambu Studio profiles** (filament + process) for printing the fingers in **eSUN eTPU-95A on a P1S / 0.4 mm hardened nozzle** — every setting + rationale, and the FEA re-check confirming the stats for eSUN. |
+| `CLAUDE.md` | Agent/people working notes — incl. the **compute policy** (heavy/high-quality FEA & renders on the MSI; routine work local). |
+| `MSI_REMOTE.md` | The MSI remote FEA/render node: setup, run commands, GPU benchmark, gotchas. |
 
 ## Regenerate / re-pose
 

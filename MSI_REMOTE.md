@@ -1,5 +1,10 @@
 # MSI as a remote FEA / render node
 
+> **POLICY: heavy / high-quality runs go on the MSI; routine work stays local.**
+> High-res or full-battery FEA, big sweeps, long renders → `ssh andremsi` (this node).
+> Quick iteration, single screens, edits, light renders → local. (Also in the repo
+> `CLAUDE.md` so every agent/person sees it.)
+
 The MSI laptop is provisioned to run the heavy FEA + render pipeline off the main
 machine. Verified working: a screen-battery FEA on the MSI reproduces the local
 result **exactly** (`SCORE 0.6452`, deterministic).
