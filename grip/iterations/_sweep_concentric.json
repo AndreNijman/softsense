@@ -1,0 +1,606 @@
+{
+  "family": "concentric",
+  "n": 8600,
+  "top": [
+    {
+      "params": {
+        "pitch": 1.375,
+        "land": 0.932,
+        "depth": 1.106,
+        "cavity": 0.593
+      },
+      "score": 0.8719,
+      "base": 0.9038,
+      "incon": 0.39,
+      "label": "concentric p1.4/w0.9/cav0.6"
+    },
+    {
+      "params": {
+        "pitch": 1.395,
+        "land": 0.965,
+        "depth": 0.381,
+        "cavity": 0.478
+      },
+      "score": 0.8712,
+      "base": 0.9035,
+      "incon": 0.39,
+      "label": "concentric p1.4/w1.0/cav0.5"
+    },
+    {
+      "params": {
+        "pitch": 1.227,
+        "land": 0.803,
+        "depth": 0.684,
+        "cavity": 0.501
+      },
+      "score": 0.8708,
+      "base": 0.9083,
+      "incon": 0.397,
+      "label": "concentric p1.2/w0.8/cav0.5"
+    },
+    {
+      "params": {
+        "pitch": 1.434,
+        "land": 0.987,
+        "depth": 1.1,
+        "cavity": 0.541
+      },
+      "score": 0.8702,
+      "base": 0.9023,
+      "incon": 0.39,
+      "label": "concentric p1.4/w1.0/cav0.5"
+    },
+    {
+      "params": {
+        "pitch": 1.467,
+        "land": 1.026,
+        "depth": 0.534,
+        "cavity": 0.462
+      },
+      "score": 0.8692,
+      "base": 0.9015,
+      "incon": 0.39,
+      "label": "concentric p1.5/w1.0/cav0.5"
+    },
+    {
+      "params": {
+        "pitch": 1.394,
+        "land": 0.973,
+        "depth": 0.434,
+        "cavity": 0.338
+      },
+      "score": 0.8685,
+      "base": 0.9036,
+      "incon": 0.394,
+      "label": "concentric p1.4/w1.0/cav0.3"
+    },
+    {
+      "params": {
+        "pitch": 1.57,
+        "land": 1.145,
+        "depth": 1.003,
+        "cavity": 0.493
+      },
+      "score": 0.8684,
+      "base": 0.8986,
+      "incon": 0.388,
+      "label": "concentric p1.6/w1.1/cav0.5"
+    },
+    {
+      "params": {
+        "pitch": 1.28,
+        "land": 0.841,
+        "depth": 0.451,
+        "cavity": 0.505
+      },
+      "score": 0.8682,
+      "base": 0.9065,
+      "incon": 0.398,
+      "label": "concentric p1.3/w0.8/cav0.5"
+    },
+    {
+      "params": {
+        "pitch": 1.115,
+        "land": 0.679,
+        "depth": 0.948,
+        "cavity": 0.591
+      },
+      "score": 0.8675,
+      "base": 0.9118,
+      "incon": 0.405,
+      "label": "concentric p1.1/w0.7/cav0.6"
+    },
+    {
+      "params": {
+        "pitch": 1.568,
+        "land": 1.133,
+        "depth": 0.578,
+        "cavity": 0.503
+      },
+      "score": 0.867,
+      "base": 0.8986,
+      "incon": 0.389,
+      "label": "concentric p1.6/w1.1/cav0.5"
+    },
+    {
+      "params": {
+        "pitch": 1.624,
+        "land": 1.201,
+        "depth": 0.899,
+        "cavity": 0.558
+      },
+      "score": 0.8669,
+      "base": 0.897,
+      "incon": 0.388,
+      "label": "concentric p1.6/w1.2/cav0.6"
+    },
+    {
+      "params": {
+        "pitch": 1.516,
+        "land": 1.076,
+        "depth": 0.624,
+        "cavity": 0.403
+      },
+      "score": 0.8666,
+      "base": 0.9002,
+      "incon": 0.392,
+      "label": "concentric p1.5/w1.1/cav0.4"
+    },
+    {
+      "params": {
+        "pitch": 1.372,
+        "land": 0.938,
+        "depth": 0.778,
+        "cavity": 0.365
+      },
+      "score": 0.8662,
+      "base": 0.904,
+      "incon": 0.397,
+      "label": "concentric p1.4/w0.9/cav0.4"
+    },
+    {
+      "params": {
+        "pitch": 1.628,
+        "land": 1.198,
+        "depth": 0.451,
+        "cavity": 0.581
+      },
+      "score": 0.8661,
+      "base": 0.8968,
+      "incon": 0.388,
+      "label": "concentric p1.6/w1.2/cav0.6"
+    },
+    {
+      "params": {
+        "pitch": 1.55,
+        "land": 1.121,
+        "depth": 0.826,
+        "cavity": 0.387
+      },
+      "score": 0.8657,
+      "base": 0.8992,
+      "incon": 0.392,
+      "label": "concentric p1.6/w1.1/cav0.4"
+    },
+    {
+      "params": {
+        "pitch": 1.5,
+        "land": 1.06,
+        "depth": 0.82,
+        "cavity": 0.341
+      },
+      "score": 0.8657,
+      "base": 0.9008,
+      "incon": 0.394,
+      "label": "concentric p1.5/w1.1/cav0.3"
+    },
+    {
+      "params": {
+        "pitch": 1.378,
+        "land": 0.938,
+        "depth": 1.298,
+        "cavity": 0.374
+      },
+      "score": 0.8653,
+      "base": 0.9038,
+      "incon": 0.398,
+      "label": "concentric p1.4/w0.9/cav0.4"
+    },
+    {
+      "params": {
+        "pitch": 1.502,
+        "land": 1.032,
+        "depth": 0.965,
+        "cavity": 0.514
+      },
+      "score": 0.8653,
+      "base": 0.9003,
+      "incon": 0.394,
+      "label": "concentric p1.5/w1.0/cav0.5"
+    },
+    {
+      "params": {
+        "pitch": 1.347,
+        "land": 0.898,
+        "depth": 0.99,
+        "cavity": 0.449
+      },
+      "score": 0.8652,
+      "base": 0.9045,
+      "incon": 0.399,
+      "label": "concentric p1.3/w0.9/cav0.4"
+    },
+    {
+      "params": {
+        "pitch": 1.554,
+        "land": 1.092,
+        "depth": 0.966,
+        "cavity": 0.555
+      },
+      "score": 0.8647,
+      "base": 0.8987,
+      "incon": 0.393,
+      "label": "concentric p1.6/w1.1/cav0.6"
+    },
+    {
+      "params": {
+        "pitch": 1.419,
+        "land": 0.96,
+        "depth": 0.774,
+        "cavity": 0.457
+      },
+      "score": 0.8646,
+      "base": 0.9025,
+      "incon": 0.397,
+      "label": "concentric p1.4/w1.0/cav0.5"
+    },
+    {
+      "params": {
+        "pitch": 1.207,
+        "land": 0.758,
+        "depth": 0.422,
+        "cavity": 0.528
+      },
+      "score": 0.8645,
+      "base": 0.9085,
+      "incon": 0.405,
+      "label": "concentric p1.2/w0.8/cav0.5"
+    },
+    {
+      "params": {
+        "pitch": 1.36,
+        "land": 0.927,
+        "depth": 0.59,
+        "cavity": 0.312
+      },
+      "score": 0.8644,
+      "base": 0.9043,
+      "incon": 0.4,
+      "label": "concentric p1.4/w0.9/cav0.3"
+    },
+    {
+      "params": {
+        "pitch": 1.633,
+        "land": 1.21,
+        "depth": 0.827,
+        "cavity": 0.498
+      },
+      "score": 0.8644,
+      "base": 0.8967,
+      "incon": 0.39,
+      "label": "concentric p1.6/w1.2/cav0.5"
+    },
+    {
+      "params": {
+        "pitch": 1.44,
+        "land": 0.998,
+        "depth": 1.071,
+        "cavity": 0.331
+      },
+      "score": 0.8643,
+      "base": 0.9022,
+      "incon": 0.397,
+      "label": "concentric p1.4/w1.0/cav0.3"
+    },
+    {
+      "params": {
+        "pitch": 1.387,
+        "land": 0.919,
+        "depth": 1.24,
+        "cavity": 0.515
+      },
+      "score": 0.8639,
+      "base": 0.9031,
+      "incon": 0.399,
+      "label": "concentric p1.4/w0.9/cav0.5"
+    },
+    {
+      "params": {
+        "pitch": 1.572,
+        "land": 1.124,
+        "depth": 1.003,
+        "cavity": 0.476
+      },
+      "score": 0.8635,
+      "base": 0.8983,
+      "incon": 0.394,
+      "label": "concentric p1.6/w1.1/cav0.5"
+    },
+    {
+      "params": {
+        "pitch": 1.105,
+        "land": 0.657,
+        "depth": 0.576,
+        "cavity": 0.593
+      },
+      "score": 0.8635,
+      "base": 0.912,
+      "incon": 0.411,
+      "label": "concentric p1.1/w0.7/cav0.6"
+    },
+    {
+      "params": {
+        "pitch": 1.535,
+        "land": 1.094,
+        "depth": 1.181,
+        "cavity": 0.349
+      },
+      "score": 0.8632,
+      "base": 0.8996,
+      "incon": 0.395,
+      "label": "concentric p1.5/w1.1/cav0.3"
+    },
+    {
+      "params": {
+        "pitch": 1.502,
+        "land": 1.068,
+        "depth": 0.658,
+        "cavity": 0.231
+      },
+      "score": 0.863,
+      "base": 0.9008,
+      "incon": 0.397,
+      "label": "concentric p1.5/w1.1/cav0.2"
+    },
+    {
+      "params": {
+        "pitch": 1.343,
+        "land": 0.892,
+        "depth": 0.865,
+        "cavity": 0.399
+      },
+      "score": 0.8629,
+      "base": 0.9045,
+      "incon": 0.402,
+      "label": "concentric p1.3/w0.9/cav0.4"
+    },
+    {
+      "params": {
+        "pitch": 1.048,
+        "land": 0.614,
+        "depth": 0.805,
+        "cavity": 0.529
+      },
+      "score": 0.8629,
+      "base": 0.9144,
+      "incon": 0.414,
+      "label": "concentric p1.0/w0.6/cav0.5"
+    },
+    {
+      "params": {
+        "pitch": 1.233,
+        "land": 0.769,
+        "depth": 0.879,
+        "cavity": 0.557
+      },
+      "score": 0.8623,
+      "base": 0.9075,
+      "incon": 0.406,
+      "label": "concentric p1.2/w0.8/cav0.6"
+    },
+    {
+      "params": {
+        "pitch": 1.197,
+        "land": 0.749,
+        "depth": 0.366,
+        "cavity": 0.469
+      },
+      "score": 0.8623,
+      "base": 0.9089,
+      "incon": 0.408,
+      "label": "concentric p1.2/w0.7/cav0.5"
+    },
+    {
+      "params": {
+        "pitch": 1.37,
+        "land": 0.935,
+        "depth": 1.197,
+        "cavity": 0.261
+      },
+      "score": 0.8622,
+      "base": 0.904,
+      "incon": 0.402,
+      "label": "concentric p1.4/w0.9/cav0.3"
+    },
+    {
+      "params": {
+        "pitch": 1.139,
+        "land": 0.698,
+        "depth": 0.763,
+        "cavity": 0.464
+      },
+      "score": 0.8621,
+      "base": 0.9109,
+      "incon": 0.411,
+      "label": "concentric p1.1/w0.7/cav0.5"
+    },
+    {
+      "params": {
+        "pitch": 1.56,
+        "land": 1.109,
+        "depth": 0.456,
+        "cavity": 0.42
+      },
+      "score": 0.8619,
+      "base": 0.8987,
+      "incon": 0.396,
+      "label": "concentric p1.6/w1.1/cav0.4"
+    },
+    {
+      "params": {
+        "pitch": 1.151,
+        "land": 0.695,
+        "depth": 1.287,
+        "cavity": 0.556
+      },
+      "score": 0.8615,
+      "base": 0.9102,
+      "incon": 0.411,
+      "label": "concentric p1.2/w0.7/cav0.6"
+    },
+    {
+      "params": {
+        "pitch": 1.169,
+        "land": 0.726,
+        "depth": 0.593,
+        "cavity": 0.427
+      },
+      "score": 0.8612,
+      "base": 0.9099,
+      "incon": 0.411,
+      "label": "concentric p1.2/w0.7/cav0.4"
+    },
+    {
+      "params": {
+        "pitch": 1.574,
+        "land": 1.111,
+        "depth": 1.026,
+        "cavity": 0.478
+      },
+      "score": 0.8606,
+      "base": 0.8981,
+      "incon": 0.397,
+      "label": "concentric p1.6/w1.1/cav0.5"
+    },
+    {
+      "params": {
+        "pitch": 1.506,
+        "land": 1.033,
+        "depth": 1.127,
+        "cavity": 0.397
+      },
+      "score": 0.8605,
+      "base": 0.9002,
+      "incon": 0.4,
+      "label": "concentric p1.5/w1.0/cav0.4"
+    },
+    {
+      "params": {
+        "pitch": 1.502,
+        "land": 1.02,
+        "depth": 0.603,
+        "cavity": 0.441
+      },
+      "score": 0.8604,
+      "base": 0.9002,
+      "incon": 0.4,
+      "label": "concentric p1.5/w1.0/cav0.4"
+    },
+    {
+      "params": {
+        "pitch": 1.393,
+        "land": 0.932,
+        "depth": 0.811,
+        "cavity": 0.339
+      },
+      "score": 0.8595,
+      "base": 0.9031,
+      "incon": 0.405,
+      "label": "concentric p1.4/w0.9/cav0.3"
+    },
+    {
+      "params": {
+        "pitch": 1.704,
+        "land": 1.283,
+        "depth": 0.659,
+        "cavity": 0.487
+      },
+      "score": 0.8594,
+      "base": 0.8946,
+      "incon": 0.394,
+      "label": "concentric p1.7/w1.3/cav0.5"
+    },
+    {
+      "params": {
+        "pitch": 1.115,
+        "land": 0.675,
+        "depth": 0.395,
+        "cavity": 0.412
+      },
+      "score": 0.8594,
+      "base": 0.9118,
+      "incon": 0.415,
+      "label": "concentric p1.1/w0.7/cav0.4"
+    },
+    {
+      "params": {
+        "pitch": 1.52,
+        "land": 1.043,
+        "depth": 1.292,
+        "cavity": 0.415
+      },
+      "score": 0.8594,
+      "base": 0.8996,
+      "incon": 0.4,
+      "label": "concentric p1.5/w1.0/cav0.4"
+    },
+    {
+      "params": {
+        "pitch": 1.048,
+        "land": 0.622,
+        "depth": 0.813,
+        "cavity": 0.364
+      },
+      "score": 0.8591,
+      "base": 0.9145,
+      "incon": 0.419,
+      "label": "concentric p1.0/w0.6/cav0.4"
+    },
+    {
+      "params": {
+        "pitch": 1.23,
+        "land": 0.768,
+        "depth": 1.101,
+        "cavity": 0.45
+      },
+      "score": 0.8588,
+      "base": 0.9076,
+      "incon": 0.411,
+      "label": "concentric p1.2/w0.8/cav0.5"
+    },
+    {
+      "params": {
+        "pitch": 1.396,
+        "land": 0.934,
+        "depth": 0.382,
+        "cavity": 0.319
+      },
+      "score": 0.8586,
+      "base": 0.903,
+      "incon": 0.406,
+      "label": "concentric p1.4/w0.9/cav0.3"
+    },
+    {
+      "params": {
+        "pitch": 1.631,
+        "land": 1.206,
+        "depth": 1.072,
+        "cavity": 0.326
+      },
+      "score": 0.8585,
+      "base": 0.8967,
+      "incon": 0.398,
+      "label": "concentric p1.6/w1.2/cav0.3"
+    }
+  ]
+}

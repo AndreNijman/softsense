@@ -1,0 +1,706 @@
+{
+  "family": "hierarchical",
+  "n": 15120,
+  "top": [
+    {
+      "params": {
+        "macro_pitch": 5.514,
+        "macro_channel": 0.502,
+        "macro_depth": 1.516,
+        "micro_pitch": 1.202,
+        "micro_land": 0.764,
+        "micro_depth": 0.483
+      },
+      "score": 0.8108,
+      "base": 0.902,
+      "incon": 0.464,
+      "label": "hier M6/0.5 m1.2/0.76"
+    },
+    {
+      "params": {
+        "macro_pitch": 6.377,
+        "macro_channel": 0.564,
+        "macro_depth": 0.995,
+        "micro_pitch": 1.22,
+        "micro_land": 0.779,
+        "micro_depth": 0.491
+      },
+      "score": 0.8069,
+      "base": 0.9006,
+      "incon": 0.467,
+      "label": "hier M6/0.6 m1.2/0.78"
+    },
+    {
+      "params": {
+        "macro_pitch": 5.792,
+        "macro_channel": 0.58,
+        "macro_depth": 1.387,
+        "micro_pitch": 1.128,
+        "micro_land": 0.7,
+        "micro_depth": 0.452
+      },
+      "score": 0.8063,
+      "base": 0.9034,
+      "incon": 0.471,
+      "label": "hier M6/0.6 m1.1/0.70"
+    },
+    {
+      "params": {
+        "macro_pitch": 5.118,
+        "macro_channel": 0.596,
+        "macro_depth": 1.073,
+        "micro_pitch": 1.28,
+        "micro_land": 0.842,
+        "micro_depth": 0.484
+      },
+      "score": 0.8054,
+      "base": 0.8995,
+      "incon": 0.468,
+      "label": "hier M5/0.6 m1.3/0.84"
+    },
+    {
+      "params": {
+        "macro_pitch": 5.504,
+        "macro_channel": 0.537,
+        "macro_depth": 1.28,
+        "micro_pitch": 1.234,
+        "micro_land": 0.779,
+        "micro_depth": 0.479
+      },
+      "score": 0.8046,
+      "base": 0.9007,
+      "incon": 0.47,
+      "label": "hier M6/0.5 m1.2/0.78"
+    },
+    {
+      "params": {
+        "macro_pitch": 4.652,
+        "macro_channel": 0.611,
+        "macro_depth": 1.034,
+        "micro_pitch": 1.308,
+        "micro_land": 0.858,
+        "micro_depth": 0.489
+      },
+      "score": 0.8007,
+      "base": 0.8988,
+      "incon": 0.473,
+      "label": "hier M5/0.6 m1.3/0.86"
+    },
+    {
+      "params": {
+        "macro_pitch": 6.131,
+        "macro_channel": 0.613,
+        "macro_depth": 1.496,
+        "micro_pitch": 1.311,
+        "micro_land": 0.866,
+        "micro_depth": 0.476
+      },
+      "score": 0.8004,
+      "base": 0.8976,
+      "incon": 0.472,
+      "label": "hier M6/0.6 m1.3/0.87"
+    },
+    {
+      "params": {
+        "macro_pitch": 4.185,
+        "macro_channel": 0.643,
+        "macro_depth": 0.897,
+        "micro_pitch": 1.21,
+        "micro_land": 0.781,
+        "micro_depth": 0.429
+      },
+      "score": 0.7993,
+      "base": 0.9012,
+      "incon": 0.477,
+      "label": "hier M4/0.6 m1.2/0.78"
+    },
+    {
+      "params": {
+        "macro_pitch": 6.367,
+        "macro_channel": 0.676,
+        "macro_depth": 1.418,
+        "micro_pitch": 1.306,
+        "micro_land": 0.866,
+        "micro_depth": 0.49
+      },
+      "score": 0.799,
+      "base": 0.8974,
+      "incon": 0.473,
+      "label": "hier M6/0.7 m1.3/0.87"
+    },
+    {
+      "params": {
+        "macro_pitch": 4.734,
+        "macro_channel": 0.578,
+        "macro_depth": 0.973,
+        "micro_pitch": 1.12,
+        "micro_land": 0.683,
+        "micro_depth": 0.448
+      },
+      "score": 0.7989,
+      "base": 0.9039,
+      "incon": 0.481,
+      "label": "hier M5/0.6 m1.1/0.68"
+    },
+    {
+      "params": {
+        "macro_pitch": 4.963,
+        "macro_channel": 0.5,
+        "macro_depth": 0.671,
+        "micro_pitch": 1.216,
+        "micro_land": 0.74,
+        "micro_depth": 0.5
+      },
+      "score": 0.7983,
+      "base": 0.9013,
+      "incon": 0.479,
+      "label": "hier M5/0.5 m1.2/0.74"
+    },
+    {
+      "params": {
+        "macro_pitch": 5.26,
+        "macro_channel": 0.744,
+        "macro_depth": 1.278,
+        "micro_pitch": 1.15,
+        "micro_land": 0.721,
+        "micro_depth": 0.437
+      },
+      "score": 0.7964,
+      "base": 0.9018,
+      "incon": 0.482,
+      "label": "hier M5/0.7 m1.1/0.72"
+    },
+    {
+      "params": {
+        "macro_pitch": 6.151,
+        "macro_channel": 0.536,
+        "macro_depth": 1.106,
+        "micro_pitch": 1.14,
+        "micro_land": 0.671,
+        "micro_depth": 0.432
+      },
+      "score": 0.7961,
+      "base": 0.9026,
+      "incon": 0.483,
+      "label": "hier M6/0.5 m1.1/0.67"
+    },
+    {
+      "params": {
+        "macro_pitch": 5.701,
+        "macro_channel": 0.707,
+        "macro_depth": 0.83,
+        "micro_pitch": 1.29,
+        "micro_land": 0.843,
+        "micro_depth": 0.451
+      },
+      "score": 0.7959,
+      "base": 0.8976,
+      "incon": 0.477,
+      "label": "hier M6/0.7 m1.3/0.84"
+    },
+    {
+      "params": {
+        "macro_pitch": 5.944,
+        "macro_channel": 0.856,
+        "macro_depth": 0.637,
+        "micro_pitch": 1.234,
+        "micro_land": 0.802,
+        "micro_depth": 0.473
+      },
+      "score": 0.795,
+      "base": 0.8985,
+      "incon": 0.479,
+      "label": "hier M6/0.9 m1.2/0.80"
+    },
+    {
+      "params": {
+        "macro_pitch": 4.188,
+        "macro_channel": 0.582,
+        "macro_depth": 1.586,
+        "micro_pitch": 1.261,
+        "micro_land": 0.796,
+        "micro_depth": 0.468
+      },
+      "score": 0.7948,
+      "base": 0.899,
+      "incon": 0.48,
+      "label": "hier M4/0.6 m1.3/0.80"
+    },
+    {
+      "params": {
+        "macro_pitch": 5.731,
+        "macro_channel": 0.584,
+        "macro_depth": 0.77,
+        "micro_pitch": 1.35,
+        "micro_land": 0.883,
+        "micro_depth": 0.42
+      },
+      "score": 0.794,
+      "base": 0.8957,
+      "incon": 0.477,
+      "label": "hier M6/0.6 m1.4/0.88"
+    },
+    {
+      "params": {
+        "macro_pitch": 4.503,
+        "macro_channel": 0.53,
+        "macro_depth": 0.718,
+        "micro_pitch": 1.008,
+        "micro_land": 0.581,
+        "micro_depth": 0.459
+      },
+      "score": 0.7937,
+      "base": 0.9061,
+      "incon": 0.491,
+      "label": "hier M5/0.5 m1.0/0.58"
+    },
+    {
+      "params": {
+        "macro_pitch": 4.785,
+        "macro_channel": 0.598,
+        "macro_depth": 0.861,
+        "micro_pitch": 1.176,
+        "micro_land": 0.715,
+        "micro_depth": 0.483
+      },
+      "score": 0.7927,
+      "base": 0.9007,
+      "incon": 0.485,
+      "label": "hier M5/0.6 m1.2/0.71"
+    },
+    {
+      "params": {
+        "macro_pitch": 4.876,
+        "macro_channel": 0.666,
+        "macro_depth": 1.292,
+        "micro_pitch": 1.339,
+        "micro_land": 0.881,
+        "micro_depth": 0.482
+      },
+      "score": 0.7921,
+      "base": 0.8954,
+      "incon": 0.479,
+      "label": "hier M5/0.7 m1.3/0.88"
+    },
+    {
+      "params": {
+        "macro_pitch": 3.868,
+        "macro_channel": 0.643,
+        "macro_depth": 1.454,
+        "micro_pitch": 1.229,
+        "micro_land": 0.786,
+        "micro_depth": 0.44
+      },
+      "score": 0.7913,
+      "base": 0.8984,
+      "incon": 0.484,
+      "label": "hier M4/0.6 m1.2/0.79"
+    },
+    {
+      "params": {
+        "macro_pitch": 6.129,
+        "macro_channel": 0.64,
+        "macro_depth": 0.952,
+        "micro_pitch": 1.055,
+        "micro_land": 0.609,
+        "micro_depth": 0.477
+      },
+      "score": 0.7911,
+      "base": 0.9036,
+      "incon": 0.491,
+      "label": "hier M6/0.6 m1.1/0.61"
+    },
+    {
+      "params": {
+        "macro_pitch": 6.069,
+        "macro_channel": 0.924,
+        "macro_depth": 0.818,
+        "micro_pitch": 1.167,
+        "micro_land": 0.736,
+        "micro_depth": 0.433
+      },
+      "score": 0.791,
+      "base": 0.8992,
+      "incon": 0.485,
+      "label": "hier M6/0.9 m1.2/0.74"
+    },
+    {
+      "params": {
+        "macro_pitch": 5.964,
+        "macro_channel": 0.686,
+        "macro_depth": 1.292,
+        "micro_pitch": 1.099,
+        "micro_land": 0.649,
+        "micro_depth": 0.494
+      },
+      "score": 0.7907,
+      "base": 0.902,
+      "incon": 0.489,
+      "label": "hier M6/0.7 m1.1/0.65"
+    },
+    {
+      "params": {
+        "macro_pitch": 4.187,
+        "macro_channel": 0.604,
+        "macro_depth": 1.594,
+        "micro_pitch": 1.068,
+        "micro_land": 0.639,
+        "micro_depth": 0.446
+      },
+      "score": 0.7907,
+      "base": 0.9031,
+      "incon": 0.49,
+      "label": "hier M4/0.6 m1.1/0.64"
+    },
+    {
+      "params": {
+        "macro_pitch": 4.324,
+        "macro_channel": 0.592,
+        "macro_depth": 1.092,
+        "micro_pitch": 1.115,
+        "micro_land": 0.666,
+        "micro_depth": 0.479
+      },
+      "score": 0.7887,
+      "base": 0.9012,
+      "incon": 0.491,
+      "label": "hier M4/0.6 m1.1/0.67"
+    },
+    {
+      "params": {
+        "macro_pitch": 5.777,
+        "macro_channel": 0.591,
+        "macro_depth": 1.213,
+        "micro_pitch": 1.215,
+        "micro_land": 0.722,
+        "micro_depth": 0.447
+      },
+      "score": 0.7884,
+      "base": 0.8986,
+      "incon": 0.488,
+      "label": "hier M6/0.6 m1.2/0.72"
+    },
+    {
+      "params": {
+        "macro_pitch": 5.181,
+        "macro_channel": 0.535,
+        "macro_depth": 1.185,
+        "micro_pitch": 1.029,
+        "micro_land": 0.579,
+        "micro_depth": 0.444
+      },
+      "score": 0.7879,
+      "base": 0.9038,
+      "incon": 0.495,
+      "label": "hier M5/0.5 m1.0/0.58"
+    },
+    {
+      "params": {
+        "macro_pitch": 5.626,
+        "macro_channel": 0.883,
+        "macro_depth": 1.576,
+        "micro_pitch": 1.322,
+        "micro_land": 0.892,
+        "micro_depth": 0.458
+      },
+      "score": 0.7875,
+      "base": 0.8934,
+      "incon": 0.482,
+      "label": "hier M6/0.9 m1.3/0.89"
+    },
+    {
+      "params": {
+        "macro_pitch": 5.845,
+        "macro_channel": 0.588,
+        "macro_depth": 1.028,
+        "micro_pitch": 1.114,
+        "micro_land": 0.637,
+        "micro_depth": 0.443
+      },
+      "score": 0.7853,
+      "base": 0.9004,
+      "incon": 0.494,
+      "label": "hier M6/0.6 m1.1/0.64"
+    },
+    {
+      "params": {
+        "macro_pitch": 6.133,
+        "macro_channel": 0.736,
+        "macro_depth": 0.807,
+        "micro_pitch": 1.312,
+        "micro_land": 0.843,
+        "micro_depth": 0.438
+      },
+      "score": 0.7851,
+      "base": 0.8937,
+      "incon": 0.486,
+      "label": "hier M6/0.7 m1.3/0.84"
+    },
+    {
+      "params": {
+        "macro_pitch": 4.88,
+        "macro_channel": 0.813,
+        "macro_depth": 1.376,
+        "micro_pitch": 1.172,
+        "micro_land": 0.731,
+        "micro_depth": 0.47
+      },
+      "score": 0.7841,
+      "base": 0.8973,
+      "incon": 0.492,
+      "label": "hier M5/0.8 m1.2/0.73"
+    },
+    {
+      "params": {
+        "macro_pitch": 6.386,
+        "macro_channel": 0.649,
+        "macro_depth": 1.468,
+        "micro_pitch": 1.125,
+        "micro_land": 0.644,
+        "micro_depth": 0.474
+      },
+      "score": 0.7834,
+      "base": 0.8994,
+      "incon": 0.495,
+      "label": "hier M6/0.6 m1.1/0.64"
+    },
+    {
+      "params": {
+        "macro_pitch": 5.47,
+        "macro_channel": 0.894,
+        "macro_depth": 1.283,
+        "micro_pitch": 1.074,
+        "micro_land": 0.652,
+        "micro_depth": 0.432
+      },
+      "score": 0.7834,
+      "base": 0.8997,
+      "incon": 0.495,
+      "label": "hier M5/0.9 m1.1/0.65"
+    },
+    {
+      "params": {
+        "macro_pitch": 5.031,
+        "macro_channel": 0.52,
+        "macro_depth": 1.386,
+        "micro_pitch": 1.078,
+        "micro_land": 0.605,
+        "micro_depth": 0.489
+      },
+      "score": 0.7833,
+      "base": 0.9012,
+      "incon": 0.497,
+      "label": "hier M5/0.5 m1.1/0.60"
+    },
+    {
+      "params": {
+        "macro_pitch": 4.009,
+        "macro_channel": 0.608,
+        "macro_depth": 1.26,
+        "micro_pitch": 1.103,
+        "micro_land": 0.652,
+        "micro_depth": 0.432
+      },
+      "score": 0.782,
+      "base": 0.8996,
+      "incon": 0.497,
+      "label": "hier M4/0.6 m1.1/0.65"
+    },
+    {
+      "params": {
+        "macro_pitch": 3.742,
+        "macro_channel": 0.508,
+        "macro_depth": 0.837,
+        "micro_pitch": 1.204,
+        "micro_land": 0.71,
+        "micro_depth": 0.444
+      },
+      "score": 0.781,
+      "base": 0.8971,
+      "incon": 0.495,
+      "label": "hier M4/0.5 m1.2/0.71"
+    },
+    {
+      "params": {
+        "macro_pitch": 4.474,
+        "macro_channel": 0.695,
+        "macro_depth": 1.356,
+        "micro_pitch": 1.296,
+        "micro_land": 0.81,
+        "micro_depth": 0.476
+      },
+      "score": 0.781,
+      "base": 0.8937,
+      "incon": 0.491,
+      "label": "hier M4/0.7 m1.3/0.81"
+    },
+    {
+      "params": {
+        "macro_pitch": 5.457,
+        "macro_channel": 0.552,
+        "macro_depth": 1.175,
+        "micro_pitch": 1.394,
+        "micro_land": 0.886,
+        "micro_depth": 0.47
+      },
+      "score": 0.7804,
+      "base": 0.8909,
+      "incon": 0.488,
+      "label": "hier M5/0.6 m1.4/0.89"
+    },
+    {
+      "params": {
+        "macro_pitch": 4.748,
+        "macro_channel": 0.833,
+        "macro_depth": 1.188,
+        "micro_pitch": 1.2,
+        "micro_land": 0.752,
+        "micro_depth": 0.442
+      },
+      "score": 0.7803,
+      "base": 0.8953,
+      "incon": 0.494,
+      "label": "hier M5/0.8 m1.2/0.75"
+    },
+    {
+      "params": {
+        "macro_pitch": 5.182,
+        "macro_channel": 1.049,
+        "macro_depth": 0.937,
+        "micro_pitch": 1.243,
+        "micro_land": 0.82,
+        "micro_depth": 0.45
+      },
+      "score": 0.7801,
+      "base": 0.8931,
+      "incon": 0.491,
+      "label": "hier M5/1.0 m1.2/0.82"
+    },
+    {
+      "params": {
+        "macro_pitch": 5.549,
+        "macro_channel": 0.606,
+        "macro_depth": 1.328,
+        "micro_pitch": 1.379,
+        "micro_land": 0.879,
+        "micro_depth": 0.466
+      },
+      "score": 0.7799,
+      "base": 0.8909,
+      "incon": 0.489,
+      "label": "hier M6/0.6 m1.4/0.88"
+    },
+    {
+      "params": {
+        "macro_pitch": 5.649,
+        "macro_channel": 0.696,
+        "macro_depth": 0.607,
+        "micro_pitch": 1.346,
+        "micro_land": 0.855,
+        "micro_depth": 0.431
+      },
+      "score": 0.7781,
+      "base": 0.891,
+      "incon": 0.491,
+      "label": "hier M6/0.7 m1.3/0.85"
+    },
+    {
+      "params": {
+        "macro_pitch": 5.513,
+        "macro_channel": 1.055,
+        "macro_depth": 1.214,
+        "micro_pitch": 1.201,
+        "micro_land": 0.768,
+        "micro_depth": 0.474
+      },
+      "score": 0.7779,
+      "base": 0.8939,
+      "incon": 0.495,
+      "label": "hier M6/1.1 m1.2/0.77"
+    },
+    {
+      "params": {
+        "macro_pitch": 5.606,
+        "macro_channel": 0.762,
+        "macro_depth": 0.805,
+        "micro_pitch": 1.352,
+        "micro_land": 0.874,
+        "micro_depth": 0.491
+      },
+      "score": 0.7778,
+      "base": 0.8905,
+      "incon": 0.491,
+      "label": "hier M6/0.8 m1.4/0.87"
+    },
+    {
+      "params": {
+        "macro_pitch": 5.893,
+        "macro_channel": 0.689,
+        "macro_depth": 1.107,
+        "micro_pitch": 1.143,
+        "micro_land": 0.655,
+        "micro_depth": 0.474
+      },
+      "score": 0.7775,
+      "base": 0.8971,
+      "incon": 0.5,
+      "label": "hier M6/0.7 m1.1/0.66"
+    },
+    {
+      "params": {
+        "macro_pitch": 4.164,
+        "macro_channel": 0.512,
+        "macro_depth": 0.95,
+        "micro_pitch": 1.33,
+        "micro_land": 0.791,
+        "micro_depth": 0.423
+      },
+      "score": 0.777,
+      "base": 0.8928,
+      "incon": 0.495,
+      "label": "hier M4/0.5 m1.3/0.79"
+    },
+    {
+      "params": {
+        "macro_pitch": 6.214,
+        "macro_channel": 0.981,
+        "macro_depth": 1.032,
+        "micro_pitch": 1.067,
+        "micro_land": 0.631,
+        "micro_depth": 0.486
+      },
+      "score": 0.7768,
+      "base": 0.898,
+      "incon": 0.502,
+      "label": "hier M6/1.0 m1.1/0.63"
+    },
+    {
+      "params": {
+        "macro_pitch": 6.005,
+        "macro_channel": 0.586,
+        "macro_depth": 1.528,
+        "micro_pitch": 1.269,
+        "micro_land": 0.75,
+        "micro_depth": 0.458
+      },
+      "score": 0.7766,
+      "base": 0.8935,
+      "incon": 0.496,
+      "label": "hier M6/0.6 m1.3/0.75"
+    },
+    {
+      "params": {
+        "macro_pitch": 6.099,
+        "macro_channel": 0.972,
+        "macro_depth": 1.442,
+        "micro_pitch": 1.064,
+        "micro_land": 0.629,
+        "micro_depth": 0.464
+      },
+      "score": 0.7766,
+      "base": 0.898,
+      "incon": 0.502,
+      "label": "hier M6/1.0 m1.1/0.63"
+    }
+  ]
+}

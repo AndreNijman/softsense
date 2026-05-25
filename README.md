@@ -35,8 +35,11 @@ hollow cells. The geometry (thin 1.2 mm contact beam, 1.8 mm spine, 14 fine
 1.6 mm reversed-slant ribs, sharp tip) was chosen by **multi-shape FEA** to grasp
 **universally** — it distributes contact pressure along the whole finger on
 flat/large objects and grips round objects safely and evenly across a wide size
-range (see `fea/UNIVERSAL_FINGER.md`). The contact face has **fine friction
-ridges** (≈2.2 mm pitch) so grasped objects don't slip. Printed in flexible
+range (see `fea/UNIVERSAL_FINGER.md`). The contact face carries a **crosshatch
+micro-post grip texture** (1.8 mm posts + crossing 0.54 mm drainage channels),
+optimized by a dedicated grip-texture FEA/swarm campaign for **wet, multi-surface**
+grip — it drains the water film and grips in both directions where the old
+single-axis ridges did neither (see `grip/GRIP_TEXTURE.md`). Printed in flexible
 **TPU** (ether-based for sustained immersion — see `UNDERWATER.md`). Note: a
 passive single-piece finger conforms to flat faces but cannot fully *curl around*
 a small round cylinder without an active tendon — see the ceiling discussion in
@@ -68,6 +71,8 @@ guidance is in `UNDERWATER.md`.
 | `fea/DECISION_LOG.md` | **Full decision log** — every approach tried, dead end, and number behind the finger redesign (~90 FEA runs, 2 families, agent swarm). |
 | `fea/SCALABILITY.md` | **Scalability study** — the finger across `FINGER_SCALE` 0.6–2.5: usable band ≈ 0.6–1.1× (down-scaling safe; up-scaling limited by fixed walls). |
 | `fea/FEA.md`, `fea/ITERATIONS.md` | FEA solver/method notes and the (earlier, single-object) iteration log. |
+| `grip/GRIP_TEXTURE.md` | **The grip-texture study** — how the contact-face crosshatch was chosen by a wet-grip physics model + agent swarm across object surfaces (smooth/rough/ridged/slimy/soft), with the honest concentric-override and sensitivity analysis. |
+| `grip/DECISION_LOG.md`, `grip/GRIP_MODEL.md` | Full grip-texture decision log (every family + number) and the grip model + citations + validation (literature gate, Tier-2 FEA, ±50% coefficient sensitivity). |
 | `PRINT_PROFILE_P1S_TPU.md` + `profiles/*.json` | **Importable Bambu Studio profiles** (filament + process) for printing the fingers in **eSUN eTPU-95A on a P1S / 0.4 mm hardened nozzle** — every setting + rationale, and the FEA re-check confirming the stats for eSUN. |
 | `CLAUDE.md` | Agent/people working notes — incl. the **compute policy** (heavy/high-quality FEA & renders on the MSI; routine work local). |
 | `MSI_REMOTE.md` | The MSI remote FEA/render node: setup, run commands, GPU benchmark, gotchas. |

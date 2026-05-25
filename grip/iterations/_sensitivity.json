@@ -1,0 +1,939 @@
+{
+  "baseline_winner": "concentric",
+  "tally": {
+    "concentric": 31
+  },
+  "flips": [],
+  "rows": [
+    {
+      "setting": "baseline",
+      "key": null,
+      "mult": 1.0,
+      "value": null,
+      "winner": "concentric",
+      "scores": {
+        "ridge": 0.7492,
+        "crosshatch": 0.8054,
+        "chevron": 0.7907,
+        "hexpad": 0.7977,
+        "concentric": 0.8712,
+        "dimple": 0.6273,
+        "hierarchical": 0.8007
+      },
+      "top3": [
+        [
+          "concentric",
+          0.8712
+        ],
+        [
+          "crosshatch",
+          0.8054
+        ],
+        [
+          "hierarchical",
+          0.8007
+        ]
+      ]
+    },
+    {
+      "setting": "TAU0",
+      "key": "TAU0",
+      "mult": 0.5,
+      "value": 0.09,
+      "winner": "concentric",
+      "scores": {
+        "ridge": 0.4787,
+        "crosshatch": 0.5579,
+        "chevron": 0.5595,
+        "hexpad": 0.5633,
+        "concentric": 0.6975,
+        "dimple": 0.462,
+        "hierarchical": 0.5735
+      },
+      "top3": [
+        [
+          "concentric",
+          0.6975
+        ],
+        [
+          "hierarchical",
+          0.5735
+        ],
+        [
+          "hexpad",
+          0.5633
+        ]
+      ]
+    },
+    {
+      "setting": "TAU0",
+      "key": "TAU0",
+      "mult": 1.5,
+      "value": 0.27,
+      "winner": "concentric",
+      "scores": {
+        "ridge": 0.875,
+        "crosshatch": 0.902,
+        "chevron": 0.8937,
+        "hexpad": 0.9001,
+        "concentric": 0.9284,
+        "dimple": 0.738,
+        "hierarchical": 0.9004
+      },
+      "top3": [
+        [
+          "concentric",
+          0.9284
+        ],
+        [
+          "crosshatch",
+          0.902
+        ],
+        [
+          "hierarchical",
+          0.9004
+        ]
+      ]
+    },
+    {
+      "setting": "ALPHA",
+      "key": "ALPHA",
+      "mult": 0.5,
+      "value": 0.11,
+      "winner": "concentric",
+      "scores": {
+        "ridge": 0.6733,
+        "crosshatch": 0.7317,
+        "chevron": 0.7131,
+        "hexpad": 0.7193,
+        "concentric": 0.8164,
+        "dimple": 0.5742,
+        "hierarchical": 0.7208
+      },
+      "top3": [
+        [
+          "concentric",
+          0.8164
+        ],
+        [
+          "crosshatch",
+          0.7317
+        ],
+        [
+          "hierarchical",
+          0.7208
+        ]
+      ]
+    },
+    {
+      "setting": "ALPHA",
+      "key": "ALPHA",
+      "mult": 1.5,
+      "value": 0.33,
+      "winner": "concentric",
+      "scores": {
+        "ridge": 0.8165,
+        "crosshatch": 0.8669,
+        "chevron": 0.8528,
+        "hexpad": 0.8599,
+        "concentric": 0.9236,
+        "dimple": 0.677,
+        "hierarchical": 0.8604
+      },
+      "top3": [
+        [
+          "concentric",
+          0.9236
+        ],
+        [
+          "crosshatch",
+          0.8669
+        ],
+        [
+          "hierarchical",
+          0.8604
+        ]
+      ]
+    },
+    {
+      "setting": "MU_FILM",
+      "key": "MU_FILM",
+      "mult": 0.5,
+      "value": 0.04,
+      "winner": "concentric",
+      "scores": {
+        "ridge": 0.7492,
+        "crosshatch": 0.8054,
+        "chevron": 0.7907,
+        "hexpad": 0.7977,
+        "concentric": 0.8712,
+        "dimple": 0.6154,
+        "hierarchical": 0.8007
+      },
+      "top3": [
+        [
+          "concentric",
+          0.8712
+        ],
+        [
+          "crosshatch",
+          0.8054
+        ],
+        [
+          "hierarchical",
+          0.8007
+        ]
+      ]
+    },
+    {
+      "setting": "MU_FILM",
+      "key": "MU_FILM",
+      "mult": 1.5,
+      "value": 0.12,
+      "winner": "concentric",
+      "scores": {
+        "ridge": 0.7492,
+        "crosshatch": 0.8055,
+        "chevron": 0.7907,
+        "hexpad": 0.7977,
+        "concentric": 0.8713,
+        "dimple": 0.639,
+        "hierarchical": 0.8007
+      },
+      "top3": [
+        [
+          "concentric",
+          0.8713
+        ],
+        [
+          "crosshatch",
+          0.8055
+        ],
+        [
+          "hierarchical",
+          0.8007
+        ]
+      ]
+    },
+    {
+      "setting": "SKIN_SLICK",
+      "key": "SKIN_SLICK",
+      "mult": 0.5,
+      "value": 0.27,
+      "winner": "concentric",
+      "scores": {
+        "ridge": 0.7419,
+        "crosshatch": 0.804,
+        "chevron": 0.7754,
+        "hexpad": 0.7977,
+        "concentric": 0.8712,
+        "dimple": 0.617,
+        "hierarchical": 0.7998
+      },
+      "top3": [
+        [
+          "concentric",
+          0.8712
+        ],
+        [
+          "crosshatch",
+          0.804
+        ],
+        [
+          "hierarchical",
+          0.7998
+        ]
+      ]
+    },
+    {
+      "setting": "SKIN_SLICK",
+      "key": "SKIN_SLICK",
+      "mult": 1.5,
+      "value": 0.68,
+      "winner": "concentric",
+      "scores": {
+        "ridge": 0.7594,
+        "crosshatch": 0.8072,
+        "chevron": 0.8086,
+        "hexpad": 0.7977,
+        "concentric": 0.8712,
+        "dimple": 0.6402,
+        "hierarchical": 0.8019
+      },
+      "top3": [
+        [
+          "concentric",
+          0.8712
+        ],
+        [
+          "chevron",
+          0.8086
+        ],
+        [
+          "crosshatch",
+          0.8072
+        ]
+      ]
+    },
+    {
+      "setting": "EDGE_DEGLAZE",
+      "key": "EDGE_DEGLAZE",
+      "mult": 0.5,
+      "value": 1.0,
+      "winner": "concentric",
+      "scores": {
+        "ridge": 0.8003,
+        "crosshatch": 0.8182,
+        "chevron": 0.8378,
+        "hexpad": 0.8279,
+        "concentric": 0.8763,
+        "dimple": 0.6693,
+        "hierarchical": 0.8036
+      },
+      "top3": [
+        [
+          "concentric",
+          0.8763
+        ],
+        [
+          "chevron",
+          0.8378
+        ],
+        [
+          "hexpad",
+          0.8279
+        ]
+      ]
+    },
+    {
+      "setting": "EDGE_DEGLAZE",
+      "key": "EDGE_DEGLAZE",
+      "mult": 1.5,
+      "value": 3.0,
+      "winner": "concentric",
+      "scores": {
+        "ridge": 0.6739,
+        "crosshatch": 0.7505,
+        "chevron": 0.7321,
+        "hexpad": 0.7409,
+        "concentric": 0.8532,
+        "dimple": 0.5808,
+        "hierarchical": 0.7554
+      },
+      "top3": [
+        [
+          "concentric",
+          0.8532
+        ],
+        [
+          "hierarchical",
+          0.7554
+        ],
+        [
+          "crosshatch",
+          0.7505
+        ]
+      ]
+    },
+    {
+      "setting": "CAP0",
+      "key": "CAP0",
+      "mult": 0.5,
+      "value": 0.25,
+      "winner": "concentric",
+      "scores": {
+        "ridge": 0.7492,
+        "crosshatch": 0.8054,
+        "chevron": 0.7907,
+        "hexpad": 0.7977,
+        "concentric": 0.8712,
+        "dimple": 0.6273,
+        "hierarchical": 0.8007
+      },
+      "top3": [
+        [
+          "concentric",
+          0.8712
+        ],
+        [
+          "crosshatch",
+          0.8054
+        ],
+        [
+          "hierarchical",
+          0.8007
+        ]
+      ]
+    },
+    {
+      "setting": "CAP0",
+      "key": "CAP0",
+      "mult": 1.5,
+      "value": 0.75,
+      "winner": "concentric",
+      "scores": {
+        "ridge": 0.7492,
+        "crosshatch": 0.8054,
+        "chevron": 0.7907,
+        "hexpad": 0.7977,
+        "concentric": 0.8712,
+        "dimple": 0.6273,
+        "hierarchical": 0.8007
+      },
+      "top3": [
+        [
+          "concentric",
+          0.8712
+        ],
+        [
+          "crosshatch",
+          0.8054
+        ],
+        [
+          "hierarchical",
+          0.8007
+        ]
+      ]
+    },
+    {
+      "setting": "EDGE_PIERCE",
+      "key": "EDGE_PIERCE",
+      "mult": 0.5,
+      "value": 0.05,
+      "winner": "concentric",
+      "scores": {
+        "ridge": 0.7491,
+        "crosshatch": 0.805,
+        "chevron": 0.7905,
+        "hexpad": 0.7977,
+        "concentric": 0.8711,
+        "dimple": 0.5636,
+        "hierarchical": 0.8007
+      },
+      "top3": [
+        [
+          "concentric",
+          0.8711
+        ],
+        [
+          "crosshatch",
+          0.805
+        ],
+        [
+          "hierarchical",
+          0.8007
+        ]
+      ]
+    },
+    {
+      "setting": "EDGE_PIERCE",
+      "key": "EDGE_PIERCE",
+      "mult": 1.5,
+      "value": 0.15,
+      "winner": "concentric",
+      "scores": {
+        "ridge": 0.7492,
+        "crosshatch": 0.8054,
+        "chevron": 0.7907,
+        "hexpad": 0.7977,
+        "concentric": 0.8712,
+        "dimple": 0.6535,
+        "hierarchical": 0.8007
+      },
+      "top3": [
+        [
+          "concentric",
+          0.8712
+        ],
+        [
+          "crosshatch",
+          0.8054
+        ],
+        [
+          "hierarchical",
+          0.8007
+        ]
+      ]
+    },
+    {
+      "setting": "LAND_CRIT",
+      "key": "LAND_CRIT",
+      "mult": 0.5,
+      "value": 1.0,
+      "winner": "concentric",
+      "scores": {
+        "ridge": 0.7241,
+        "crosshatch": 0.7773,
+        "chevron": 0.7666,
+        "hexpad": 0.7696,
+        "concentric": 0.859,
+        "dimple": 0.5858,
+        "hierarchical": 0.7754
+      },
+      "top3": [
+        [
+          "concentric",
+          0.859
+        ],
+        [
+          "crosshatch",
+          0.7773
+        ],
+        [
+          "hierarchical",
+          0.7754
+        ]
+      ]
+    },
+    {
+      "setting": "LAND_CRIT",
+      "key": "LAND_CRIT",
+      "mult": 1.5,
+      "value": 3.0,
+      "winner": "concentric",
+      "scores": {
+        "ridge": 0.7576,
+        "crosshatch": 0.8185,
+        "chevron": 0.7998,
+        "hexpad": 0.8081,
+        "concentric": 0.8773,
+        "dimple": 0.6477,
+        "hierarchical": 0.8062
+      },
+      "top3": [
+        [
+          "concentric",
+          0.8773
+        ],
+        [
+          "crosshatch",
+          0.8185
+        ],
+        [
+          "hexpad",
+          0.8081
+        ]
+      ]
+    },
+    {
+      "setting": "ETA_FLOOR",
+      "key": "ETA_FLOOR",
+      "mult": 0.5,
+      "value": 0.27,
+      "winner": "concentric",
+      "scores": {
+        "ridge": 0.739,
+        "crosshatch": 0.7813,
+        "chevron": 0.7761,
+        "hexpad": 0.7765,
+        "concentric": 0.8637,
+        "dimple": 0.5983,
+        "hierarchical": 0.7855
+      },
+      "top3": [
+        [
+          "concentric",
+          0.8637
+        ],
+        [
+          "hierarchical",
+          0.7855
+        ],
+        [
+          "crosshatch",
+          0.7813
+        ]
+      ]
+    },
+    {
+      "setting": "ETA_FLOOR",
+      "key": "ETA_FLOOR",
+      "mult": 1.5,
+      "value": 0.68,
+      "winner": "concentric",
+      "scores": {
+        "ridge": 0.7622,
+        "crosshatch": 0.8248,
+        "chevron": 0.8028,
+        "hexpad": 0.8133,
+        "concentric": 0.8813,
+        "dimple": 0.6632,
+        "hierarchical": 0.8095
+      },
+      "top3": [
+        [
+          "concentric",
+          0.8813
+        ],
+        [
+          "crosshatch",
+          0.8248
+        ],
+        [
+          "hexpad",
+          0.8133
+        ]
+      ]
+    },
+    {
+      "setting": "C_HYS",
+      "key": "C_HYS",
+      "mult": 0.5,
+      "value": 0.125,
+      "winner": "concentric",
+      "scores": {
+        "ridge": 0.7654,
+        "crosshatch": 0.7959,
+        "chevron": 0.8097,
+        "hexpad": 0.7986,
+        "concentric": 0.8425,
+        "dimple": 0.6972,
+        "hierarchical": 0.8035
+      },
+      "top3": [
+        [
+          "concentric",
+          0.8425
+        ],
+        [
+          "chevron",
+          0.8097
+        ],
+        [
+          "hierarchical",
+          0.8035
+        ]
+      ]
+    },
+    {
+      "setting": "C_HYS",
+      "key": "C_HYS",
+      "mult": 1.5,
+      "value": 0.375,
+      "winner": "concentric",
+      "scores": {
+        "ridge": 0.7965,
+        "crosshatch": 0.8573,
+        "chevron": 0.8398,
+        "hexpad": 0.8531,
+        "concentric": 0.9267,
+        "dimple": 0.5848,
+        "hierarchical": 0.8529
+      },
+      "top3": [
+        [
+          "concentric",
+          0.9267
+        ],
+        [
+          "crosshatch",
+          0.8573
+        ],
+        [
+          "hexpad",
+          0.8531
+        ]
+      ]
+    },
+    {
+      "setting": "C_EDGE",
+      "key": "C_EDGE",
+      "mult": 0.5,
+      "value": 0.3,
+      "winner": "concentric",
+      "scores": {
+        "ridge": 0.7368,
+        "crosshatch": 0.7818,
+        "chevron": 0.7806,
+        "hexpad": 0.7762,
+        "concentric": 0.8417,
+        "dimple": 0.6617,
+        "hierarchical": 0.7815
+      },
+      "top3": [
+        [
+          "concentric",
+          0.8417
+        ],
+        [
+          "crosshatch",
+          0.7818
+        ],
+        [
+          "hierarchical",
+          0.7815
+        ]
+      ]
+    },
+    {
+      "setting": "C_EDGE",
+      "key": "C_EDGE",
+      "mult": 1.5,
+      "value": 0.9,
+      "winner": "concentric",
+      "scores": {
+        "ridge": 0.774,
+        "crosshatch": 0.8339,
+        "chevron": 0.8149,
+        "hexpad": 0.8286,
+        "concentric": 0.9046,
+        "dimple": 0.597,
+        "hierarchical": 0.8294
+      },
+      "top3": [
+        [
+          "concentric",
+          0.9046
+        ],
+        [
+          "crosshatch",
+          0.8339
+        ],
+        [
+          "hierarchical",
+          0.8294
+        ]
+      ]
+    },
+    {
+      "setting": "C_FLAT",
+      "key": "C_FLAT",
+      "mult": 0.5,
+      "value": 0.4,
+      "winner": "concentric",
+      "scores": {
+        "ridge": 0.7487,
+        "crosshatch": 0.8049,
+        "chevron": 0.7902,
+        "hexpad": 0.7971,
+        "concentric": 0.8709,
+        "dimple": 0.6271,
+        "hierarchical": 0.8003
+      },
+      "top3": [
+        [
+          "concentric",
+          0.8709
+        ],
+        [
+          "crosshatch",
+          0.8049
+        ],
+        [
+          "hierarchical",
+          0.8003
+        ]
+      ]
+    },
+    {
+      "setting": "C_FLAT",
+      "key": "C_FLAT",
+      "mult": 1.5,
+      "value": 1.2,
+      "winner": "concentric",
+      "scores": {
+        "ridge": 0.7497,
+        "crosshatch": 0.806,
+        "chevron": 0.7912,
+        "hexpad": 0.7983,
+        "concentric": 0.8715,
+        "dimple": 0.6275,
+        "hierarchical": 0.8011
+      },
+      "top3": [
+        [
+          "concentric",
+          0.8715
+        ],
+        [
+          "crosshatch",
+          0.806
+        ],
+        [
+          "hierarchical",
+          0.8011
+        ]
+      ]
+    },
+    {
+      "setting": "SUCT_GAIN",
+      "key": "SUCT_GAIN",
+      "mult": 0.5,
+      "value": 0.125,
+      "winner": "concentric",
+      "scores": {
+        "ridge": 0.7492,
+        "crosshatch": 0.8054,
+        "chevron": 0.7907,
+        "hexpad": 0.7977,
+        "concentric": 0.863,
+        "dimple": 0.591,
+        "hierarchical": 0.8007
+      },
+      "top3": [
+        [
+          "concentric",
+          0.863
+        ],
+        [
+          "crosshatch",
+          0.8054
+        ],
+        [
+          "hierarchical",
+          0.8007
+        ]
+      ]
+    },
+    {
+      "setting": "SUCT_GAIN",
+      "key": "SUCT_GAIN",
+      "mult": 1.5,
+      "value": 0.375,
+      "winner": "concentric",
+      "scores": {
+        "ridge": 0.7492,
+        "crosshatch": 0.8054,
+        "chevron": 0.7907,
+        "hexpad": 0.7977,
+        "concentric": 0.8792,
+        "dimple": 0.6611,
+        "hierarchical": 0.8007
+      },
+      "top3": [
+        [
+          "concentric",
+          0.8792
+        ],
+        [
+          "crosshatch",
+          0.8054
+        ],
+        [
+          "hierarchical",
+          0.8007
+        ]
+      ]
+    },
+    {
+      "setting": "W_PRIMARY",
+      "key": "W_PRIMARY",
+      "mult": 0.5,
+      "value": 0.3,
+      "winner": "concentric",
+      "scores": {
+        "ridge": 0.5906,
+        "crosshatch": 0.7841,
+        "chevron": 0.7614,
+        "hexpad": 0.7886,
+        "concentric": 0.8657,
+        "dimple": 0.6128,
+        "hierarchical": 0.7875
+      },
+      "top3": [
+        [
+          "concentric",
+          0.8657
+        ],
+        [
+          "hexpad",
+          0.7886
+        ],
+        [
+          "hierarchical",
+          0.7875
+        ]
+      ]
+    },
+    {
+      "setting": "W_PRIMARY",
+      "key": "W_PRIMARY",
+      "mult": 1.5,
+      "value": 0.9,
+      "winner": "concentric",
+      "scores": {
+        "ridge": 0.8079,
+        "crosshatch": 0.8208,
+        "chevron": 0.8072,
+        "hexpad": 0.8055,
+        "concentric": 0.8768,
+        "dimple": 0.6418,
+        "hierarchical": 0.8067
+      },
+      "top3": [
+        [
+          "concentric",
+          0.8768
+        ],
+        [
+          "crosshatch",
+          0.8208
+        ],
+        [
+          "ridge",
+          0.8079
+        ]
+      ]
+    },
+    {
+      "setting": "INCON_PEN",
+      "key": "INCON_PEN",
+      "mult": 0.5,
+      "value": 0.4,
+      "winner": "concentric",
+      "scores": {
+        "ridge": 0.7962,
+        "crosshatch": 0.8442,
+        "chevron": 0.8379,
+        "hexpad": 0.8447,
+        "concentric": 0.8896,
+        "dimple": 0.6792,
+        "hierarchical": 0.8498
+      },
+      "top3": [
+        [
+          "concentric",
+          0.8896
+        ],
+        [
+          "hierarchical",
+          0.8498
+        ],
+        [
+          "hexpad",
+          0.8447
+        ]
+      ]
+    },
+    {
+      "setting": "INCON_PEN",
+      "key": "INCON_PEN",
+      "mult": 1.5,
+      "value": 1.2,
+      "winner": "concentric",
+      "scores": {
+        "ridge": 0.7022,
+        "crosshatch": 0.7667,
+        "chevron": 0.7435,
+        "hexpad": 0.7507,
+        "concentric": 0.8551,
+        "dimple": 0.5795,
+        "hierarchical": 0.7517
+      },
+      "top3": [
+        [
+          "concentric",
+          0.8551
+        ],
+        [
+          "crosshatch",
+          0.7667
+        ],
+        [
+          "hierarchical",
+          0.7517
+        ]
+      ]
+    }
+  ]
+}

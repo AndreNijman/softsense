@@ -266,18 +266,30 @@ FR_RIB_WALL_TIP = 1.6       # rib wall at tip
 FR_INSET_BASE = 4.0    # solid floor across the bottom
 FR_INSET_TIP = 3.0     # solid cap at the apex
 MOUNT_HOLE_R = PIN_R + PRINT_CLEAR   # finger pin bore (FDM clearance)
-# grip texture: friction ridges on the contact face (so objects don't slip)
-FR_GRIP_DEPTH = 0.6     # ridge protrusion toward the object (mm)
-FR_GRIP_PITCH = 2.2     # ridge spacing along the blade length Y (mm)
+# grip texture: CROSSHATCH micro-posts on the contact face (so objects don't slip).
+# Optimised by a dedicated grip-texture FEA/swarm campaign (see grip/GRIP_TEXTURE.md):
+# a square-post array out-drains and out-grips the old single-axis ridges on WET
+# objects (the gripper runs underwater and as-printed eTPU is slick), grips in two
+# directions (M_worst 0.72 vs a ridge's 0.18), and tiles the blade perfectly. The
+# crossing 0.54 mm channels squeeze the water film out (tyre-tread / tree-frog
+# mechanism) and the post edges break the glossy printed-TPU skin. Conservative
+# (>= 0.5 mm channel) variant: universal grip score 0.75 vs the smooth-face 0.25.
+FR_GRIP_DEPTH = 0.6     # post height proud of the contact face (mm); grip-neutral
+                        # above ~0.3 (drainage saturates) so kept at 0.6 for the
+                        # safe closed-pose finger-finger gap and a low post aspect
+FR_GRIP_PITCH = 1.8     # post pitch along the blade length Y (mm); land = pitch-FLAT
 FR_GRIP_Y0_FRAC = 0.15  # texture starts at this fraction of the blade length
 FR_GRIP_Y1_FRAC = 0.95  # texture ends at this fraction of the blade length
-FR_GRIP_ROOT_IN = 0.2   # tooth root sits this far INTO the body from the face
-FR_GRIP_FLAT = 0.4      # flat valley between teeth (mm)
+FR_GRIP_ROOT_IN = 0.2   # post root sits this far INTO the body (fuses cleanly)
+FR_GRIP_FLAT = 0.54     # channel width between posts along Y (mm) -> land 1.26 mm
+FR_GRIP_CROSS = True    # crosshatch: chop the Y-ridges into posts with Z-channels
+FR_GRIP_CROSS_PITCH = 1.8  # post pitch across the finger depth Z (mm)
+FR_GRIP_CROSS_GAP = 0.54   # channel width between posts along Z (mm)
 # print-friendly rounding (FDM TPU, prints flat on the z0 face)
 FR_BASE_CHAMFER = 0.5    # bottom-edge (bed face) chamfer: kills elephant-foot
 FR_CELL_FILLET = 0.8     # fillet radius on internal rib-cell / spar corners
 FR_TIP_FILLET = 1.5      # round the blade tip apex
-FR_GRIP_TIP_FLAT = 0.2   # half-height of the flat at each grip-tooth tip
+FR_GRIP_TIP_FLAT = 0.5   # half-width of the flat at each post tip (slight draft)
 
 # --------------------------------------------------------------------------
 # Colours (clean industrial: dark slate body, matte-black TPU jaws, steel)
@@ -767,12 +779,16 @@ def finray_finger_closed(C0, D0, inner_dir, z0, thickness):
             ribs_all = ribs_all + r
         finger = finger + (ribs_all & blade)        # trim rib ends to the blade
 
-    # --- grip texture ---
-    # Fine friction ridges (pliers-style teeth) on the CONTACT face. They run
-    # across the finger depth (full Z) and repeat along the blade length (Y),
-    # protruding toward the object. Roots sit just inside the contact spar so
-    # they fuse cleanly; tips stay clear of the centreline at the closed pose
-    # (right finger: contact_x=+1.0, tips at +1.0-0.6 = +0.4 -> 0.8 mm gap).
+    # --- grip texture (CROSSHATCH micro-posts) ---
+    # Step 1 builds Y-ridges (X-Y trapezoids extruded the full Z depth), exactly
+    # as the legacy single-axis texture. Step 2 (FR_GRIP_CROSS) then cuts channels
+    # that run along Y and repeat across Z, CHOPPING the ridges into a grid of
+    # square posts -- the crosshatch winner from the grip-texture campaign. The two
+    # channel families (0.54 mm wide) drain the water film in both directions; the
+    # post edges grip in both directions and break the slick printed-eTPU skin.
+    # Roots sit FR_GRIP_ROOT_IN inside the spar so the posts fuse cleanly; tips stay
+    # clear of the centreline at the closed pose (right finger: contact_x=+1.0,
+    # tips at +1.0-0.6 = +0.4 -> 0.8 mm finger-finger gap).
     grip_root_x = contact_x + into * FR_GRIP_ROOT_IN
     grip_tip_x = contact_x - into * FR_GRIP_DEPTH
     gy0 = base_y + FR_GRIP_Y0_FRAC * blade_len
@@ -798,6 +814,28 @@ def finray_finger_closed(C0, D0, inner_dir, z0, thickness):
         for t in teeth[1:]:
             teeth_all = teeth_all + t
         finger = finger + teeth_all
+
+    # Step 2: chop the Y-ridges into a CROSSHATCH post grid by subtracting channels
+    # that run along Y (blade length) and repeat across the finger depth Z. Each cut
+    # removes only the proud material (tip -> contact face), leaving the fused root
+    # base inside the body intact, so the posts stay anchored.
+    if teeth and FR_GRIP_CROSS:
+        xa, xb = sorted([grip_tip_x, contact_x])     # proud region spans face..tip
+        xlo = xa - 0.4                               # start beyond the tip
+        xhi = xb                                     # stop at the contact face plane
+        xc, xw = 0.5 * (xlo + xhi), (xhi - xlo)
+        yc, yw = 0.5 * (gy0 + gy1), (gy1 - gy0) + 2.0
+        cutters = []
+        z = z0 + (FR_GRIP_CROSS_PITCH - FR_GRIP_CROSS_GAP)   # first channel after a land
+        while z < z0 + thickness:
+            cutters.append(Box(xw, yw, FR_GRIP_CROSS_GAP).moved(
+                Location((xc, yc, z + FR_GRIP_CROSS_GAP / 2.0))))
+            z += FR_GRIP_CROSS_PITCH
+        if cutters:
+            comb = cutters[0]
+            for c in cutters[1:]:
+                comb = comb + c
+            finger = finger - comb
     # --- end grip texture ---
 
     # Trim anything that crosses the centreline (just inboard of the tooth tips)

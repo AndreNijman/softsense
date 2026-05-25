@@ -1,0 +1,556 @@
+{
+  "family": "hexpad",
+  "n": 8232,
+  "top": [
+    {
+      "params": {
+        "cell": 1.3,
+        "channel": 0.42,
+        "depth": 0.3
+      },
+      "score": 0.7977,
+      "base": 0.8917,
+      "incon": 0.467,
+      "label": "hexpad c1.3/g0.4/h0.3"
+    },
+    {
+      "params": {
+        "cell": 1.3,
+        "channel": 0.42,
+        "depth": 0.4
+      },
+      "score": 0.7977,
+      "base": 0.8917,
+      "incon": 0.467,
+      "label": "hexpad c1.3/g0.4/h0.4"
+    },
+    {
+      "params": {
+        "cell": 1.3,
+        "channel": 0.42,
+        "depth": 0.5
+      },
+      "score": 0.7977,
+      "base": 0.8917,
+      "incon": 0.467,
+      "label": "hexpad c1.3/g0.4/h0.5"
+    },
+    {
+      "params": {
+        "cell": 1.3,
+        "channel": 0.42,
+        "depth": 0.7
+      },
+      "score": 0.7977,
+      "base": 0.8917,
+      "incon": 0.467,
+      "label": "hexpad c1.3/g0.4/h0.7"
+    },
+    {
+      "params": {
+        "cell": 1.3,
+        "channel": 0.42,
+        "depth": 0.9
+      },
+      "score": 0.7977,
+      "base": 0.8917,
+      "incon": 0.467,
+      "label": "hexpad c1.3/g0.4/h0.9"
+    },
+    {
+      "params": {
+        "cell": 1.3,
+        "channel": 0.42,
+        "depth": 1.2
+      },
+      "score": 0.7977,
+      "base": 0.8917,
+      "incon": 0.467,
+      "label": "hexpad c1.3/g0.4/h1.2"
+    },
+    {
+      "params": {
+        "cell": 1.283,
+        "channel": 0.424,
+        "depth": 0.895
+      },
+      "score": 0.7949,
+      "base": 0.8912,
+      "incon": 0.47,
+      "label": "hexpad c1.3/g0.4/h0.9"
+    },
+    {
+      "params": {
+        "cell": 1.379,
+        "channel": 0.421,
+        "depth": 1.096
+      },
+      "score": 0.7946,
+      "base": 0.8888,
+      "incon": 0.468,
+      "label": "hexpad c1.4/g0.4/h1.1"
+    },
+    {
+      "params": {
+        "cell": 1.247,
+        "channel": 0.421,
+        "depth": 0.762
+      },
+      "score": 0.7939,
+      "base": 0.8917,
+      "incon": 0.472,
+      "label": "hexpad c1.2/g0.4/h0.8"
+    },
+    {
+      "params": {
+        "cell": 1.267,
+        "channel": 0.424,
+        "depth": 1.247
+      },
+      "score": 0.7939,
+      "base": 0.8912,
+      "incon": 0.472,
+      "label": "hexpad c1.3/g0.4/h1.2"
+    },
+    {
+      "params": {
+        "cell": 1.258,
+        "channel": 0.423,
+        "depth": 0.512
+      },
+      "score": 0.7938,
+      "base": 0.8914,
+      "incon": 0.472,
+      "label": "hexpad c1.3/g0.4/h0.5"
+    },
+    {
+      "params": {
+        "cell": 1.296,
+        "channel": 0.429,
+        "depth": 1.274
+      },
+      "score": 0.7936,
+      "base": 0.8904,
+      "incon": 0.471,
+      "label": "hexpad c1.3/g0.4/h1.3"
+    },
+    {
+      "params": {
+        "cell": 1.382,
+        "channel": 0.423,
+        "depth": 1.289
+      },
+      "score": 0.7934,
+      "base": 0.8884,
+      "incon": 0.469,
+      "label": "hexpad c1.4/g0.4/h1.3"
+    },
+    {
+      "params": {
+        "cell": 1.421,
+        "channel": 0.421,
+        "depth": 1.002
+      },
+      "score": 0.7925,
+      "base": 0.8872,
+      "incon": 0.468,
+      "label": "hexpad c1.4/g0.4/h1.0"
+    },
+    {
+      "params": {
+        "cell": 1.277,
+        "channel": 0.429,
+        "depth": 1.261
+      },
+      "score": 0.7924,
+      "base": 0.8904,
+      "incon": 0.473,
+      "label": "hexpad c1.3/g0.4/h1.3"
+    },
+    {
+      "params": {
+        "cell": 1.234,
+        "channel": 0.424,
+        "depth": 1.295
+      },
+      "score": 0.7917,
+      "base": 0.8913,
+      "incon": 0.474,
+      "label": "hexpad c1.2/g0.4/h1.3"
+    },
+    {
+      "params": {
+        "cell": 1.45,
+        "channel": 0.422,
+        "depth": 0.685
+      },
+      "score": 0.7906,
+      "base": 0.8859,
+      "incon": 0.469,
+      "label": "hexpad c1.4/g0.4/h0.7"
+    },
+    {
+      "params": {
+        "cell": 1.414,
+        "channel": 0.426,
+        "depth": 0.972
+      },
+      "score": 0.7903,
+      "base": 0.8866,
+      "incon": 0.47,
+      "label": "hexpad c1.4/g0.4/h1.0"
+    },
+    {
+      "params": {
+        "cell": 1.379,
+        "channel": 0.43,
+        "depth": 1.065
+      },
+      "score": 0.79,
+      "base": 0.8872,
+      "incon": 0.472,
+      "label": "hexpad c1.4/g0.4/h1.1"
+    },
+    {
+      "params": {
+        "cell": 1.286,
+        "channel": 0.437,
+        "depth": 1.1
+      },
+      "score": 0.7895,
+      "base": 0.8892,
+      "incon": 0.475,
+      "label": "hexpad c1.3/g0.4/h1.1"
+    },
+    {
+      "params": {
+        "cell": 1.359,
+        "channel": 0.433,
+        "depth": 0.625
+      },
+      "score": 0.7894,
+      "base": 0.8875,
+      "incon": 0.473,
+      "label": "hexpad c1.4/g0.4/h0.6"
+    },
+    {
+      "params": {
+        "cell": 1.421,
+        "channel": 0.428,
+        "depth": 1.233
+      },
+      "score": 0.789,
+      "base": 0.886,
+      "incon": 0.471,
+      "label": "hexpad c1.4/g0.4/h1.2"
+    },
+    {
+      "params": {
+        "cell": 1.487,
+        "channel": 0.422,
+        "depth": 0.647
+      },
+      "score": 0.7887,
+      "base": 0.8845,
+      "incon": 0.47,
+      "label": "hexpad c1.5/g0.4/h0.6"
+    },
+    {
+      "params": {
+        "cell": 1.24,
+        "channel": 0.432,
+        "depth": 0.822
+      },
+      "score": 0.7886,
+      "base": 0.89,
+      "incon": 0.477,
+      "label": "hexpad c1.2/g0.4/h0.8"
+    },
+    {
+      "params": {
+        "cell": 1.251,
+        "channel": 0.434,
+        "depth": 0.808
+      },
+      "score": 0.7884,
+      "base": 0.8897,
+      "incon": 0.477,
+      "label": "hexpad c1.3/g0.4/h0.8"
+    },
+    {
+      "params": {
+        "cell": 1.446,
+        "channel": 0.429,
+        "depth": 1.092
+      },
+      "score": 0.7873,
+      "base": 0.8849,
+      "incon": 0.472,
+      "label": "hexpad c1.4/g0.4/h1.1"
+    },
+    {
+      "params": {
+        "cell": 1.251,
+        "channel": 0.437,
+        "depth": 0.731
+      },
+      "score": 0.7871,
+      "base": 0.8892,
+      "incon": 0.478,
+      "label": "hexpad c1.3/g0.4/h0.7"
+    },
+    {
+      "params": {
+        "cell": 1.206,
+        "channel": 0.431,
+        "depth": 1.078
+      },
+      "score": 0.7866,
+      "base": 0.8902,
+      "incon": 0.48,
+      "label": "hexpad c1.2/g0.4/h1.1"
+    },
+    {
+      "params": {
+        "cell": 1.254,
+        "channel": 0.439,
+        "depth": 0.442
+      },
+      "score": 0.7865,
+      "base": 0.8889,
+      "incon": 0.478,
+      "label": "hexpad c1.3/g0.4/h0.4"
+    },
+    {
+      "params": {
+        "cell": 1.384,
+        "channel": 0.437,
+        "depth": 0.635
+      },
+      "score": 0.7862,
+      "base": 0.8858,
+      "incon": 0.475,
+      "label": "hexpad c1.4/g0.4/h0.6"
+    },
+    {
+      "params": {
+        "cell": 1.489,
+        "channel": 0.427,
+        "depth": 0.395
+      },
+      "score": 0.7862,
+      "base": 0.8836,
+      "incon": 0.472,
+      "label": "hexpad c1.5/g0.4/h0.4"
+    },
+    {
+      "params": {
+        "cell": 1.344,
+        "channel": 0.441,
+        "depth": 1.095
+      },
+      "score": 0.7859,
+      "base": 0.8866,
+      "incon": 0.476,
+      "label": "hexpad c1.3/g0.4/h1.1"
+    },
+    {
+      "params": {
+        "cell": 1.158,
+        "channel": 0.425,
+        "depth": 1.3
+      },
+      "score": 0.7857,
+      "base": 0.8912,
+      "incon": 0.482,
+      "label": "hexpad c1.2/g0.4/h1.3"
+    },
+    {
+      "params": {
+        "cell": 1.565,
+        "channel": 0.42,
+        "depth": 0.93
+      },
+      "score": 0.7857,
+      "base": 0.882,
+      "incon": 0.47,
+      "label": "hexpad c1.6/g0.4/h0.9"
+    },
+    {
+      "params": {
+        "cell": 1.338,
+        "channel": 0.442,
+        "depth": 0.905
+      },
+      "score": 0.7856,
+      "base": 0.8867,
+      "incon": 0.476,
+      "label": "hexpad c1.3/g0.4/h0.9"
+    },
+    {
+      "params": {
+        "cell": 1.21,
+        "channel": 0.434,
+        "depth": 1.051
+      },
+      "score": 0.7855,
+      "base": 0.8897,
+      "incon": 0.48,
+      "label": "hexpad c1.2/g0.4/h1.1"
+    },
+    {
+      "params": {
+        "cell": 1.202,
+        "channel": 0.433,
+        "depth": 1.146
+      },
+      "score": 0.7854,
+      "base": 0.8899,
+      "incon": 0.481,
+      "label": "hexpad c1.2/g0.4/h1.1"
+    },
+    {
+      "params": {
+        "cell": 1.321,
+        "channel": 0.444,
+        "depth": 0.944
+      },
+      "score": 0.7853,
+      "base": 0.8869,
+      "incon": 0.477,
+      "label": "hexpad c1.3/g0.4/h0.9"
+    },
+    {
+      "params": {
+        "cell": 1.129,
+        "channel": 0.422,
+        "depth": 0.458
+      },
+      "score": 0.7848,
+      "base": 0.8917,
+      "incon": 0.484,
+      "label": "hexpad c1.1/g0.4/h0.5"
+    },
+    {
+      "params": {
+        "cell": 1.33,
+        "channel": 0.445,
+        "depth": 1.11
+      },
+      "score": 0.7844,
+      "base": 0.8864,
+      "incon": 0.478,
+      "label": "hexpad c1.3/g0.4/h1.1"
+    },
+    {
+      "params": {
+        "cell": 1.203,
+        "channel": 0.436,
+        "depth": 0.424
+      },
+      "score": 0.7841,
+      "base": 0.8894,
+      "incon": 0.482,
+      "label": "hexpad c1.2/g0.4/h0.4"
+    },
+    {
+      "params": {
+        "cell": 1.6,
+        "channel": 0.42,
+        "depth": 0.3
+      },
+      "score": 0.784,
+      "base": 0.8807,
+      "incon": 0.471,
+      "label": "hexpad c1.6/g0.4/h0.3"
+    },
+    {
+      "params": {
+        "cell": 1.6,
+        "channel": 0.42,
+        "depth": 0.4
+      },
+      "score": 0.784,
+      "base": 0.8807,
+      "incon": 0.471,
+      "label": "hexpad c1.6/g0.4/h0.4"
+    },
+    {
+      "params": {
+        "cell": 1.6,
+        "channel": 0.42,
+        "depth": 0.5
+      },
+      "score": 0.784,
+      "base": 0.8807,
+      "incon": 0.471,
+      "label": "hexpad c1.6/g0.4/h0.5"
+    },
+    {
+      "params": {
+        "cell": 1.6,
+        "channel": 0.42,
+        "depth": 0.7
+      },
+      "score": 0.784,
+      "base": 0.8807,
+      "incon": 0.471,
+      "label": "hexpad c1.6/g0.4/h0.7"
+    },
+    {
+      "params": {
+        "cell": 1.6,
+        "channel": 0.42,
+        "depth": 0.9
+      },
+      "score": 0.784,
+      "base": 0.8807,
+      "incon": 0.471,
+      "label": "hexpad c1.6/g0.4/h0.9"
+    },
+    {
+      "params": {
+        "cell": 1.6,
+        "channel": 0.42,
+        "depth": 1.2
+      },
+      "score": 0.784,
+      "base": 0.8807,
+      "incon": 0.471,
+      "label": "hexpad c1.6/g0.4/h1.2"
+    },
+    {
+      "params": {
+        "cell": 1.343,
+        "channel": 0.445,
+        "depth": 1.11
+      },
+      "score": 0.7839,
+      "base": 0.886,
+      "incon": 0.478,
+      "label": "hexpad c1.3/g0.4/h1.1"
+    },
+    {
+      "params": {
+        "cell": 1.17,
+        "channel": 0.431,
+        "depth": 0.988
+      },
+      "score": 0.7838,
+      "base": 0.8902,
+      "incon": 0.483,
+      "label": "hexpad c1.2/g0.4/h1.0"
+    },
+    {
+      "params": {
+        "cell": 1.25,
+        "channel": 0.445,
+        "depth": 0.344
+      },
+      "score": 0.7836,
+      "base": 0.888,
+      "incon": 0.481,
+      "label": "hexpad c1.2/g0.4/h0.3"
+    }
+  ]
+}

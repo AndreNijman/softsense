@@ -1,0 +1,606 @@
+{
+  "family": "chevron",
+  "n": 8625,
+  "top": [
+    {
+      "params": {
+        "pitch": 1.271,
+        "land": 0.85,
+        "depth": 0.41,
+        "angle": 68.716
+      },
+      "score": 0.7907,
+      "base": 0.8851,
+      "incon": 0.468,
+      "label": "chevron p1.3/w0.8/69deg"
+    },
+    {
+      "params": {
+        "pitch": 1.26,
+        "land": 0.808,
+        "depth": 0.642,
+        "angle": 67.353
+      },
+      "score": 0.7793,
+      "base": 0.882,
+      "incon": 0.478,
+      "label": "chevron p1.3/w0.8/67deg"
+    },
+    {
+      "params": {
+        "pitch": 1.354,
+        "land": 0.927,
+        "depth": 1.01,
+        "angle": 56.899
+      },
+      "score": 0.7779,
+      "base": 0.8757,
+      "incon": 0.472,
+      "label": "chevron p1.4/w0.9/57deg"
+    },
+    {
+      "params": {
+        "pitch": 1.244,
+        "land": 0.807,
+        "depth": 0.863,
+        "angle": 45.841
+      },
+      "score": 0.7762,
+      "base": 0.8745,
+      "incon": 0.473,
+      "label": "chevron p1.2/w0.8/46deg"
+    },
+    {
+      "params": {
+        "pitch": 1.291,
+        "land": 0.843,
+        "depth": 0.772,
+        "angle": 58.296
+      },
+      "score": 0.7755,
+      "base": 0.8775,
+      "incon": 0.477,
+      "label": "chevron p1.3/w0.8/58deg"
+    },
+    {
+      "params": {
+        "pitch": 1.405,
+        "land": 0.97,
+        "depth": 0.676,
+        "angle": 64.124
+      },
+      "score": 0.7746,
+      "base": 0.8754,
+      "incon": 0.476,
+      "label": "chevron p1.4/w1.0/64deg"
+    },
+    {
+      "params": {
+        "pitch": 1.382,
+        "land": 0.948,
+        "depth": 1.064,
+        "angle": 58.155
+      },
+      "score": 0.7742,
+      "base": 0.8743,
+      "incon": 0.475,
+      "label": "chevron p1.4/w0.9/58deg"
+    },
+    {
+      "params": {
+        "pitch": 1.306,
+        "land": 0.874,
+        "depth": 0.61,
+        "angle": 46.226
+      },
+      "score": 0.7741,
+      "base": 0.8721,
+      "incon": 0.472,
+      "label": "chevron p1.3/w0.9/46deg"
+    },
+    {
+      "params": {
+        "pitch": 1.245,
+        "land": 0.796,
+        "depth": 0.923,
+        "angle": 49.84
+      },
+      "score": 0.7738,
+      "base": 0.8754,
+      "incon": 0.477,
+      "label": "chevron p1.2/w0.8/50deg"
+    },
+    {
+      "params": {
+        "pitch": 1.258,
+        "land": 0.817,
+        "depth": 0.521,
+        "angle": 45.819
+      },
+      "score": 0.7738,
+      "base": 0.8734,
+      "incon": 0.474,
+      "label": "chevron p1.3/w0.8/46deg"
+    },
+    {
+      "params": {
+        "pitch": 1.275,
+        "land": 0.807,
+        "depth": 1.022,
+        "angle": 66.02
+      },
+      "score": 0.7719,
+      "base": 0.8792,
+      "incon": 0.484,
+      "label": "chevron p1.3/w0.8/66deg"
+    },
+    {
+      "params": {
+        "pitch": 1.328,
+        "land": 0.886,
+        "depth": 1.046,
+        "angle": 50.561
+      },
+      "score": 0.7715,
+      "base": 0.8725,
+      "incon": 0.476,
+      "label": "chevron p1.3/w0.9/51deg"
+    },
+    {
+      "params": {
+        "pitch": 1.294,
+        "land": 0.822,
+        "depth": 0.514,
+        "angle": 69.37
+      },
+      "score": 0.7704,
+      "base": 0.879,
+      "incon": 0.486,
+      "label": "chevron p1.3/w0.8/69deg"
+    },
+    {
+      "params": {
+        "pitch": 1.533,
+        "land": 1.11,
+        "depth": 0.648,
+        "angle": 68.283
+      },
+      "score": 0.7702,
+      "base": 0.8716,
+      "incon": 0.477,
+      "label": "chevron p1.5/w1.1/68deg"
+    },
+    {
+      "params": {
+        "pitch": 1.314,
+        "land": 0.864,
+        "depth": 1.364,
+        "angle": 51.145
+      },
+      "score": 0.7699,
+      "base": 0.8728,
+      "incon": 0.479,
+      "label": "chevron p1.3/w0.9/51deg"
+    },
+    {
+      "params": {
+        "pitch": 1.269,
+        "land": 0.847,
+        "depth": 1.169,
+        "angle": 30.295
+      },
+      "score": 0.7698,
+      "base": 0.8644,
+      "incon": 0.468,
+      "label": "chevron p1.3/w0.8/30deg"
+    },
+    {
+      "params": {
+        "pitch": 1.287,
+        "land": 0.851,
+        "depth": 1.288,
+        "angle": 39.344
+      },
+      "score": 0.7698,
+      "base": 0.8685,
+      "incon": 0.473,
+      "label": "chevron p1.3/w0.9/39deg"
+    },
+    {
+      "params": {
+        "pitch": 1.436,
+        "land": 1.003,
+        "depth": 0.763,
+        "angle": 52.583
+      },
+      "score": 0.7681,
+      "base": 0.8692,
+      "incon": 0.476,
+      "label": "chevron p1.4/w1.0/53deg"
+    },
+    {
+      "params": {
+        "pitch": 1.389,
+        "land": 0.934,
+        "depth": 0.964,
+        "angle": 59.521
+      },
+      "score": 0.7674,
+      "base": 0.8727,
+      "incon": 0.482,
+      "label": "chevron p1.4/w0.9/60deg"
+    },
+    {
+      "params": {
+        "pitch": 1.403,
+        "land": 0.943,
+        "depth": 0.775,
+        "angle": 65.066
+      },
+      "score": 0.767,
+      "base": 0.8737,
+      "incon": 0.483,
+      "label": "chevron p1.4/w0.9/65deg"
+    },
+    {
+      "params": {
+        "pitch": 1.383,
+        "land": 0.954,
+        "depth": 0.935,
+        "angle": 41.218
+      },
+      "score": 0.7668,
+      "base": 0.8657,
+      "incon": 0.474,
+      "label": "chevron p1.4/w1.0/41deg"
+    },
+    {
+      "params": {
+        "pitch": 1.537,
+        "land": 1.113,
+        "depth": 0.575,
+        "angle": 58.383
+      },
+      "score": 0.7661,
+      "base": 0.8679,
+      "incon": 0.477,
+      "label": "chevron p1.5/w1.1/58deg"
+    },
+    {
+      "params": {
+        "pitch": 1.293,
+        "land": 0.848,
+        "depth": 1.043,
+        "angle": 39.048
+      },
+      "score": 0.766,
+      "base": 0.8671,
+      "incon": 0.476,
+      "label": "chevron p1.3/w0.8/39deg"
+    },
+    {
+      "params": {
+        "pitch": 1.464,
+        "land": 1.03,
+        "depth": 1.197,
+        "angle": 50.252
+      },
+      "score": 0.7647,
+      "base": 0.8667,
+      "incon": 0.477,
+      "label": "chevron p1.5/w1.0/50deg"
+    },
+    {
+      "params": {
+        "pitch": 1.627,
+        "land": 1.202,
+        "depth": 1.144,
+        "angle": 65.568
+      },
+      "score": 0.7644,
+      "base": 0.8665,
+      "incon": 0.478,
+      "label": "chevron p1.6/w1.2/66deg"
+    },
+    {
+      "params": {
+        "pitch": 1.33,
+        "land": 0.858,
+        "depth": 1.302,
+        "angle": 57.823
+      },
+      "score": 0.7643,
+      "base": 0.8732,
+      "incon": 0.486,
+      "label": "chevron p1.3/w0.9/58deg"
+    },
+    {
+      "params": {
+        "pitch": 1.336,
+        "land": 0.882,
+        "depth": 0.808,
+        "angle": 45.971
+      },
+      "score": 0.7643,
+      "base": 0.8686,
+      "incon": 0.48,
+      "label": "chevron p1.3/w0.9/46deg"
+    },
+    {
+      "params": {
+        "pitch": 1.579,
+        "land": 1.142,
+        "depth": 1.011,
+        "angle": 64.605
+      },
+      "score": 0.7637,
+      "base": 0.8674,
+      "incon": 0.48,
+      "label": "chevron p1.6/w1.1/65deg"
+    },
+    {
+      "params": {
+        "pitch": 1.354,
+        "land": 0.878,
+        "depth": 1.086,
+        "angle": 62.456
+      },
+      "score": 0.7635,
+      "base": 0.8736,
+      "incon": 0.488,
+      "label": "chevron p1.4/w0.9/62deg"
+    },
+    {
+      "params": {
+        "pitch": 1.251,
+        "land": 0.768,
+        "depth": 0.44,
+        "angle": 55.879
+      },
+      "score": 0.7631,
+      "base": 0.8747,
+      "incon": 0.489,
+      "label": "chevron p1.3/w0.8/56deg"
+    },
+    {
+      "params": {
+        "pitch": 1.568,
+        "land": 1.12,
+        "depth": 0.829,
+        "angle": 68.304
+      },
+      "score": 0.763,
+      "base": 0.8683,
+      "incon": 0.482,
+      "label": "chevron p1.6/w1.1/68deg"
+    },
+    {
+      "params": {
+        "pitch": 1.527,
+        "land": 1.071,
+        "depth": 1.119,
+        "angle": 66.365
+      },
+      "score": 0.7621,
+      "base": 0.869,
+      "incon": 0.484,
+      "label": "chevron p1.5/w1.1/66deg"
+    },
+    {
+      "params": {
+        "pitch": 1.281,
+        "land": 0.834,
+        "depth": 1.39,
+        "angle": 33.011
+      },
+      "score": 0.7619,
+      "base": 0.8635,
+      "incon": 0.477,
+      "label": "chevron p1.3/w0.8/33deg"
+    },
+    {
+      "params": {
+        "pitch": 1.652,
+        "land": 1.216,
+        "depth": 1.07,
+        "angle": 66.792
+      },
+      "score": 0.7616,
+      "base": 0.8651,
+      "incon": 0.479,
+      "label": "chevron p1.7/w1.2/67deg"
+    },
+    {
+      "params": {
+        "pitch": 1.378,
+        "land": 0.905,
+        "depth": 0.709,
+        "angle": 57.603
+      },
+      "score": 0.7612,
+      "base": 0.8709,
+      "incon": 0.487,
+      "label": "chevron p1.4/w0.9/58deg"
+    },
+    {
+      "params": {
+        "pitch": 1.59,
+        "land": 1.169,
+        "depth": 1.079,
+        "angle": 49.059
+      },
+      "score": 0.7598,
+      "base": 0.8614,
+      "incon": 0.477,
+      "label": "chevron p1.6/w1.2/49deg"
+    },
+    {
+      "params": {
+        "pitch": 1.355,
+        "land": 0.869,
+        "depth": 0.797,
+        "angle": 62.24
+      },
+      "score": 0.7598,
+      "base": 0.8726,
+      "incon": 0.491,
+      "label": "chevron p1.4/w0.9/62deg"
+    },
+    {
+      "params": {
+        "pitch": 1.587,
+        "land": 1.16,
+        "depth": 0.747,
+        "angle": 51.122
+      },
+      "score": 0.7598,
+      "base": 0.8621,
+      "incon": 0.478,
+      "label": "chevron p1.6/w1.2/51deg"
+    },
+    {
+      "params": {
+        "pitch": 1.47,
+        "land": 1.022,
+        "depth": 0.952,
+        "angle": 49.447
+      },
+      "score": 0.7597,
+      "base": 0.8649,
+      "incon": 0.482,
+      "label": "chevron p1.5/w1.0/49deg"
+    },
+    {
+      "params": {
+        "pitch": 1.746,
+        "land": 1.322,
+        "depth": 1.34,
+        "angle": 64.513
+      },
+      "score": 0.7592,
+      "base": 0.8612,
+      "incon": 0.478,
+      "label": "chevron p1.7/w1.3/65deg"
+    },
+    {
+      "params": {
+        "pitch": 1.758,
+        "land": 1.326,
+        "depth": 0.68,
+        "angle": 69.201
+      },
+      "score": 0.7586,
+      "base": 0.8617,
+      "incon": 0.479,
+      "label": "chevron p1.8/w1.3/69deg"
+    },
+    {
+      "params": {
+        "pitch": 1.389,
+        "land": 0.897,
+        "depth": 0.419,
+        "angle": 67.526
+      },
+      "score": 0.7579,
+      "base": 0.8724,
+      "incon": 0.493,
+      "label": "chevron p1.4/w0.9/68deg"
+    },
+    {
+      "params": {
+        "pitch": 1.246,
+        "land": 0.759,
+        "depth": 1.033,
+        "angle": 48.031
+      },
+      "score": 0.7577,
+      "base": 0.8705,
+      "incon": 0.491,
+      "label": "chevron p1.2/w0.8/48deg"
+    },
+    {
+      "params": {
+        "pitch": 1.735,
+        "land": 1.29,
+        "depth": 0.712,
+        "angle": 69.575
+      },
+      "score": 0.7574,
+      "base": 0.862,
+      "incon": 0.481,
+      "label": "chevron p1.7/w1.3/70deg"
+    },
+    {
+      "params": {
+        "pitch": 1.594,
+        "land": 1.139,
+        "depth": 0.681,
+        "angle": 58.401
+      },
+      "score": 0.7571,
+      "base": 0.8633,
+      "incon": 0.483,
+      "label": "chevron p1.6/w1.1/58deg"
+    },
+    {
+      "params": {
+        "pitch": 1.264,
+        "land": 0.782,
+        "depth": 1.067,
+        "angle": 44.655
+      },
+      "score": 0.7571,
+      "base": 0.8683,
+      "incon": 0.489,
+      "label": "chevron p1.3/w0.8/45deg"
+    },
+    {
+      "params": {
+        "pitch": 1.344,
+        "land": 0.856,
+        "depth": 0.685,
+        "angle": 55.592
+      },
+      "score": 0.7569,
+      "base": 0.8701,
+      "incon": 0.492,
+      "label": "chevron p1.3/w0.9/56deg"
+    },
+    {
+      "params": {
+        "pitch": 1.367,
+        "land": 0.9,
+        "depth": 1.044,
+        "angle": 43.759
+      },
+      "score": 0.7568,
+      "base": 0.8648,
+      "incon": 0.485,
+      "label": "chevron p1.4/w0.9/44deg"
+    },
+    {
+      "params": {
+        "pitch": 1.356,
+        "land": 0.9,
+        "depth": 0.549,
+        "angle": 36.233
+      },
+      "score": 0.7565,
+      "base": 0.8615,
+      "incon": 0.481,
+      "label": "chevron p1.4/w0.9/36deg"
+    },
+    {
+      "params": {
+        "pitch": 1.32,
+        "land": 0.816,
+        "depth": 1.256,
+        "angle": 66.963
+      },
+      "score": 0.7565,
+      "base": 0.874,
+      "incon": 0.497,
+      "label": "chevron p1.3/w0.8/67deg"
+    }
+  ]
+}

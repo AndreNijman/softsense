@@ -1,0 +1,70 @@
+{
+  "contact": [
+    {
+      "delta": 0.002,
+      "p_nom": 0.0269,
+      "p_real": 0.0372,
+      "phi_eff": 0.723
+    },
+    {
+      "delta": 0.005,
+      "p_nom": 0.0672,
+      "p_real": 0.093,
+      "phi_eff": 0.723
+    },
+    {
+      "delta": 0.01,
+      "p_nom": 0.1345,
+      "p_real": 0.1859,
+      "phi_eff": 0.723
+    },
+    {
+      "delta": 0.02,
+      "p_nom": 0.269,
+      "p_real": 0.3718,
+      "phi_eff": 0.723
+    },
+    {
+      "delta": 0.04,
+      "p_nom": 0.5379,
+      "p_real": 0.7437,
+      "phi_eff": 0.723
+    }
+  ],
+  "phi_geometric": 0.7,
+  "durability": [
+    {
+      "mu": 0.5,
+      "p_real": 0.2,
+      "tau": 0.1,
+      "AR": 0.714,
+      "fea_root_vm": 0.6035,
+      "beam_estimate": 0.4286,
+      "conc_factor": 1.41,
+      "fea_margin": 41.4,
+      "beam_margin": 58.3
+    },
+    {
+      "mu": 1.0,
+      "p_real": 0.2,
+      "tau": 0.2,
+      "AR": 0.714,
+      "fea_root_vm": 1.0401,
+      "beam_estimate": 0.8571,
+      "conc_factor": 1.21,
+      "fea_margin": 24.0,
+      "beam_margin": 29.2
+    },
+    {
+      "mu": 1.8,
+      "p_real": 0.2,
+      "tau": 0.36,
+      "AR": 0.714,
+      "fea_root_vm": 1.7397,
+      "beam_estimate": 1.5429,
+      "conc_factor": 1.13,
+      "fea_margin": 14.4,
+      "beam_margin": 16.2
+    }
+  ]
+}

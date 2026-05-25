@@ -25,6 +25,12 @@
   scorer), `scripts/iter_harness.py` (3D corotational contact solver, CPU+GPU),
   `scripts/render_wrap.py` (renders). Studies: `UNIVERSAL_FINGER.md` (finger design),
   `SCALABILITY.md`, `DECISION_LOG.md` (full history).
+- `grip/` — grip-texture study + tooling. `scripts/grip_model.py` (Tier-1 wet-grip
+  surrogate + coefficients), `scripts/sweep.py`/`sensitivity.py` (search +
+  ±50% robustness), `scripts/texture_fea.py` (Tier-2 2D contact FEA),
+  `scripts/baseline_validate.py` (literature gate). Study: `GRIP_TEXTURE.md`,
+  `DECISION_LOG.md`, `GRIP_MODEL.md`. Shipped texture = crosshatch micro-posts
+  (`FR_GRIP_*` in `gripper.py`).
 - `PRINT_PROFILE_P1S_TPU.md` + `profiles/` — print the fingers in **eSUN eTPU-95A on a
   Bambu P1S, 0.4 mm hardened nozzle** (importable Bambu Studio filament+process).
 - `regen.sh` — rebuild all derived artifacts (poses, parts, plates, heroes, GIF).

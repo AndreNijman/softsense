@@ -1,0 +1,556 @@
+{
+  "family": "crosshatch",
+  "n": 4216,
+  "top": [
+    {
+      "params": {
+        "pitch": 2.042,
+        "land": 1.621,
+        "depth": 1.456
+      },
+      "score": 0.8072,
+      "base": 0.8836,
+      "incon": 0.445,
+      "label": "xhatch p2.0/w1.6/h1.5"
+    },
+    {
+      "params": {
+        "pitch": 2.046,
+        "land": 1.621,
+        "depth": 1.104
+      },
+      "score": 0.8054,
+      "base": 0.8829,
+      "incon": 0.447,
+      "label": "xhatch p2.0/w1.6/h1.1"
+    },
+    {
+      "params": {
+        "pitch": 2.05,
+        "land": 1.621,
+        "depth": 1.481
+      },
+      "score": 0.8036,
+      "base": 0.8823,
+      "incon": 0.448,
+      "label": "xhatch p2.0/w1.6/h1.5"
+    },
+    {
+      "params": {
+        "pitch": 2.116,
+        "land": 1.69,
+        "depth": 0.553
+      },
+      "score": 0.8009,
+      "base": 0.8801,
+      "incon": 0.449,
+      "label": "xhatch p2.1/w1.7/h0.6"
+    },
+    {
+      "params": {
+        "pitch": 1.94,
+        "land": 1.503,
+        "depth": 1.127
+      },
+      "score": 0.8009,
+      "base": 0.8836,
+      "incon": 0.453,
+      "label": "xhatch p1.9/w1.5/h1.1"
+    },
+    {
+      "params": {
+        "pitch": 1.761,
+        "land": 1.338,
+        "depth": 1.091
+      },
+      "score": 0.7989,
+      "base": 0.8866,
+      "incon": 0.46,
+      "label": "xhatch p1.8/w1.3/h1.1"
+    },
+    {
+      "params": {
+        "pitch": 1.848,
+        "land": 1.414,
+        "depth": 1.47
+      },
+      "score": 0.7981,
+      "base": 0.8846,
+      "incon": 0.458,
+      "label": "xhatch p1.8/w1.4/h1.5"
+    },
+    {
+      "params": {
+        "pitch": 1.908,
+        "land": 1.464,
+        "depth": 1.266
+      },
+      "score": 0.7965,
+      "base": 0.8829,
+      "incon": 0.458,
+      "label": "xhatch p1.9/w1.5/h1.3"
+    },
+    {
+      "params": {
+        "pitch": 1.832,
+        "land": 1.396,
+        "depth": 1.02
+      },
+      "score": 0.7964,
+      "base": 0.8844,
+      "incon": 0.46,
+      "label": "xhatch p1.8/w1.4/h1.0"
+    },
+    {
+      "params": {
+        "pitch": 2.135,
+        "land": 1.696,
+        "depth": 0.868
+      },
+      "score": 0.795,
+      "base": 0.878,
+      "incon": 0.454,
+      "label": "xhatch p2.1/w1.7/h0.9"
+    },
+    {
+      "params": {
+        "pitch": 1.929,
+        "land": 1.479,
+        "depth": 0.644
+      },
+      "score": 0.7949,
+      "base": 0.8821,
+      "incon": 0.459,
+      "label": "xhatch p1.9/w1.5/h0.6"
+    },
+    {
+      "params": {
+        "pitch": 2.022,
+        "land": 1.566,
+        "depth": 0.347
+      },
+      "score": 0.7944,
+      "base": 0.8801,
+      "incon": 0.457,
+      "label": "xhatch p2.0/w1.6/h0.3"
+    },
+    {
+      "params": {
+        "pitch": 1.851,
+        "land": 1.406,
+        "depth": 0.781
+      },
+      "score": 0.7933,
+      "base": 0.8831,
+      "incon": 0.462,
+      "label": "xhatch p1.9/w1.4/h0.8"
+    },
+    {
+      "params": {
+        "pitch": 2.179,
+        "land": 1.741,
+        "depth": 1.516
+      },
+      "score": 0.793,
+      "base": 0.8765,
+      "incon": 0.454,
+      "label": "xhatch p2.2/w1.7/h1.5"
+    },
+    {
+      "params": {
+        "pitch": 2.261,
+        "land": 1.835,
+        "depth": 1.104
+      },
+      "score": 0.7927,
+      "base": 0.8749,
+      "incon": 0.453,
+      "label": "xhatch p2.3/w1.8/h1.1"
+    },
+    {
+      "params": {
+        "pitch": 2.19,
+        "land": 1.752,
+        "depth": 1.367
+      },
+      "score": 0.7924,
+      "base": 0.8761,
+      "incon": 0.455,
+      "label": "xhatch p2.2/w1.8/h1.4"
+    },
+    {
+      "params": {
+        "pitch": 1.786,
+        "land": 1.344,
+        "depth": 1.131
+      },
+      "score": 0.7913,
+      "base": 0.8838,
+      "incon": 0.466,
+      "label": "xhatch p1.8/w1.3/h1.1"
+    },
+    {
+      "params": {
+        "pitch": 2.21,
+        "land": 1.772,
+        "depth": 0.892
+      },
+      "score": 0.7913,
+      "base": 0.8754,
+      "incon": 0.455,
+      "label": "xhatch p2.2/w1.8/h0.9"
+    },
+    {
+      "params": {
+        "pitch": 2.211,
+        "land": 1.772,
+        "depth": 0.791
+      },
+      "score": 0.7909,
+      "base": 0.8753,
+      "incon": 0.456,
+      "label": "xhatch p2.2/w1.8/h0.8"
+    },
+    {
+      "params": {
+        "pitch": 2.141,
+        "land": 1.691,
+        "depth": 0.545
+      },
+      "score": 0.7906,
+      "base": 0.8766,
+      "incon": 0.458,
+      "label": "xhatch p2.1/w1.7/h0.5"
+    },
+    {
+      "params": {
+        "pitch": 2.303,
+        "land": 1.875,
+        "depth": 0.771
+      },
+      "score": 0.7897,
+      "base": 0.8732,
+      "incon": 0.454,
+      "label": "xhatch p2.3/w1.9/h0.8"
+    },
+    {
+      "params": {
+        "pitch": 2.241,
+        "land": 1.803,
+        "depth": 1.071
+      },
+      "score": 0.7896,
+      "base": 0.8744,
+      "incon": 0.456,
+      "label": "xhatch p2.2/w1.8/h1.1"
+    },
+    {
+      "params": {
+        "pitch": 1.987,
+        "land": 1.515,
+        "depth": 0.893
+      },
+      "score": 0.7883,
+      "base": 0.8791,
+      "incon": 0.463,
+      "label": "xhatch p2.0/w1.5/h0.9"
+    },
+    {
+      "params": {
+        "pitch": 2.315,
+        "land": 1.883,
+        "depth": 0.442
+      },
+      "score": 0.7877,
+      "base": 0.8724,
+      "incon": 0.456,
+      "label": "xhatch p2.3/w1.9/h0.4"
+    },
+    {
+      "params": {
+        "pitch": 2.233,
+        "land": 1.787,
+        "depth": 1.256
+      },
+      "score": 0.7872,
+      "base": 0.8738,
+      "incon": 0.458,
+      "label": "xhatch p2.2/w1.8/h1.3"
+    },
+    {
+      "params": {
+        "pitch": 1.921,
+        "land": 1.452,
+        "depth": 1.569
+      },
+      "score": 0.7863,
+      "base": 0.8797,
+      "incon": 0.467,
+      "label": "xhatch p1.9/w1.5/h1.6"
+    },
+    {
+      "params": {
+        "pitch": 2.387,
+        "land": 1.962,
+        "depth": 0.964
+      },
+      "score": 0.7861,
+      "base": 0.8707,
+      "incon": 0.456,
+      "label": "xhatch p2.4/w2.0/h1.0"
+    },
+    {
+      "params": {
+        "pitch": 2.129,
+        "land": 1.662,
+        "depth": 1.425
+      },
+      "score": 0.7848,
+      "base": 0.8751,
+      "incon": 0.463,
+      "label": "xhatch p2.1/w1.7/h1.4"
+    },
+    {
+      "params": {
+        "pitch": 1.555,
+        "land": 1.127,
+        "depth": 1.142
+      },
+      "score": 0.7836,
+      "base": 0.8868,
+      "incon": 0.479,
+      "label": "xhatch p1.6/w1.1/h1.1"
+    },
+    {
+      "params": {
+        "pitch": 1.757,
+        "land": 1.302,
+        "depth": 0.663
+      },
+      "score": 0.7835,
+      "base": 0.8822,
+      "incon": 0.473,
+      "label": "xhatch p1.8/w1.3/h0.7"
+    },
+    {
+      "params": {
+        "pitch": 2.382,
+        "land": 1.948,
+        "depth": 0.847
+      },
+      "score": 0.7834,
+      "base": 0.87,
+      "incon": 0.458,
+      "label": "xhatch p2.4/w1.9/h0.8"
+    },
+    {
+      "params": {
+        "pitch": 1.824,
+        "land": 1.36,
+        "depth": 0.312
+      },
+      "score": 0.7833,
+      "base": 0.8807,
+      "incon": 0.472,
+      "label": "xhatch p1.8/w1.4/h0.3"
+    },
+    {
+      "params": {
+        "pitch": 2.201,
+        "land": 1.737,
+        "depth": 1.091
+      },
+      "score": 0.7824,
+      "base": 0.873,
+      "incon": 0.463,
+      "label": "xhatch p2.2/w1.7/h1.1"
+    },
+    {
+      "params": {
+        "pitch": 1.678,
+        "land": 1.231,
+        "depth": 1.307
+      },
+      "score": 0.7823,
+      "base": 0.8836,
+      "incon": 0.477,
+      "label": "xhatch p1.7/w1.2/h1.3"
+    },
+    {
+      "params": {
+        "pitch": 2.037,
+        "land": 1.552,
+        "depth": 0.475
+      },
+      "score": 0.7819,
+      "base": 0.8762,
+      "incon": 0.468,
+      "label": "xhatch p2.0/w1.6/h0.5"
+    },
+    {
+      "params": {
+        "pitch": 2.322,
+        "land": 1.873,
+        "depth": 1.446
+      },
+      "score": 0.7816,
+      "base": 0.8706,
+      "incon": 0.461,
+      "label": "xhatch p2.3/w1.9/h1.4"
+    },
+    {
+      "params": {
+        "pitch": 1.918,
+        "land": 1.438,
+        "depth": 0.792
+      },
+      "score": 0.7814,
+      "base": 0.8784,
+      "incon": 0.471,
+      "label": "xhatch p1.9/w1.4/h0.8"
+    },
+    {
+      "params": {
+        "pitch": 1.98,
+        "land": 1.491,
+        "depth": 0.696
+      },
+      "score": 0.7809,
+      "base": 0.8771,
+      "incon": 0.47,
+      "label": "xhatch p2.0/w1.5/h0.7"
+    },
+    {
+      "params": {
+        "pitch": 2.327,
+        "land": 1.873,
+        "depth": 1.038
+      },
+      "score": 0.7797,
+      "base": 0.8699,
+      "incon": 0.463,
+      "label": "xhatch p2.3/w1.9/h1.0"
+    },
+    {
+      "params": {
+        "pitch": 2.27,
+        "land": 1.804,
+        "depth": 1.11
+      },
+      "score": 0.7783,
+      "base": 0.8706,
+      "incon": 0.465,
+      "label": "xhatch p2.3/w1.8/h1.1"
+    },
+    {
+      "params": {
+        "pitch": 2.019,
+        "land": 1.523,
+        "depth": 1.107
+      },
+      "score": 0.7782,
+      "base": 0.8755,
+      "incon": 0.472,
+      "label": "xhatch p2.0/w1.5/h1.1"
+    },
+    {
+      "params": {
+        "pitch": 2.349,
+        "land": 1.894,
+        "depth": 1.376
+      },
+      "score": 0.7782,
+      "base": 0.8691,
+      "incon": 0.464,
+      "label": "xhatch p2.3/w1.9/h1.4"
+    },
+    {
+      "params": {
+        "pitch": 1.92,
+        "land": 1.43,
+        "depth": 0.974
+      },
+      "score": 0.7772,
+      "base": 0.8771,
+      "incon": 0.475,
+      "label": "xhatch p1.9/w1.4/h1.0"
+    },
+    {
+      "params": {
+        "pitch": 1.557,
+        "land": 1.116,
+        "depth": 0.341
+      },
+      "score": 0.7767,
+      "base": 0.8848,
+      "incon": 0.485,
+      "label": "xhatch p1.6/w1.1/h0.3"
+    },
+    {
+      "params": {
+        "pitch": 2.204,
+        "land": 1.724,
+        "depth": 0.775
+      },
+      "score": 0.7764,
+      "base": 0.8713,
+      "incon": 0.469,
+      "label": "xhatch p2.2/w1.7/h0.8"
+    },
+    {
+      "params": {
+        "pitch": 2.289,
+        "land": 1.816,
+        "depth": 1.423
+      },
+      "score": 0.775,
+      "base": 0.8693,
+      "incon": 0.468,
+      "label": "xhatch p2.3/w1.8/h1.4"
+    },
+    {
+      "params": {
+        "pitch": 2.342,
+        "land": 1.871,
+        "depth": 0.524
+      },
+      "score": 0.7732,
+      "base": 0.8678,
+      "incon": 0.468,
+      "label": "xhatch p2.3/w1.9/h0.5"
+    },
+    {
+      "params": {
+        "pitch": 1.703,
+        "land": 1.234,
+        "depth": 0.576
+      },
+      "score": 0.7731,
+      "base": 0.8804,
+      "incon": 0.484,
+      "label": "xhatch p1.7/w1.2/h0.6"
+    },
+    {
+      "params": {
+        "pitch": 1.871,
+        "land": 1.376,
+        "depth": 0.877
+      },
+      "score": 0.7721,
+      "base": 0.8766,
+      "incon": 0.481,
+      "label": "xhatch p1.9/w1.4/h0.9"
+    },
+    {
+      "params": {
+        "pitch": 2.219,
+        "land": 1.727,
+        "depth": 0.643
+      },
+      "score": 0.7714,
+      "base": 0.8696,
+      "incon": 0.473,
+      "label": "xhatch p2.2/w1.7/h0.6"
+    }
+  ]
+}

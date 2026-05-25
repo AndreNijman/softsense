@@ -1,0 +1,78 @@
+{
+  "passed": true,
+  "ranking": [
+    {
+      "name": "smooth",
+      "family": "smooth",
+      "params": {},
+      "wet_hold": 0.0726
+    },
+    {
+      "name": "ridges",
+      "family": "ridge",
+      "params": {
+        "pitch": 2.5,
+        "land": 1.2,
+        "depth": 0.6
+      },
+      "wet_hold": 0.6142
+    },
+    {
+      "name": "tread",
+      "family": "crosshatch",
+      "params": {
+        "pitch": 3.0,
+        "land": 1.2,
+        "depth": 1.0
+      },
+      "wet_hold": 0.7087
+    },
+    {
+      "name": "treefrog",
+      "family": "hexpad",
+      "params": {
+        "cell": 1.0,
+        "channel": 0.5,
+        "depth": 0.4
+      },
+      "wet_hold": 1.0895
+    },
+    {
+      "name": "sucker",
+      "family": "concentric",
+      "params": {
+        "pitch": 1.6,
+        "land": 0.7,
+        "depth": 0.6,
+        "cavity": 0.4
+      },
+      "wet_hold": 1.1068
+    }
+  ],
+  "checks": [
+    {
+      "check": "smooth is worst",
+      "passed": true
+    },
+    {
+      "check": "ridges beat smooth",
+      "passed": true
+    },
+    {
+      "check": "tread beats ridges",
+      "passed": true
+    },
+    {
+      "check": "treefrog beats tread",
+      "passed": true
+    },
+    {
+      "check": "sucker beats tread",
+      "passed": true
+    },
+    {
+      "check": "bio pair on top",
+      "passed": true
+    }
+  ]
+}

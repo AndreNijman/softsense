@@ -1,0 +1,556 @@
+{
+  "family": "dimple",
+  "n": 8172,
+  "top": [
+    {
+      "params": {
+        "pitch": 1.213,
+        "dia": 0.785,
+        "depth": 1.041
+      },
+      "score": 0.6315,
+      "base": 0.7334,
+      "incon": 0.477,
+      "label": "dimple p1.2/d0.8/h1.0"
+    },
+    {
+      "params": {
+        "pitch": 1.214,
+        "dia": 0.779,
+        "depth": 1.133
+      },
+      "score": 0.6304,
+      "base": 0.7327,
+      "incon": 0.478,
+      "label": "dimple p1.2/d0.8/h1.1"
+    },
+    {
+      "params": {
+        "pitch": 1.216,
+        "dia": 0.783,
+        "depth": 0.787
+      },
+      "score": 0.6299,
+      "base": 0.732,
+      "incon": 0.478,
+      "label": "dimple p1.2/d0.8/h0.8"
+    },
+    {
+      "params": {
+        "pitch": 1.205,
+        "dia": 0.748,
+        "depth": 0.634
+      },
+      "score": 0.6273,
+      "base": 0.7311,
+      "incon": 0.48,
+      "label": "dimple p1.2/d0.7/h0.6"
+    },
+    {
+      "params": {
+        "pitch": 1.236,
+        "dia": 0.816,
+        "depth": 0.734
+      },
+      "score": 0.6261,
+      "base": 0.7289,
+      "incon": 0.478,
+      "label": "dimple p1.2/d0.8/h0.7"
+    },
+    {
+      "params": {
+        "pitch": 1.201,
+        "dia": 0.732,
+        "depth": 0.807
+      },
+      "score": 0.6259,
+      "base": 0.7306,
+      "incon": 0.481,
+      "label": "dimple p1.2/d0.7/h0.8"
+    },
+    {
+      "params": {
+        "pitch": 1.248,
+        "dia": 0.806,
+        "depth": 0.815
+      },
+      "score": 0.6236,
+      "base": 0.7265,
+      "incon": 0.479,
+      "label": "dimple p1.2/d0.8/h0.8"
+    },
+    {
+      "params": {
+        "pitch": 1.232,
+        "dia": 0.769,
+        "depth": 0.441
+      },
+      "score": 0.622,
+      "base": 0.7263,
+      "incon": 0.48,
+      "label": "dimple p1.2/d0.8/h0.4"
+    },
+    {
+      "params": {
+        "pitch": 1.266,
+        "dia": 0.805,
+        "depth": 1.202
+      },
+      "score": 0.6186,
+      "base": 0.723,
+      "incon": 0.48,
+      "label": "dimple p1.3/d0.8/h1.2"
+    },
+    {
+      "params": {
+        "pitch": 1.293,
+        "dia": 0.872,
+        "depth": 0.959
+      },
+      "score": 0.6174,
+      "base": 0.7205,
+      "incon": 0.479,
+      "label": "dimple p1.3/d0.9/h1.0"
+    },
+    {
+      "params": {
+        "pitch": 1.241,
+        "dia": 0.759,
+        "depth": 0.381
+      },
+      "score": 0.6174,
+      "base": 0.7232,
+      "incon": 0.482,
+      "label": "dimple p1.2/d0.8/h0.4"
+    },
+    {
+      "params": {
+        "pitch": 1.2,
+        "dia": 0.6,
+        "depth": 1.2
+      },
+      "score": 0.6173,
+      "base": 0.6928,
+      "incon": 0.444,
+      "label": "dimple p1.2/d0.6/h1.2"
+    },
+    {
+      "params": {
+        "pitch": 1.2,
+        "dia": 0.6,
+        "depth": 0.9
+      },
+      "score": 0.617,
+      "base": 0.6924,
+      "incon": 0.444,
+      "label": "dimple p1.2/d0.6/h0.9"
+    },
+    {
+      "params": {
+        "pitch": 1.2,
+        "dia": 0.6,
+        "depth": 0.7
+      },
+      "score": 0.6168,
+      "base": 0.6922,
+      "incon": 0.444,
+      "label": "dimple p1.2/d0.6/h0.7"
+    },
+    {
+      "params": {
+        "pitch": 1.2,
+        "dia": 0.6,
+        "depth": 0.5
+      },
+      "score": 0.6165,
+      "base": 0.6919,
+      "incon": 0.444,
+      "label": "dimple p1.2/d0.6/h0.5"
+    },
+    {
+      "params": {
+        "pitch": 1.2,
+        "dia": 0.6,
+        "depth": 0.3
+      },
+      "score": 0.6163,
+      "base": 0.6916,
+      "incon": 0.444,
+      "label": "dimple p1.2/d0.6/h0.3"
+    },
+    {
+      "params": {
+        "pitch": 1.2,
+        "dia": 0.674,
+        "depth": 0.393
+      },
+      "score": 0.6163,
+      "base": 0.7207,
+      "incon": 0.481,
+      "label": "dimple p1.2/d0.7/h0.4"
+    },
+    {
+      "params": {
+        "pitch": 1.209,
+        "dia": 0.664,
+        "depth": 1.169
+      },
+      "score": 0.6161,
+      "base": 0.7133,
+      "incon": 0.472,
+      "label": "dimple p1.2/d0.7/h1.2"
+    },
+    {
+      "params": {
+        "pitch": 1.203,
+        "dia": 0.668,
+        "depth": 0.344
+      },
+      "score": 0.6158,
+      "base": 0.7167,
+      "incon": 0.476,
+      "label": "dimple p1.2/d0.7/h0.3"
+    },
+    {
+      "params": {
+        "pitch": 1.283,
+        "dia": 0.82,
+        "depth": 1.112
+      },
+      "score": 0.6157,
+      "base": 0.7203,
+      "incon": 0.481,
+      "label": "dimple p1.3/d0.8/h1.1"
+    },
+    {
+      "params": {
+        "pitch": 1.214,
+        "dia": 0.631,
+        "depth": 0.905
+      },
+      "score": 0.6151,
+      "base": 0.6978,
+      "incon": 0.453,
+      "label": "dimple p1.2/d0.6/h0.9"
+    },
+    {
+      "params": {
+        "pitch": 1.311,
+        "dia": 0.881,
+        "depth": 0.575
+      },
+      "score": 0.6151,
+      "base": 0.7174,
+      "incon": 0.478,
+      "label": "dimple p1.3/d0.9/h0.6"
+    },
+    {
+      "params": {
+        "pitch": 1.21,
+        "dia": 0.675,
+        "depth": 0.376
+      },
+      "score": 0.6149,
+      "base": 0.7161,
+      "incon": 0.477,
+      "label": "dimple p1.2/d0.7/h0.4"
+    },
+    {
+      "params": {
+        "pitch": 1.212,
+        "dia": 0.672,
+        "depth": 0.507
+      },
+      "score": 0.6148,
+      "base": 0.7141,
+      "incon": 0.474,
+      "label": "dimple p1.2/d0.7/h0.5"
+    },
+    {
+      "params": {
+        "pitch": 1.315,
+        "dia": 0.883,
+        "depth": 1.027
+      },
+      "score": 0.6148,
+      "base": 0.7175,
+      "incon": 0.478,
+      "label": "dimple p1.3/d0.9/h1.0"
+    },
+    {
+      "params": {
+        "pitch": 1.217,
+        "dia": 0.673,
+        "depth": 0.992
+      },
+      "score": 0.6148,
+      "base": 0.7128,
+      "incon": 0.473,
+      "label": "dimple p1.2/d0.7/h1.0"
+    },
+    {
+      "params": {
+        "pitch": 1.282,
+        "dia": 0.811,
+        "depth": 1.121
+      },
+      "score": 0.6147,
+      "base": 0.7198,
+      "incon": 0.481,
+      "label": "dimple p1.3/d0.8/h1.1"
+    },
+    {
+      "params": {
+        "pitch": 1.221,
+        "dia": 0.582,
+        "depth": 0.51
+      },
+      "score": 0.6147,
+      "base": 0.6774,
+      "incon": 0.428,
+      "label": "dimple p1.2/d0.6/h0.5"
+    },
+    {
+      "params": {
+        "pitch": 1.301,
+        "dia": 0.848,
+        "depth": 1.041
+      },
+      "score": 0.6146,
+      "base": 0.7185,
+      "incon": 0.48,
+      "label": "dimple p1.3/d0.8/h1.0"
+    },
+    {
+      "params": {
+        "pitch": 1.224,
+        "dia": 0.664,
+        "depth": 1.155
+      },
+      "score": 0.6142,
+      "base": 0.7063,
+      "incon": 0.465,
+      "label": "dimple p1.2/d0.7/h1.2"
+    },
+    {
+      "params": {
+        "pitch": 1.216,
+        "dia": 0.642,
+        "depth": 0.362
+      },
+      "score": 0.6142,
+      "base": 0.7003,
+      "incon": 0.458,
+      "label": "dimple p1.2/d0.6/h0.4"
+    },
+    {
+      "params": {
+        "pitch": 1.223,
+        "dia": 0.616,
+        "depth": 0.685
+      },
+      "score": 0.6141,
+      "base": 0.6883,
+      "incon": 0.443,
+      "label": "dimple p1.2/d0.6/h0.7"
+    },
+    {
+      "params": {
+        "pitch": 1.224,
+        "dia": 0.635,
+        "depth": 1.034
+      },
+      "score": 0.6141,
+      "base": 0.6952,
+      "incon": 0.451,
+      "label": "dimple p1.2/d0.6/h1.0"
+    },
+    {
+      "params": {
+        "pitch": 1.264,
+        "dia": 0.771,
+        "depth": 1.154
+      },
+      "score": 0.6136,
+      "base": 0.7204,
+      "incon": 0.483,
+      "label": "dimple p1.3/d0.8/h1.2"
+    },
+    {
+      "params": {
+        "pitch": 1.298,
+        "dia": 0.835,
+        "depth": 1.07
+      },
+      "score": 0.6136,
+      "base": 0.7182,
+      "incon": 0.481,
+      "label": "dimple p1.3/d0.8/h1.1"
+    },
+    {
+      "params": {
+        "pitch": 1.225,
+        "dia": 0.697,
+        "depth": 0.75
+      },
+      "score": 0.6134,
+      "base": 0.7182,
+      "incon": 0.481,
+      "label": "dimple p1.2/d0.7/h0.8"
+    },
+    {
+      "params": {
+        "pitch": 1.236,
+        "dia": 0.629,
+        "depth": 0.807
+      },
+      "score": 0.6127,
+      "base": 0.6877,
+      "incon": 0.444,
+      "label": "dimple p1.2/d0.6/h0.8"
+    },
+    {
+      "params": {
+        "pitch": 1.232,
+        "dia": 0.709,
+        "depth": 0.831
+      },
+      "score": 0.6126,
+      "base": 0.7196,
+      "incon": 0.484,
+      "label": "dimple p1.2/d0.7/h0.8"
+    },
+    {
+      "params": {
+        "pitch": 1.239,
+        "dia": 0.672,
+        "depth": 0.901
+      },
+      "score": 0.6122,
+      "base": 0.7023,
+      "incon": 0.463,
+      "label": "dimple p1.2/d0.7/h0.9"
+    },
+    {
+      "params": {
+        "pitch": 1.231,
+        "dia": 0.708,
+        "depth": 0.403
+      },
+      "score": 0.6121,
+      "base": 0.7191,
+      "incon": 0.484,
+      "label": "dimple p1.2/d0.7/h0.4"
+    },
+    {
+      "params": {
+        "pitch": 1.311,
+        "dia": 0.853,
+        "depth": 0.658
+      },
+      "score": 0.6119,
+      "base": 0.7161,
+      "incon": 0.48,
+      "label": "dimple p1.3/d0.9/h0.7"
+    },
+    {
+      "params": {
+        "pitch": 1.324,
+        "dia": 0.88,
+        "depth": 0.73
+      },
+      "score": 0.6116,
+      "base": 0.7149,
+      "incon": 0.479,
+      "label": "dimple p1.3/d0.9/h0.7"
+    },
+    {
+      "params": {
+        "pitch": 1.249,
+        "dia": 0.64,
+        "depth": 0.61
+      },
+      "score": 0.6112,
+      "base": 0.6862,
+      "incon": 0.444,
+      "label": "dimple p1.2/d0.6/h0.6"
+    },
+    {
+      "params": {
+        "pitch": 1.26,
+        "dia": 0.636,
+        "depth": 1.176
+      },
+      "score": 0.611,
+      "base": 0.6815,
+      "incon": 0.438,
+      "label": "dimple p1.3/d0.6/h1.2"
+    },
+    {
+      "params": {
+        "pitch": 1.249,
+        "dia": 0.704,
+        "depth": 0.899
+      },
+      "score": 0.6107,
+      "base": 0.7098,
+      "incon": 0.474,
+      "label": "dimple p1.2/d0.7/h0.9"
+    },
+    {
+      "params": {
+        "pitch": 1.286,
+        "dia": 0.792,
+        "depth": 0.754
+      },
+      "score": 0.61,
+      "base": 0.7168,
+      "incon": 0.483,
+      "label": "dimple p1.3/d0.8/h0.8"
+    },
+    {
+      "params": {
+        "pitch": 1.255,
+        "dia": 0.679,
+        "depth": 0.434
+      },
+      "score": 0.6099,
+      "base": 0.6973,
+      "incon": 0.459,
+      "label": "dimple p1.3/d0.7/h0.4"
+    },
+    {
+      "params": {
+        "pitch": 1.262,
+        "dia": 0.613,
+        "depth": 1.205
+      },
+      "score": 0.6094,
+      "base": 0.6716,
+      "incon": 0.428,
+      "label": "dimple p1.3/d0.6/h1.2"
+    },
+    {
+      "params": {
+        "pitch": 1.256,
+        "dia": 0.723,
+        "depth": 0.708
+      },
+      "score": 0.6094,
+      "base": 0.7134,
+      "incon": 0.48,
+      "label": "dimple p1.3/d0.7/h0.7"
+    },
+    {
+      "params": {
+        "pitch": 1.279,
+        "dia": 0.685,
+        "depth": 0.835
+      },
+      "score": 0.6081,
+      "base": 0.6901,
+      "incon": 0.453,
+      "label": "dimple p1.3/d0.7/h0.8"
+    }
+  ]
+}
