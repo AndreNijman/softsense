@@ -20,6 +20,16 @@ material** requirements are split into three depth tiers.
 > actuator field; they are not a guarantee of grams-force at the fingertip. The
 > bench-test plan (`BENCH_TEST.md`) is where absolute force gets measured.
 
+> **Sensing pivot (campaign update).** The actuator is now also the gripper's
+> **force sensor** — motor current → torque → drivetrain back-trace → tip force,
+> the same principle used by force-controlled industrial/surgical grippers
+> (Maxon, Robotiq, Schunk). This adds a **hard selection filter**: a candidate
+> must stream torque/current telemetry fast and fine enough to resolve a
+> sub-slip grip-force step (§8 below). It also removes the old conductive-foam
+> fingertip sensor (zero fingertip electronics underwater — see `DECISION_LOG.md`).
+> Sensed force is itself a **relative** signal unless calibrated against a load
+> cell (`SENSING.md`), so the rank-only caveat carries over to the force readout.
+
 All numbers below are reproduced by:
 
 ```bash
@@ -205,7 +215,44 @@ depth. Tier 2 is the primary design point.
 
 ---
 
-## 8. Requirement summary (the card the survey scores against)
+## 8. Force sensing through the actuator (the SoftSense pivot)
+
+The actuator doubles as the grip-force sensor. The forward chain is the inverse
+of §1: a measured motor current/torque telemetry sample is back-traced through
+the same drivetrain to an estimated per-finger tip force:
+
+$$\hat{F} = T_{sense}\cdot \tfrac{i_g}{2}\cdot MA(P)\cdot \eta \qquad\text{with}\qquad T_{sense}=K_t\,(I_{meas}-I_0)$$
+
+(`SENSING.md` develops the forward + inverse models and the calibration; `MOTOR_MODEL.md`
+carries the validation.) The selection-relevant budgets:
+
+| # | Sensing requirement | Target | Basis |
+|---|---|---|---|
+| S1 | **Force resolution** (min detectable tip-force step) | **≤ 0.3 N** at the fingertip | ≈ 3 % of a 10 N working grip / 2 % of the 15 N ceiling (the FEA-anchored band). `grip_model.py` ranks textures' *relative* slip ordering — it is rank-only, so the **absolute** step target comes from the force band, not from absolute newtons it doesn't claim. |
+| S2 | **Torque resolution at the input shaft** | **≈ 0.02 N·m** | S1 back-traced: 0.3 N ÷ (i_g/2 · MA_mid · η) at η≈0.5, MA_mid 0.023. Per-motor this is a current step ΔI = 0.02/K_t (evaluated per candidate in `SURVEY.md`). |
+| S3 | **Telemetry rate** | **≥ 50 Hz** (desirable ≥ 100 Hz) | slip onset is detected on the force *derivative*; 50 Hz ⇒ 20 ms sampling resolves the contact/slip transient. |
+| S4 | **End-to-end latency** (sense → controller → ROV topside) | **≤ ~50 ms** | usable closed-loop / operator grip control. Budget: ≤ 10 ms motor-side sense+filter, ≥ 40 ms for tether + parsing. |
+| S5 | **Noise floor** | post-filter torque-sense noise < S2 (≈ 0.02 N·m RMS) | so the 0.3 N step is not buried. Brushed-DC commutation/PWM ripple (~5 %) exceeds this raw → needs filtering, which spends part of the S4 latency budget. |
+
+**What this rules in and out** (full detail + citations in `SURVEY.md`):
+
+- **In (native telemetry):** smart serial-bus servos expose `present_current`
+  (Dynamixel X 2.69 mA/unit ⇒ ~0.005 N·m at the servo; Feetech 6.5 mA/unit) and
+  FOC controllers expose `iq`/`torque` (moteus int32 ⇒ 1 mA / 1 mN·m). Both clear
+  S1–S3 with margin and, crucially, **hold a clean torque estimate at stall** —
+  the grip-and-hold state.
+- **Out (no telemetry):** open-loop PWM servos (most IP-rated RC servos: Savox SW,
+  Hitec WP, Traxxas) have **no current readback** → they cannot sense and are
+  **DEAD** for this design, kept in `SURVEY.md` only with a one-line elimination.
+- **Fallback-only:** sensorless BLDC back-EMF estimators go **blind below ~10–20 %
+  rated speed** — i.e. at stall, exactly when grip force matters — so they are
+  contact/stall *detection* only, never the primary force readout.
+- **Ground truth:** a bench load cell (`SENSING.md`/`BENCH_TEST.md`) calibrates
+  the current→force curve; an *in-situ* strain gauge is **not** re-introduced
+  (it would put wiring back through the TPU — the very thing the foam removal
+  avoided).
+
+## 9. Requirement summary (the card the survey scores against)
 
 | # | Requirement | Value |
 |---|---|---|
@@ -218,7 +265,11 @@ depth. Tier 2 is the primary design point.
 | R7 | IP / depth | tier-2 ≤ 30 m primary; tiers 1 & 3 as edges (table §6) |
 | R8 | Power | 12 V nominal; budget ~6 A peak (stall); single-PWM baseline |
 | R9 | Material/seawater | hydrolysis-stable, galvanic-isolated at the M4 flange (`UNDERWATER.md`) |
+| **R10** | **Force sensing via the actuator** | **stream torque/current telemetry: ≥ 0.3 N tip resolution (≈ 0.02 N·m input), ≥ 50 Hz, ≤ 50 ms latency (S1–S5)** |
 
-Phase 2 (`SURVEY.md`) scores every candidate against R1–R9 and tags which depth
-tiers (R7) it satisfies; Phase 3 (`SELECTION.md`) weights them and sweeps the
-weights ±50% **including depth tier** to pick a tier-2 primary + a fallback.
+`SURVEY.md` scores every candidate against R1–R10, tags which depth tiers (R7)
+it satisfies, and adds the four sensing columns (modality / rate / protocol /
+force-resolution); candidates that cannot sense (R10) are kept but tagged DEAD.
+`SELECTION.md` weights them — **sensing fidelity is now a primary weighted axis
+alongside torque, depth-tier fit and modularity** — and sweeps the weights ±50 %
+(including depth tier) to pick a tier-2 primary + a fallback.
