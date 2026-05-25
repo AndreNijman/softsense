@@ -66,6 +66,7 @@ guidance is in `UNDERWATER.md`.
 | `DFM.md` | Design-for-3D-printing standards (walls, overhangs, holes, clearances, edge-breaks) and how each part complies. |
 | `fea/UNIVERSAL_FINGER.md` | **The finger design study** — how the Fin Ray geometry was chosen by multi-shape FEA across sizes for universal grasping. |
 | `fea/DECISION_LOG.md` | **Full decision log** — every approach tried, dead end, and number behind the finger redesign (~90 FEA runs, 2 families, agent swarm). |
+| `fea/SCALABILITY.md` | **Scalability study** — the finger across `FINGER_SCALE` 0.6–2.5: usable band ≈ 0.6–1.1× (down-scaling safe; up-scaling limited by fixed walls). |
 | `fea/FEA.md`, `fea/ITERATIONS.md` | FEA solver/method notes and the (earlier, single-object) iteration log. |
 
 ## Regenerate / re-pose

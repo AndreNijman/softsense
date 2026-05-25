@@ -74,13 +74,25 @@ def universal(results):
 
 
 def evaluate(name, gen, params, mode="screen"):
+    params = dict(params)
+    # --- scalability knobs (no effect at defaults) ---
+    scale = float(params.pop("_scale", 1.0))       # FINGER_SCALE (blade size)
+    grip_t = params.pop("_grip", None)             # grip-force target override (N)
     battery = SCREEN if mode == "screen" else FULL
     outdir = os.path.join(ITER, name); os.makedirs(outdir, exist_ok=True)
-    H.REPORT_MODE = "grip"                         # fair: compare wrap at equal grip
-    if mode == "screen":
-        H.NSTEPS, H.MESH_MAX, H.MESH_MIN = 12, 2.4, 1.1
-    else:
-        H.NSTEPS, H.MESH_MAX, H.MESH_MIN = 24, 1.3, 0.5
+    H.REPORT_MODE = "grip"                          # fair: compare wrap at equal grip
+    H.TARGET_GRIP = float(grip_t) if grip_t is not None else 12.0
+    H.NSTEPS = 12 if mode == "screen" else 24
+    mmax, mmin = (2.4, 1.1) if mode == "screen" else (1.3, 0.5)
+    # scale finger, press stroke, and mesh together so every scale is meshed to the
+    # same element count and closed proportionally (fair comparison across sizes).
+    H.gripper.FINGER_SCALE = scale
+    H.PRESS_MAX = 10.0 * scale
+    H.MESH_MAX, H.MESH_MIN = mmax * scale, mmin * scale
+    # scale the object battery: object size and grasp height proportional to the blade
+    refR = H.gripper.solve_side_right(0.0)
+    base_y = max(refR["C"][1], refR["D"][1]) - H.gripper.FR_BASE_DROP
+    battery = [(s, R * scale, base_y + (yc - base_y) * scale) for (s, R, yc) in battery]
     p = dict(params)
     if gen != "production":
         p["_gen"] = gen
@@ -101,6 +113,7 @@ def evaluate(name, gen, params, mode="screen"):
                   f"margin={m['margin_x']:.1f} -> obj={obj_score(m):.3f}")
     score, base, incon = universal(results)
     out = dict(name=name, gen=gen, mode=mode, params=params,
+               scale=scale, target_grip=H.TARGET_GRIP,
                score=round(score, 4), base=round(base, 4), grip_incon=round(incon, 3),
                n_nodes=int(p2d.shape[0]),
                objects=[dict(shape=s, R=R, yc=yc, metrics=m) for (s, R, yc, m) in results])
