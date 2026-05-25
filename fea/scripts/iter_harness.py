@@ -23,6 +23,67 @@ import gmsh
 from scipy.sparse import coo_matrix
 from scipy.sparse.linalg import spsolve
 
+# ---- optional GPU backend (CuPy / CUDA) --------------------------------------
+# GRIPPER_FEA_GPU=1 + cupy installed -> the Newton solve runs on the GPU; otherwise
+# the default NumPy/SciPy CPU path runs UNCHANGED. The CPU run_fea is never altered;
+# the GPU path is a separate mirror (_run_fea_gpu) so the validated CPU results stand.
+_np = np
+_WANT_GPU = os.environ.get("GRIPPER_FEA_GPU", "0") == "1"
+GPU = False
+if _WANT_GPU:
+    try:
+        import cupy as _cp
+        import cupyx
+        import cupyx.scipy.sparse as _xsp
+        import cupyx.scipy.sparse.linalg as _xspl
+        _cp.cuda.runtime.getDeviceCount()
+        GPU = True
+    except Exception as _e:                       # no GPU / cupy -> silent CPU fallback
+        print(f"  [GPU requested but unavailable: {type(_e).__name__}: {_e}; using CPU]")
+        GPU = False
+
+
+def _xp_of(a):
+    """Array module of `a` — cupy if it's a device array, else numpy."""
+    return _cp.get_array_module(a) if GPU else _np
+
+
+def _to_np(a):
+    return _cp.asnumpy(a) if (GPU and isinstance(a, _cp.ndarray)) else _np.asarray(a)
+
+
+def _scatter_add(out, idx, vals):
+    if GPU and isinstance(out, _cp.ndarray):
+        cupyx.scatter_add(out, idx, vals)
+    else:
+        _np.add.at(out, idx, vals)
+
+
+def _solve_reduced(data, rows, cols, rhs_full, free, dof_red, nfree):
+    """Solve K_free du = rhs_full[free], building the reduced system from COO
+    triplets (no fancy sparse slicing). GPU: CG + Jacobi precond (SPD system),
+    with a CPU direct-solve fallback if CG doesn't converge."""
+    keep = (dof_red[rows] >= 0) & (dof_red[cols] >= 0)
+    rr = dof_red[rows[keep]]; cc = dof_red[cols[keep]]; vv = data[keep]
+    b = rhs_full[free]
+    if GPU and isinstance(data, _cp.ndarray):
+        Kr = _xsp.coo_matrix((vv, (rr, cc)), shape=(nfree, nfree)).tocsr()
+        d = Kr.diagonal(); d = _cp.where(d == 0, 1.0, d)
+        M = _xspl.LinearOperator((nfree, nfree), matvec=lambda v: v / d)
+        try:
+            try:
+                x, info = _xspl.cg(Kr, b, rtol=1e-7, maxiter=6000, M=M)
+            except TypeError:
+                x, info = _xspl.cg(Kr, b, tol=1e-7, maxiter=6000, M=M)
+            if info == 0:
+                return x
+        except Exception:
+            pass
+        Kc = coo_matrix((_to_np(vv), (_to_np(rr), _to_np(cc))), shape=(nfree, nfree)).tocsc()
+        return _cp.asarray(spsolve(Kc, _to_np(b)))
+    Kr = coo_matrix((vv, (rr, cc)), shape=(nfree, nfree)).tocsc()
+    return spsolve(Kr, b)
+
 REPO = "/home/andre/gripper-cad"
 ITERDIR = os.path.join(REPO, "fea", "iterations")
 
@@ -51,20 +112,21 @@ def obj_contact(x, cx, cy):
     """Rigid-object penetration for penalty contact. Returns (pen, nrm, inside):
     pen>=0 depth, nrm outward unit normal (nn,3), inside bool mask. Supports a
     circle (radius R_NECK) or an axis-aligned square (half-size R_NECK)."""
+    xp = _xp_of(x)
     if OBJ_SHAPE == "box":
         dx = x[:, 0] - cx; dy = x[:, 1] - cy; H = R_NECK
-        qx = np.abs(dx) - H; qy = np.abs(dy) - H
+        qx = xp.abs(dx) - H; qy = xp.abs(dy) - H
         inside = (qx < 0) & (qy < 0)
         usex = qx >= qy                                  # nearest face is an x-face
-        pen = np.where(usex, -qx, -qy)
-        nrm = np.zeros((x.shape[0], 3))
-        sgx = np.where(dx >= 0, 1.0, -1.0); sgy = np.where(dy >= 0, 1.0, -1.0)
+        pen = xp.where(usex, -qx, -qy)
+        nrm = xp.zeros((x.shape[0], 3))
+        sgx = xp.where(dx >= 0, 1.0, -1.0); sgy = xp.where(dy >= 0, 1.0, -1.0)
         nrm[usex, 0] = sgx[usex]; nrm[~usex, 1] = sgy[~usex]
-        return np.where(inside, pen, 0.0), nrm, inside
-    dx = x[:, 0] - cx; dy = x[:, 1] - cy; rr = np.hypot(dx, dy) + 1e-9
+        return xp.where(inside, pen, 0.0), nrm, inside
+    dx = x[:, 0] - cx; dy = x[:, 1] - cy; rr = xp.hypot(dx, dy) + 1e-9
     pen = R_NECK - rr; inside = pen > 0
-    nrm = np.zeros((x.shape[0], 3)); nrm[:, 0] = dx / rr; nrm[:, 1] = dy / rr
-    return np.where(inside, pen, 0.0), nrm, inside
+    nrm = xp.zeros((x.shape[0], 3)); nrm[:, 0] = dx / rr; nrm[:, 1] = dy / rr
+    return xp.where(inside, pen, 0.0), nrm, inside
 
 # FR_* parameters the harness is allowed to vary (captured from gripper at import).
 FR_KEYS = ["FR_BLADE_LEN", "FR_BASE_WIDTH", "FR_TIP_WIDTH", "FR_WALL",
@@ -195,20 +257,125 @@ def precompute(nodes, tets):
 
 
 def polar_R(F):
-    U, S, Vt = np.linalg.svd(F); R = np.einsum('nij,njk->nik', U, Vt)
-    flip = np.linalg.det(R) < 0
-    if np.any(flip):
+    xp = _xp_of(F)
+    U, S, Vt = xp.linalg.svd(F); R = xp.einsum('nij,njk->nik', U, Vt)
+    flip = xp.linalg.det(R) < 0
+    if bool(xp.any(flip)):
         U2 = U.copy(); U2[flip, :, 2] *= -1
-        R[flip] = np.einsum('nij,njk->nik', U2[flip], Vt[flip])
+        R[flip] = xp.einsum('nij,njk->nik', U2[flip], Vt[flip])
     return R
 
 
 def apply_blockR(R, Vvec):
+    xp = _xp_of(R)
     Vr = Vvec.reshape(-1, 4, 3)
-    return np.einsum('nij,nkj->nki', R, Vr).reshape(-1, 12)
+    return xp.einsum('nij,nkj->nki', R, Vr).reshape(-1, 12)
+
+
+def _run_fea_gpu(p2d, tris, lm, verbose=True):
+    """GPU (CuPy) mirror of run_fea: same finite-strain corotational contact solve,
+    Newton linear systems solved on the GPU (CG + Jacobi precond). Mesh/precompute
+    stay on CPU; arrays move to the device for the loop; results return as numpy."""
+    cp = _cp
+    nodes, tets, N2 = build_tets(p2d, tris)
+    P = precompute(nodes, tets)
+    nn = nodes.shape[0]; ndof = nn * 3
+    C, D = np.array(lm["C"]), np.array(lm["D"]); rb = lm["r_bore"]
+    dC = np.hypot(nodes[:, 0] - C[0], nodes[:, 1] - C[1])
+    dD = np.hypot(nodes[:, 0] - D[0], nodes[:, 1] - D[1])
+    clampnodes = (dC < rb + 0.4) | (dD < rb + 0.4)
+    fixed = np.zeros(ndof, bool)
+    for d in range(3): fixed[3 * np.where(clampnodes)[0] + d] = True
+    free = np.where(~fixed)[0]
+    if "obj_cx" in lm:
+        xc0 = lm["obj_cx"] - PRESS_AT_REPORT
+    else:
+        band = np.abs(nodes[:, 1] - YC) < max(6.0, R_NECK * 0.8)
+        mx = nodes[band, 0].min() if band.any() else nodes[:, 0].min()
+        xc0 = mx - R_NECK - GAP
+    tipc = np.where(nodes[:, 1] > nodes[:, 1].max() - 1.0)[0]
+    tip_node = int(tipc[np.argmin(np.abs(nodes[tipc, 2] - (Z0 + Z1) / 2))])
+    if verbose:
+        print(f"  [GPU] clamp nodes={int(clampnodes.sum())} ndof={ndof} tets={P['Ntet']}", flush=True)
+    # ---- move to device ----
+    Ke0 = cp.asarray(P['Ke0']); invJm = cp.asarray(P['invJm']); Xvec = cp.asarray(P['Xvec'])
+    edof = cp.asarray(P['edof']); Iidx = cp.asarray(P['I']); Jidx = cp.asarray(P['J'])
+    Ntet = P['Ntet']
+    tets_g = cp.asarray(tets); Xrest = cp.asarray(nodes); u = cp.zeros(ndof)
+    D6g = cp.asarray(D6); free_g = cp.asarray(free); nfree = int(free.shape[0])
+    dof_red = -cp.ones(ndof, dtype=cp.int64); dof_red[free_g] = cp.arange(nfree)
+    eye3 = cp.eye(3)[None]
+    frames = []; vms_frames = []; grip = []; press_hist = []
+    cforce_list = []; vmtet_list = []
+    for s in range(1, NSTEPS + 1):
+        press = PRESS_MAX * s / NSTEPS; cx = xc0 + press; cy = YC
+        for it in range(16):
+            x = (Xrest.reshape(-1) + u).reshape(nn, 3); xe = x[tets_g]
+            Js = cp.stack([xe[:, 1] - xe[:, 0], xe[:, 2] - xe[:, 0], xe[:, 3] - xe[:, 0]], axis=2)
+            F = cp.einsum('nij,njk->nik', Js, invJm); R = polar_R(F)
+            RtX = apply_blockR(cp.transpose(R, (0, 2, 1)), xe.reshape(Ntet, 12)) - Xvec
+            f_e = apply_blockR(R, cp.einsum('nij,nj->ni', Ke0, RtX))
+            f_int = cp.zeros(ndof); _scatter_add(f_int, edof.reshape(-1), f_e.reshape(-1))
+            Rb = cp.zeros((Ntet, 12, 12))
+            for k in range(4): Rb[:, 3 * k:3 * k + 3, 3 * k:3 * k + 3] = R
+            Ke = cp.einsum('nij,njk,nlk->nil', Rb, Ke0, Rb)
+            pen, nrm, inside = obj_contact(x, cx, cy)
+            f_ext = cp.zeros(ndof)
+            data = Ke.reshape(-1); rows = Iidx; cols = Jidx
+            if bool(cp.any(inside)):
+                fc = (KPEN * pen)[:, None] * nrm; fc[~inside] = 0
+                f_ext[0::3] += fc[:, 0]; f_ext[1::3] += fc[:, 1]
+                ii = cp.where(inside)[0]
+                nno = cp.einsum('ni,nj->nij', nrm, nrm) * KPEN
+                cr = []; cc_ = []; cv = []
+                for a in range(3):
+                    for b in range(3):
+                        cr.append(3 * ii + a); cc_.append(3 * ii + b); cv.append(nno[ii, a, b])
+                data = cp.concatenate([data] + cv)
+                rows = cp.concatenate([rows] + cr)
+                cols = cp.concatenate([cols] + cc_)
+            r = f_int - f_ext; rn = float(cp.linalg.norm(r[free_g]))
+            if it > 0 and rn < 2e-3 * (1 + float(cp.linalg.norm(f_ext[free_g]))): break
+            du = _solve_reduced(data, rows, cols, -r, free_g, dof_red, nfree)
+            u[free_g] += (1.0 if it > 1 else 0.7) * du
+        # ---- record (device -> host) ----
+        x = (Xrest.reshape(-1) + u).reshape(nn, 3); xe = x[tets_g]
+        Js = cp.stack([xe[:, 1] - xe[:, 0], xe[:, 2] - xe[:, 0], xe[:, 3] - xe[:, 0]], axis=2)
+        F = cp.einsum('nij,njk->nik', Js, invJm); R = polar_R(F)
+        RtF = cp.einsum('nij,njk->nik', cp.transpose(R, (0, 2, 1)), F)
+        eps = 0.5 * (RtF + cp.transpose(RtF, (0, 2, 1))) - eye3
+        ev = cp.stack([eps[:, 0, 0], eps[:, 1, 1], eps[:, 2, 2],
+                       2 * eps[:, 0, 1], 2 * eps[:, 1, 2], 2 * eps[:, 2, 0]], axis=1)
+        sig = ev @ D6g.T; sx, sy, sz, sxy, syz, szx = sig.T
+        vm = cp.sqrt(0.5 * ((sx - sy)**2 + (sy - sz)**2 + (sz - sx)**2) + 3 * (sxy**2 + syz**2 + szx**2))
+        nodal = cp.zeros(nn); cnt = cp.zeros(nn)
+        _scatter_add(nodal, tets_g.reshape(-1), cp.repeat(vm, 4))
+        _scatter_add(cnt, tets_g.reshape(-1), cp.ones(Ntet * 4))
+        nodal = nodal / cp.maximum(cnt, 1)
+        pen, nrm, inside = obj_contact(x, cx, cy)
+        gfx = float(cp.sum(KPEN * pen[inside] * nrm[inside, 0])) if bool(cp.any(inside)) else 0.0
+        cf = cp.zeros(nn); cf[inside] = KPEN * pen[inside]
+        frames.append(_to_np(x).astype(np.float32)); vms_frames.append(_to_np(nodal).astype(np.float32))
+        cforce_list.append(_to_np(cf).astype(np.float32)); vmtet_list.append(_to_np(vm).astype(np.float32))
+        grip.append(abs(gfx)); press_hist.append(press)
+        if verbose:
+            print(f"  [GPU] step {s:2d}/{NSTEPS} press={press:5.2f} it={it+1} "
+                  f"grip={abs(gfx):6.2f}N vmmax={float(nodal.max()):.2f}", flush=True)
+    grip_arr = np.array(grip)
+    if REPORT_MODE == "grip":
+        idx = np.where(grip_arr >= TARGET_GRIP)[0]
+        tgt = int(idx[0]) if len(idx) else int(np.argmax(grip_arr))
+    else:
+        tgt = int(np.argmin(np.abs(np.array(press_hist) - PRESS_AT_REPORT)))
+    return dict(rest=nodes, tets=tets, frames=np.array(frames), vms=np.array(vms_frames),
+                grip=grip_arr, press=np.array(press_hist), N2=N2, nlayers=NLAYERS,
+                yc=YC, R_neck=R_NECK, xc0=xc0, tip_node=tip_node,
+                cforce_list=cforce_list, vmtet_list=vmtet_list, target_idx=tgt, lm=lm)
 
 
 def run_fea(p2d, tris, lm, verbose=True):
+    if GPU:                                   # GPU path (mirror); CPU path below unchanged
+        return _run_fea_gpu(p2d, tris, lm, verbose)
     nodes, tets, N2 = build_tets(p2d, tris)
     P = precompute(nodes, tets)
     nn = nodes.shape[0]; ndof = nn * 3; Xrest = nodes.copy(); u = np.zeros(ndof)
