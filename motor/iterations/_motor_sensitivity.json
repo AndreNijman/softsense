@@ -1,0 +1,67 @@
+{
+  "base": {
+    "F_mid": 4.51,
+    "gear_binds": true,
+    "below_12": true,
+    "hold_current_A": 0.215
+  },
+  "rows": [
+    {
+      "perturb": "eta +50%",
+      "F_mid": 6.77,
+      "gear_binds": true,
+      "below_12": true,
+      "hold_current_A": 0.215
+    },
+    {
+      "perturb": "eta -50%",
+      "F_mid": 2.26,
+      "gear_binds": true,
+      "below_12": true,
+      "hold_current_A": 0.215
+    },
+    {
+      "perturb": "T_safe +50%",
+      "F_mid": 6.77,
+      "gear_binds": true,
+      "below_12": true,
+      "hold_current_A": 0.323
+    },
+    {
+      "perturb": "T_safe -50%",
+      "F_mid": 2.26,
+      "gear_binds": true,
+      "below_12": true,
+      "hold_current_A": 0.108
+    },
+    {
+      "perturb": "MA +50%",
+      "F_mid": 6.77,
+      "gear_binds": true,
+      "below_12": true,
+      "hold_current_A": 0.215
+    },
+    {
+      "perturb": "MA -50%",
+      "F_mid": 2.26,
+      "gear_binds": true,
+      "below_12": true,
+      "hold_current_A": 0.215
+    },
+    {
+      "perturb": "Kt +50%",
+      "F_mid": 4.51,
+      "gear_binds": true,
+      "below_12": true,
+      "hold_current_A": 0.143
+    },
+    {
+      "perturb": "Kt -50%",
+      "F_mid": 4.51,
+      "gear_binds": true,
+      "below_12": true,
+      "hold_current_A": 0.43
+    }
+  ],
+  "flips": []
+}

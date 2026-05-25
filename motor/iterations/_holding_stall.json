@@ -1,0 +1,49 @@
+{
+  "servos": {
+    "XW540-T260": {
+      "Kt": 1.86,
+      "stall_Nm": 9.5,
+      "stall_current_A": 5.11,
+      "cont_current_A": 1.02,
+      "holding": {
+        "shipped (T_safe 0.034)": {
+          "hold_torque_Nm": 0.034,
+          "hold_current_A": 0.018,
+          "backdrive_hold_torque_Nm": 0.327,
+          "backdrive_current_A": 0.018
+        },
+        "proposed re-size (T_safe 0.40)": {
+          "hold_torque_Nm": 0.4,
+          "hold_current_A": 0.215,
+          "backdrive_hold_torque_Nm": 0.436,
+          "backdrive_current_A": 0.215
+        }
+      },
+      "thermal": "holding current is sub-amp (gear-limited torque is tiny vs Kt) -> sustained grip-hold is thermally trivial; flooded body aids cooling."
+    },
+    "STS3215": {
+      "Kt": 1.08,
+      "stall_Nm": 2.94,
+      "stall_current_A": 2.72,
+      "cont_current_A": 0.91,
+      "holding": {
+        "shipped (T_safe 0.034)": {
+          "hold_torque_Nm": 0.034,
+          "hold_current_A": 0.031,
+          "backdrive_hold_torque_Nm": 0.327,
+          "backdrive_current_A": 0.031
+        },
+        "proposed re-size (T_safe 0.40)": {
+          "hold_torque_Nm": 0.4,
+          "hold_current_A": 0.37,
+          "backdrive_hold_torque_Nm": 0.436,
+          "backdrive_current_A": 0.37
+        }
+      },
+      "thermal": "holding current is sub-amp (gear-limited torque is tiny vs Kt) -> sustained grip-hold is thermally trivial; flooded body aids cooling."
+    }
+  },
+  "tip_pull_N": 5.0,
+  "backdrivable": true,
+  "backdrive_note": "ratio 2.667:1 spur + four-bar, no worm/self-lock -> back-drivable; a positional servo holds actively, an unpowered chain releases."
+}

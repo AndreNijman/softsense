@@ -1,0 +1,72 @@
+{
+  "texture": "crosshatch (shipped)",
+  "params": {
+    "pitch": 1.8,
+    "land": 1.26,
+    "depth": 0.6
+  },
+  "per_condition": [
+    {
+      "name": "smooth_wet",
+      "label": "smooth hard, wet (acrylic)",
+      "mu_hold": 0.7761
+    },
+    {
+      "name": "rough_wet",
+      "label": "rough hard, wet (rock)",
+      "mu_hold": 1.7481
+    },
+    {
+      "name": "ridged_wet",
+      "label": "ridged/corrugated, wet",
+      "mu_hold": 1.7481
+    },
+    {
+      "name": "slimy",
+      "label": "biofouled / slimy",
+      "mu_hold": 0.4506
+    },
+    {
+      "name": "soft_wet",
+      "label": "soft compliant, wet (kelp)",
+      "mu_hold": 0.8988
+    },
+    {
+      "name": "small_curved",
+      "label": "small cylinder, wet",
+      "mu_hold": 0.587
+    },
+    {
+      "name": "dry_smooth",
+      "label": "smooth hard, dry-clean",
+      "mu_hold": 0.793
+    }
+  ],
+  "force_cases": {
+    "shipped gears (T_safe 0.034 N\u00b7m)": {
+      "F_available_N": 0.51,
+      "slip_margin": {
+        "smooth_wet": 0.3969,
+        "rough_wet": 0.894,
+        "ridged_wet": 0.894,
+        "slimy": 0.2305,
+        "soft_wet": 0.4597,
+        "small_curved": 0.3002,
+        "dry_smooth": 0.4056
+      }
+    },
+    "proposed re-size (T_safe 0.40 N\u00b7m)": {
+      "F_available_N": 4.51,
+      "slip_margin": {
+        "smooth_wet": 3.5019,
+        "rough_wet": 7.8876,
+        "ridged_wet": 7.8876,
+        "slimy": 2.0332,
+        "soft_wet": 4.0555,
+        "small_curved": 2.6486,
+        "dry_smooth": 3.5781
+      }
+    }
+  },
+  "caveat": "RANK-ONLY: relative slip margin across object classes; not an absolute slip force (grip_model is rank-only)."
+}

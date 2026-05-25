@@ -1,0 +1,111 @@
+{
+  "eta_band": [
+    0.398,
+    0.705
+  ],
+  "servos": {
+    "XW540-T260": 1.9,
+    "STS3215": 0.98
+  },
+  "T_safe": {
+    "shipped (i_g 2.667)": 0.034,
+    "proposed re-size (i_g 2.0)": 0.4
+  },
+  "curves": {
+    "shipped (i_g 2.667) | XW540-T260": {
+      "i_g": 2.667,
+      "T_cont": 1.9,
+      "T_safe": 0.034,
+      "T_binding": 0.034,
+      "binding": "gear",
+      "F_mid_closed": 0.52,
+      "F_mid_open": 0.32,
+      "F_band_closed": [
+        0.41,
+        0.73
+      ]
+    },
+    "shipped (i_g 2.667) | STS3215": {
+      "i_g": 2.667,
+      "T_cont": 0.98,
+      "T_safe": 0.034,
+      "T_binding": 0.034,
+      "binding": "gear",
+      "F_mid_closed": 0.52,
+      "F_mid_open": 0.32,
+      "F_band_closed": [
+        0.41,
+        0.73
+      ]
+    },
+    "proposed re-size (i_g 2.0) | XW540-T260": {
+      "i_g": 2.0,
+      "T_cont": 1.9,
+      "T_safe": 0.4,
+      "T_binding": 0.4,
+      "binding": "gear",
+      "F_mid_closed": 4.59,
+      "F_mid_open": 2.82,
+      "F_band_closed": [
+        3.65,
+        6.47
+      ]
+    },
+    "proposed re-size (i_g 2.0) | STS3215": {
+      "i_g": 2.0,
+      "T_cont": 0.98,
+      "T_safe": 0.4,
+      "T_binding": 0.4,
+      "binding": "gear",
+      "F_mid_closed": 4.59,
+      "F_mid_open": 2.82,
+      "F_band_closed": [
+        3.65,
+        6.47
+      ]
+    }
+  },
+  "open_norm": [
+    0.0,
+    0.025,
+    0.05,
+    0.075,
+    0.1,
+    0.125,
+    0.15,
+    0.175,
+    0.2,
+    0.225,
+    0.25,
+    0.275,
+    0.3,
+    0.325,
+    0.35,
+    0.375,
+    0.4,
+    0.425,
+    0.45,
+    0.475,
+    0.5,
+    0.525,
+    0.55,
+    0.575,
+    0.6,
+    0.625,
+    0.65,
+    0.675,
+    0.7,
+    0.725,
+    0.75,
+    0.775,
+    0.8,
+    0.825,
+    0.85,
+    0.875,
+    0.9,
+    0.925,
+    0.95,
+    0.975,
+    1.0
+  ]
+}
