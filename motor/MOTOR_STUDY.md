@@ -76,8 +76,18 @@ product thesis, quantified.
   RS-485, native `present_current` (≈ 0.005 N·m/step) held cleanly at stall.
   **Buy:** [ROBOTIS US store — DYNAMIXEL XW540-T260-R](https://robotis.us/dynamixel-xw540-t260-r/),
   **USD 1,241.89** (≈ AUD 1,925; official store, verified May 2026; the `-R` suffix
-  = RS-485, the multi-drop bus variant). The **Feetech STS3215** (~AUD 34) is the
-  same-class, same-interface **budget/bench** member.
+  = RS-485, the multi-drop bus variant).
+- **SECOND OPTION — just as good for ~40 % the price (≤ $500): DYNAMIXEL XM540-W270-R.**
+  The **same Dynamixel-X RS-485 ecosystem** and the **identical native `present_current`**
+  telemetry (2.69 mA/step) as the primary — and actually **more torque** (cont ≈ 2.12 N·m,
+  stall 10.6 N·m, vs the XW540's 1.9 / 9.5). It is a **drop-in**: same bus, same control
+  code, same firmware current-limit, same sensing model. **Buy:**
+  [ROBOTIS US store — DYNAMIXEL XM540-W270-R](https://robotis.us/dynamixel-xm540-w270-r/),
+  **USD 494.39** (≈ AUD 766; in stock, verified May 2026). The *only* difference is it has
+  **no IP68 body** — but at the T2 (≤ 30 m) design point the XW540's IP68 is just 1 m
+  freshwater and needs a pressure canister anyway, so **in the canister the two are
+  functionally equivalent**, making the XM540-W270 the better value. (For pure bench/T1,
+  the **Feetech STS3215**, ~AUD 34, is the rock-bottom option; STS3250 ~USD 88 the mid step.)
 - **FALLBACK (T3): magnetic-coupling dry-pod** — no shaft penetration → depth set
   only by static pod seals; pole-slip is a built-in force limiter; sensing inherited
   from the pod motor.
