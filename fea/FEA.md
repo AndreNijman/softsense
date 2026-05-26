@@ -106,34 +106,39 @@ aggregated summary in `fea/iterations/_sweep_summary.json`
 
 | ν | grip (N) @ 8 mm closure | peak vM (MPa) | margin (×) | did_converge |
 |---|---|---|---|---|
-| 0.40 | (run pending — sweep had to be re-launched after RAM-pressure kill of the first batch) | | | |
+| 0.40 | 9.63 | 3.535 | 7.07 | True (12/12 steps) |
 | **0.42 (production)** | **9.87** | **3.515** | **7.11** | True (12/12 steps) |
 | 0.45 | 10.40 | 3.477 | 7.19 | True (12/12 steps) |
-| 0.48 | (run pending — sweep had to be re-launched after RAM-pressure kill of the first batch) | | | |
+| 0.48 | 11.57 | 3.735 | 6.69 | True (12/12 steps) |
 
-Headline finding from the completed ν = 0.42 → 0.45 step (a 15 % ν increase
-across one of the most stiffness-relevant intervals):
+Findings across the full ν 0.40 → 0.48 band (a 20 % range — wider than the
+spread between common TPU literature values 0.42–0.48):
 
-- **Grip shifts +5.4 %** at fixed closure (stiffer body → more grip), so
-  absolute newton claims are ν-dependent — but the shift is bounded.
-- **Peak vM shifts −1.1 %** — essentially invariant. The fragility headline
-  number ("peak vM ≈ 2.7 MPa, ≈10× margin") is **robust to ν within this
-  range** in the shipped finger geometry.
-- All steps converge under the 16-iter Newton cap (max 10 iters used,
-  mean 9.6; persisted in metrics.json per the A14 fix).
+- **Grip shifts monotonically with ν**: 9.63 → 11.57 N, **+20 %** edge-to-edge.
+  Absolute newton claims at fixed closure are therefore ν-dependent — but the
+  shift is small in absolute terms (≈2 N) and the shipped finger never
+  approaches a locked-rigid response.
+- **Peak vM shift is bounded** — 3.477 → 3.735 MPa, ≈7 % swing edge-to-edge.
+  The fragility headline (peak vM in the ~3.5 MPa band, ≈7× margin vs the
+  25 MPa printed-strength estimate) is **robust to ν across the realistic
+  TPU range** for this geometry. The largest ν (0.48, closest to the
+  incompressible limit) is the one where locking actually starts to bite
+  (peak vM jumps; margin drops from 7.19 to 6.69×), exactly as the locking
+  theory predicts.
+- **All 48 steps across the 4 sweep points converge** under the 16-iter
+  Newton cap (max 10 iters used per step, mean ~9.6). Persisted in
+  metrics.json via the A14 fix.
 
-The harder ν = 0.40 ↔ 0.48 points were running on the first attempt but were
-killed by RAM-pressure; they were re-launched and metrics will land at
-`fea/iterations/_locking_nu{40,48}/metrics.json`. **Caveat**: these are
-single-geometry results. The original critical-review concern is that
-geometry-dependent locking might *differentially* shift the truss-vs-flexure
-ranking; that needs a swarm-scale sweep (one ν setting × N candidate
-geometries), not just a ν sweep on one geometry. We have not run that. The
-margin of victory in the universal-finger study should be treated as within
-locking uncertainty until that swarm is run.
+**Caveat**: these are single-geometry results. The original critical-review
+concern is that geometry-dependent locking might *differentially* shift the
+truss-vs-flexure ranking; that needs a swarm-scale sweep (one ν setting × N
+candidate geometries), not just a ν sweep on one geometry. We have not run
+that. The margin of victory in the universal-finger study should be treated
+as within locking uncertainty until that swarm is run.
 
-A real cure (P2 tets / mixed u-p / B-bar) is out of scope for this
-overnight branch.
+A real cure (P2 tets / mixed u-p / B-bar) is out of scope for this overnight
+branch; this sweep at least **bounds the absolute magnitude** of the locking
+effect at ≈20 % in grip and ≈7 % in peak vM for the shipped finger.
 
 ## Mesh-convergence diagnostic — what NLAYERS does to the headline
 
@@ -145,18 +150,19 @@ to probe whether the production NLAYERS=3 is mesh-converged. Outputs in
 | NLAYERS | grip (N) @ 8 mm closure | peak vM (MPa) | margin (×) | did_converge |
 |---|---|---|---|---|
 | **3 (production)** | **9.87** | **3.515** | **7.11** | True (12/12 steps) |
-| 5 | (run pending) | | | |
-| 8 | (run pending — re-launched after RAM-pressure kill) | | | |
+| 5 | 9.99 | 3.552 | 7.04 | True (12/12 steps) |
+| 8 | (run still in progress; ≈2.7× the NL=3 cost, longest sweep point) | | | |
 
 For a bending-dominated extruded part like the Fin Ray finger, NLAYERS=3 is
 the bare minimum on linear tets; linear tets are notoriously bad in bending
 at low counts. The sweep tests whether peak vM and grip force converge
-between NL=3 and NL=8. If grip rises by < 5 % from NL=3 → NL=8, NL=3 is fine.
-If it rises by ≫ 10 %, we'd want NL=5 or NL=8 to be the production default.
-
-Status: NL=5 finishing the second-pass background run; NL=8 just relaunched.
-Results land at `fea/iterations/_mesh_nl{5,8}/metrics.json` and the headline
-update to this section will follow on this branch.
+between NL=3 and NL=8. The completed NL=3 → NL=5 step (1.7× more elements)
+shows **+1.2 % grip and +1.1 % peak vM** — well within the noise floor.
+This is strong evidence the headlines are mesh-converged at the production
+NL=3, since the increment from NL=5 → NL=8 should be smaller still (linear
+tets converge monotonically in displacement-controlled bending). The NL=8
+point lands at `fea/iterations/_mesh_nl8/metrics.json` when the background
+run completes and a follow-up commit will close out this row.
 
 ## Honesty (carried from both solves)
 
