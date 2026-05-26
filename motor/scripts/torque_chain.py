@@ -26,8 +26,15 @@ PICS = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
 
 # selected actuators (continuous torque, N.m) -- SURVEY.md / SELECTION.md
 SERVOS = {"XW540-T260": 1.9, "STS3215": 0.98}
-# gear ceiling T_safe (N.m) -- gear_fea.py
-T_SAFE = {"shipped (i_g 2.667)": (0.034, 2.667), "proposed re-size (i_g 2.0)": (0.40, 2.0)}
+# gear ceiling T_safe (N.m): three bounds reported now (per OVERNIGHT_FIXES #2):
+#   * shipped, single-station 2D crown FEA (gear_fea.py)              = 0.034 N.m
+#   * shipped, radial 2D crown FEA inner-edge bound (gear_fea_radial)  = 0.013 N.m
+#   * proposed re-size (un-implemented)                                 = 0.40  N.m
+T_SAFE = {
+    "shipped, radial 2D crown (inner-edge bound)": (0.013, 2.667),
+    "shipped, single-station 2D crown": (0.034, 2.667),
+    "proposed re-size (i_g 2.0)": (0.40, 2.0),
+}
 ETA_LO, ETA_HI = kc.efficiency_envelope()
 
 
@@ -64,7 +71,9 @@ def plot(out):
         import matplotlib.pyplot as plt
     except Exception as e:
         print("matplotlib unavailable:", e); return
-    fig, axs = plt.subplots(1, 2, figsize=(12, 4.6), sharey=True)
+    fig, axs = plt.subplots(1, len(T_SAFE), figsize=(4.5 * len(T_SAFE), 4.6), sharey=True)
+    if len(T_SAFE) == 1:
+        axs = [axs]
     for ax, (gname, (tsafe, i_g)) in zip(axs, T_SAFE.items()):
         for sname, tcont in SERVOS.items():
             t_bind = min(tcont, tsafe)
@@ -74,12 +83,13 @@ def plot(out):
             ln, = ax.plot(os_, F, lw=2, label=f"{sname} (bind={'gear' if tsafe<tcont else 'servo'})")
             ax.fill_between(os_, Flo, Fhi, alpha=0.15, color=ln.get_color())
         ax.axhline(12.0, ls="--", c="k", lw=1, alpha=0.6)
-        ax.text(0.02, 12.4, "12 N FEA report level", fontsize=8, alpha=0.7)
-        ax.set_title(f"{gname}  (T_safe={tsafe} N·m)", fontsize=10)
+        ax.text(0.02, 12.4, "12 N FEA stress-probe", fontsize=8, alpha=0.7)
+        ax.set_title(f"{gname}\n(T_safe = {tsafe} N·m)", fontsize=9)
         ax.set_xlabel("open_norm (0=closed → 1=open)")
-        ax.grid(alpha=0.3); ax.legend(fontsize=8)
+        ax.grid(alpha=0.3); ax.legend(fontsize=7)
     axs[0].set_ylabel("per-finger tip force (N), mid-face")
-    fig.suptitle("Motor → tip-force chain: gear ceiling binds, not the servo", fontsize=12)
+    fig.suptitle("Motor → tip-force chain: gear ceiling binds, not the servo "
+                 "(12 N is FEA stress-probe, not operating force)", fontsize=11)
     fig.tight_layout()
     os.makedirs(PICS, exist_ok=True)
     fig.savefig(os.path.join(PICS, "torque_chain.png"), dpi=110)

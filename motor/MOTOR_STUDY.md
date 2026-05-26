@@ -114,28 +114,57 @@ product thesis, quantified.
 
 ## 5. The big finding — the drivetrain, not the actuator, is the limit
 
-A 2D plane-stress FEA of the printed teeth (`gear_fea.py`, cross-checked vs Lewis)
-showed the compact **right-angle crown/pinion stage is grossly under-sized** for the
-torque a 12 N grip needs (working ≈ 0.94 N·m at η ≈ 0.5; tooth force ≈ 313 N on a
-0.67-module pinion). Safe input torque:
+A 2D plane-stress FEA of the printed teeth (`gear_fea.py`, with a Lewis
+*consistency* check — see `DRIVETRAIN.md` §1 on why "Lewis cross-check" is a
+misnomer for straight-flank face teeth) showed the compact **right-angle
+crown/pinion stage is grossly under-sized** for the torque a 12 N
+stress-probe grip would need (working ≈ 0.94 N·m at η ≈ 0.5; tooth force
+≈ 313 N on a 0.67-module pinion). Safe input torque:
 
-| geometry | T_safe | achievable safe grip |
-|---|---|---|
-| as-was | 0.02 N·m | < 0.5 N |
-| **shipped** (face-width strengthened: PINION_T 4→8, CROWN_TOOTH_H 1.6→3.0, build-verified) | **0.034 N·m** | ~0.5 N |
-| **proposed re-size** (CROWN_RC 11, module 1.83, 12/6 teeth — needs CAD validation) | **0.40 N·m** (realistic ~0.80) | ~5–9 N |
+| geometry | T_safe (single-station 2D) | T_safe (radial 2D, inner edge) | safe per-finger force band |
+|---|---|---|---|
+| as-was | 0.02 N·m | — | < 0.5 N |
+| **shipped** ✓ (PINION_T 4→8, CROWN_TOOTH_H 1.6→3.0, build-verified) | **0.034 N·m** | **0.013 N·m** | **0.14 – 0.28 N** (radial) / 0.35 – 0.73 N (single-station) |
+| **proposed re-size** ⚠ (CROWN_RC 11, module 1.83, 12/6 teeth — needs CAD validation) | **0.40 N·m** (realistic ~0.80) | — | 4.2 – 8.7 N |
 
 ![Motor → tip-force chain](pictures/torque_chain.png)
 
-*The gear ceiling binds, not the servo — both servos hit the same `T_safe` cap.*
+*The gear ceiling binds, not the servo. The shipped crown is the binding tooth;
+the radial-station 2D FEA (`gear_fea_radial.py`, this branch) tightens the
+single-station ceiling by 2.6× because the inner-radius tooth slice has a
+thinner s_root than at the pitch radius. Both bounds are 2D and conservative;
+the real ceiling needs the printed-coupon bench test in `BENCH_TEST.md`.*
 
-This reframes everything honestly: **12 N is the finger-FEA fair-comparison report
-level, not a structural mandate; the achievable safe grip is what the drivetrain
-envelope permits.** The motor **current limit enforces `T_safe` in firmware — that is
-the gear protection** (mandatory on both servos, whose stall ≫ `T_safe`). And it is
-precisely why the **magnetic-coupling fallback is strong**: its pole-slip torque
-scales with coupling *diameter*, not the cramped housing radius (a 60–80 mm coupling
-clears the stall band), so it removes the bottleneck the geared stage can't.
+This reframes everything honestly:
+
+- **12 N is a finger-FEA STRESS-PROBE LOAD** used to fairly rank designs at a
+  closure the FEA can reach in software. It is **not** a structural mandate
+  and **not** what the drivetrain operating envelope permits.
+- The **achievable per-finger force** on the shipped gears is roughly
+  **0.14 – 0.28 N** (radial 2D crown bound) or **0.35 – 0.73 N**
+  (single-station 2D bound). The proposed re-size would deliver
+  **4.2 – 8.7 N**. Live numbers from
+  `motor/scripts/drivetrain_force_envelope.py`.
+- The **finger-FEA implied vM margin at the operating force** is roughly
+  **~100 – 700×** (conservative linear stress-load scaling; small-strain
+  corotational regime), vs the 5.7 – 8.6× quoted at 12 N — i.e. the
+  fragility headline at 12 N is the *worst-case-load* margin used for the
+  fair comparison, not the in-service margin.
+- The motor **current limit enforces `T_safe` in firmware — that is the gear
+  protection** (mandatory on both servos, whose stall ≫ `T_safe`). And it is
+  precisely why the **magnetic-coupling fallback is strong**: its pole-slip
+  torque scales with coupling *diameter*, not the cramped housing radius
+  (a 60–80 mm coupling clears the stall band), so it removes the bottleneck
+  the geared stage can't.
+- **The crown FACE gear is a 3D problem** (`DRIVETRAIN.md` §1): the contact
+  line sweeps radially under rotation, the load decomposes into tangential
+  + radial + axial, and the disk-bending compliance matters. Neither the
+  single-station nor the radial 2D FEA captures this; both are upper
+  bounds. The "Lewis cross-check" framing was wrong because Lewis assumes
+  involute spur teeth, not straight-flank face teeth — two wrong models
+  agreeing is not validation. The straight-flank face teeth themselves
+  aren't real involute gears; in PA12-GF they will edge-load and gall, not
+  roll cleanly. The bench test is the only real ceiling.
 
 ## 6. Slip margin vs object class (rank-only)
 

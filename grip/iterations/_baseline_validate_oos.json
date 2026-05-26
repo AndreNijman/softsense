@@ -1,0 +1,106 @@
+{
+  "in_sample_ordering": [
+    {
+      "name": "smooth",
+      "family": "smooth",
+      "params": {},
+      "wet_hold": 0.0726
+    },
+    {
+      "name": "ridges",
+      "family": "ridge",
+      "params": {
+        "pitch": 2.5,
+        "land": 1.2,
+        "depth": 0.6
+      },
+      "wet_hold": 0.6142
+    },
+    {
+      "name": "tread",
+      "family": "crosshatch",
+      "params": {
+        "pitch": 3.0,
+        "land": 1.2,
+        "depth": 1.0
+      },
+      "wet_hold": 0.7087
+    },
+    {
+      "name": "treefrog",
+      "family": "hexpad",
+      "params": {
+        "cell": 1.0,
+        "channel": 0.5,
+        "depth": 0.4
+      },
+      "wet_hold": 1.0895
+    },
+    {
+      "name": "sucker",
+      "family": "concentric",
+      "params": {
+        "pitch": 1.6,
+        "land": 0.7,
+        "depth": 0.6,
+        "cavity": 0.4
+      },
+      "wet_hold": 1.1068
+    }
+  ],
+  "out_of_sample_patterns": [
+    {
+      "name": "hexpad_nochannel",
+      "family": "hexpad",
+      "params": {
+        "cell": 1.0,
+        "channel": 0.05,
+        "depth": 0.4
+      },
+      "mu_hold_pred": 1.33,
+      "anchor": "treefrog",
+      "anchor_mu_hold": 1.0895,
+      "expected_direction": "lower",
+      "passes": false,
+      "physical_prediction": "no open channels -> no drainage -> wet grip should drop toward smooth-control level"
+    },
+    {
+      "name": "crosshatch_fine",
+      "family": "crosshatch",
+      "params": {
+        "pitch": 1.0,
+        "land": 0.5,
+        "depth": 0.6
+      },
+      "mu_hold_pred": 1.0585,
+      "anchor": "tread",
+      "anchor_mu_hold": 0.7087,
+      "expected_direction": "higher",
+      "passes": true,
+      "physical_prediction": "finer pitch -> shorter drain path -> faster squeeze-film clearance -> higher wet grip"
+    },
+    {
+      "name": "hexpad_coarse",
+      "family": "hexpad",
+      "params": {
+        "cell": 3.0,
+        "channel": 0.5,
+        "depth": 0.4
+      },
+      "mu_hold_pred": 0.8863,
+      "anchor": "treefrog",
+      "anchor_mu_hold": 1.0895,
+      "expected_direction": "lower",
+      "passes": true,
+      "physical_prediction": "coarser cells -> longer drain path -> Reynolds squeeze-film doesn't clear in T_GRASP -> wet grip drops toward smooth-control level"
+    }
+  ],
+  "n_passed": 2,
+  "n_total": 3,
+  "pass_fraction": 0.667,
+  "notes": [
+    "These OOS patterns are NEW parametric points that the [PLACEHOLDER] coefficients were NOT tuned on. Each tests one specific physical prediction of the model (no drainage, finer/coarser scale).",
+    "A pass here is genuine generalisation evidence; a failure is a natural place to start calibrating against a wider experimental dataset. Either result is informative.",
+    "The literature expectations are based on Persson (rubber friction & wet skid 2001, 2007), Barnes (tree-frog wet adhesion 2007), Federle et al. (tree-frog pad mechanics 2006), Drotlef et al. (bio-inspired wet adhesion 2013, 2019), and standard tyre-tread engineering. Absolute mu values are still rank-only."
+  ]
+}

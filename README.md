@@ -36,10 +36,20 @@ hollow cells. The geometry (thin 1.2 mm contact beam, 1.8 mm spine, 14 fine
 **universally** — it distributes contact pressure along the whole finger on
 flat/large objects and grips round objects safely and evenly across a wide size
 range (see `fea/UNIVERSAL_FINGER.md`). The contact face carries a **crosshatch
-micro-post grip texture** (1.8 mm posts + crossing 0.54 mm drainage channels),
-optimized by a dedicated grip-texture FEA/swarm campaign for **wet, multi-surface**
-grip — it drains the water film and grips in both directions where the old
-single-axis ridges did neither (see `grip/GRIP_TEXTURE.md`). Printed in flexible
+micro-post grip texture** (1.8 mm posts + crossing 0.54 mm drainage channels). The
+shipped pattern is **the empirical winner among textures that actually tile the
+10 mm finger blade and don't lean on a speculative term**. The Tier-1 model's raw
+winner is the **octopus-sucker (concentric)** pattern, which scores best in
+31/31 ±50% sensitivity settings, but its isotropic-ring benefit requires
+ring-count ≫ 1 across the blade width — at most one full rosette fits across
+10 mm, so the model's missing-physics term (tileability) was supplied by
+engineering judgement and the sucker was excluded. Among tile-able families,
+**crosshatch wins 23/31 sensitivity settings**; hexpad (tree-frog) is the close,
+more-isotropic runner-up. The override is documented in `grip/GRIP_TEXTURE.md §5`;
+we did *not* tune a coefficient to demote the sucker (that would be confirmation
+bias). The grip-texture campaign drains the water film and grips in both
+directions, where the old single-axis ridges did neither (see
+`grip/GRIP_TEXTURE.md`). Printed in flexible
 **TPU** (ether-based for sustained immersion — see `UNDERWATER.md`). Note: a
 passive single-piece finger conforms to flat faces but cannot fully *curl around*
 a small round cylinder without an active tendon — see the ceiling discussion in
@@ -145,3 +155,40 @@ EXPLORER_WORKSPACE_ROOT=/home/andre/gripper-cad EXPLORER_ROOT_DIR=. \
   behaviour — the CAD shows the undeformed finger; the motion model opens/closes
   it rigidly.
 - Dimensions are inferred from one reference image, not measured hardware.
+
+## Honest framing on the published headlines
+
+- The finger-FEA **12 N target** is a **stress-probe load** used to fairly rank
+  finger designs in software, **not** an operating force the shipped drivetrain
+  delivers. The printed crown/pinion gear caps the input torque at `T_safe`
+  (≈ 0.013 N·m radial 2D / 0.034 N·m single-station 2D), which through the
+  kinematics chain maps to a per-finger **operating-force band of 0.14 – 0.73 N**
+  on the shipped gears, or 4.2 – 8.7 N on the proposed (un-implemented)
+  re-size. Run `motor/scripts/drivetrain_force_envelope.py` for live numbers.
+- The "**5.7 – 8.6× safety margin**" in the finger FEA is at the 12 N
+  stress-probe load and was computed with **linear** tetrahedra, which
+  volumetrically lock at near-incompressible ν. A locking-stable P2
+  (quadratic) re-run of the 2D precursor (`fea/scripts/solve_finger_p2.py`,
+  this branch) shows peak vM is ~50 % higher than the P1 reading at the same
+  load. The locking-corrected margin is therefore closer to **3.8 – 5.7×**
+  at the 12 N stress probe. The implied margin at the actual
+  drivetrain-deliverable operating force (0.17 – 0.35 N from the 3D crown
+  FEA) is ≈ **120 – 365×** (small-strain linear scaling; empirically
+  verified across the locking + mesh sweep settings — peak vM at F = 0.3 N
+  is 0.07–0.09 MPa). The design call is unchanged; the absolute safety
+  number is corrected.
+- The 2D plane-strain and 3D corotational solves agree on the order of
+  magnitude of peak vM (~2.7 MPa) but **don't solve the same problem** —
+  different BCs, ν, strain measure, and load level. See `fea/FEA.md` and
+  `docs/TESTING_AND_SIMULATION.md §A.11` for the apples-to-apples table.
+- The Tier-1 grip-texture model is rank-only, **its 5-pattern literature gate
+  is sufficient-condition (not a true out-of-sample test)**, and the shipped
+  crosshatch is the empirical winner only **after a geometric tileability
+  override** of the model's own winner (the octopus-sucker). See
+  `grip/GRIP_TEXTURE.md §5` and `grip/GRIP_MODEL.md` Validation §.
+- `T_safe` is a 2D plane-stress upper bound. The crown FACE gear is genuinely
+  a 3D problem (contact line, base-disk compliance, tangential+radial+axial
+  decomposition) that the 2D models don't fully capture; the straight-flank
+  face teeth themselves will gall/edge-load in PA12-GF rather than roll cleanly.
+  The only bench-grade ceiling is the printed-coupon torque-to-failure test in
+  `motor/BENCH_TEST.md`.

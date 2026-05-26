@@ -85,14 +85,29 @@ def _solve_reduced(data, rows, cols, rhs_full, free, dof_red, nfree):
     Kr = coo_matrix((vv, (rr, cc)), shape=(nfree, nfree)).tocsc()
     return spsolve(Kr, b)
 
-REPO = "/home/andre/gripper-cad"
+# REPO root: honour GRIPPER_REPO env var, else two-levels-up from this script,
+# else fall back to the historical absolute path (preserves the previous default
+# for callers that source the repo at /home/andre/gripper-cad).
+_HERE = os.path.dirname(os.path.abspath(__file__))
+REPO = os.environ.get(
+    "GRIPPER_REPO",
+    os.path.dirname(os.path.dirname(_HERE)) if os.path.isfile(
+        os.path.join(os.path.dirname(os.path.dirname(_HERE)), "gripper.py")
+    ) else "/home/andre/gripper-cad",
+)
 ITERDIR = os.path.join(REPO, "fea", "iterations")
+# make `import gripper` work when iter_harness.py is invoked from any cwd
+if REPO not in sys.path:
+    sys.path.insert(0, REPO)
 
 # ---- FROZEN FEA scenario ----
 R_NECK = 22.0
 YC = 80.0
 PRESS_MAX = 10.0
 NSTEPS = 24
+# env override for sweep speed (param_sweep.py defaults to 12 for cheap sweeps;
+# production fidelity is 24).
+NSTEPS = int(os.environ.get("GRIPPER_NSTEPS_OVERRIDE", NSTEPS))
 KPEN = 2000.0
 NLAYERS = 3
 Z0, Z1 = 13.0, 23.0
@@ -102,7 +117,19 @@ MESH_MIN, MESH_MAX = 0.5, 1.3
 # eSUN, so E=40 MPa is an estimate (margins are modulus-insensitive at force-targeted
 # reporting -- see PRINT_PROFILE_P1S_TPU.md / fea sensitivity E=30/40/60). nu~0.42 (TPU).
 E_TPU, NU = 40.0, 0.42
-TPU_STRENGTH = 25.0   # MPa -- eSUN eTPU-95A printed strength (35 MPa IM derated); margin basis
+# environment overrides (so locking/mesh sweeps don't have to monkey-patch globals):
+E_TPU = float(os.environ.get("GRIPPER_E_TPU", E_TPU))
+NU    = float(os.environ.get("GRIPPER_NU", NU))
+NLAYERS = int(os.environ.get("GRIPPER_NLAYERS", NLAYERS))
+TPU_STRENGTH = 25.0   # MPa -- eSUN eTPU-95A printed strength.
+# Provenance disclosure: eSUN's published eTPU-95A TDS quotes a tensile strength
+# of ~30 MPa (one retailer source quotes 35 MPa, possibly mistranslated). On FDM
+# TDS sheets the 30 MPa value is typically a printed-specimen number, not IM.
+# The "35 MPa IM -> 25 MPa printed via typical FDM derate" derivation that
+# previously lived in this comment is shaky and may double-count the derate
+# (the published number is already printed); 25 MPa is retained as a
+# conservative lower bound for the margin basis, but should be treated as
+# an engineering estimate, not a measured ceiling. See docs/MATERIALS.md.
 GAP = 0.5
 OBJ_SHAPE = "circle"  # "circle" (R=R_NECK) or "box" (square, half-size=R_NECK).
                       # A UNIVERSAL gripper must conform to non-round shapes too,
@@ -138,12 +165,34 @@ FR_KEYS = ["FR_BLADE_LEN", "FR_BASE_WIDTH", "FR_TIP_WIDTH", "FR_WALL",
 REPORT_MODE = "closure"  # "closure" -> report at PRESS_AT_REPORT; "grip" -> report
                          # at the FIRST closure reaching TARGET_GRIP (fair across
                          # stiff/compliant fingers: same grip force, compare the wrap).
-TARGET_GRIP = 12.0       # N -- force-targeted report level
+                         #
+                         # DOC/CODE DISCLOSURE: docs/TESTING_AND_SIMULATION.md A.8
+                         # presents force-targeted ("grip") reporting as THE
+                         # fairness methodology, but the code default here is
+                         # "closure" reporting at PRESS_AT_REPORT = 8.0 mm. Most
+                         # per-family universal-score tables in the repo were
+                         # generated with closure mode; force-targeted mode was
+                         # used selectively in the swarm to handle the stiff-vs-
+                         # compliant comparison. Toggle via env var REPORT_MODE.
+TARGET_GRIP = 12.0       # N -- STRESS-PROBE LOAD used to rank designs at a closure
+                         # the FEA can reach in software. NOT the operating force
+                         # the shipped drivetrain can safely deliver -- the printed
+                         # crown gear's root-bending ceiling caps the per-finger
+                         # force at ~0.14..0.28 N (radial 2D bound) or ~0.35..0.73 N
+                         # (single-station 2D bound), an order of magnitude below
+                         # 12 N. Run motor/scripts/drivetrain_force_envelope.py
+                         # for the live force band. Rank-only claim: in the small-
+                         # strain corotational regime, the design ranking at 12 N
+                         # is preserved at any sub-T_safe operating load.
 PRESS_AT_REPORT = 8.0   # mm -- report metrics at this CLOSURE (the user's grasp
                         # scenario). Closure is the actuator input -> fair across
                         # variants; grip force is a reported result, not controlled.
                         # (Grip-controlled reporting washed out: at low grip the
                         # finger has barely closed and nothing can wrap yet.)
+# environment overrides (so locking/mesh sweeps don't have to monkey-patch):
+REPORT_MODE     = os.environ.get("GRIPPER_REPORT_MODE", REPORT_MODE)
+TARGET_GRIP     = float(os.environ.get("GRIPPER_TARGET_GRIP", TARGET_GRIP))
+PRESS_AT_REPORT = float(os.environ.get("GRIPPER_PRESS_AT_REPORT", PRESS_AT_REPORT))
 
 os.environ["GRIPPER_OPEN"] = "0"; os.environ["GRIPPER_FINGER_SCALE"] = "1.0"
 import gripper
@@ -308,9 +357,13 @@ def _run_fea_gpu(p2d, tris, lm, verbose=True):
     eye3 = cp.eye(3)[None]
     frames = []; vms_frames = []; grip = []; press_hist = []
     cforce_list = []; vmtet_list = []
+    newton_iters = []; did_converge = []; residual_final = []
+    MAX_NEWTON = 16
+    NEWTON_TOL_REL = 2e-3
     for s in range(1, NSTEPS + 1):
         press = PRESS_MAX * s / NSTEPS; cx = xc0 + press; cy = YC
-        for it in range(16):
+        converged_this = False; last_rn = None
+        for it in range(MAX_NEWTON):
             x = (Xrest.reshape(-1) + u).reshape(nn, 3); xe = x[tets_g]
             Js = cp.stack([xe[:, 1] - xe[:, 0], xe[:, 2] - xe[:, 0], xe[:, 3] - xe[:, 0]], axis=2)
             F = cp.einsum('nij,njk->nik', Js, invJm); R = polar_R(F)
@@ -336,9 +389,15 @@ def _run_fea_gpu(p2d, tris, lm, verbose=True):
                 rows = cp.concatenate([rows] + cr)
                 cols = cp.concatenate([cols] + cc_)
             r = f_int - f_ext; rn = float(cp.linalg.norm(r[free_g]))
-            if it > 0 and rn < 2e-3 * (1 + float(cp.linalg.norm(f_ext[free_g]))): break
+            last_rn = rn
+            if it > 0 and rn < NEWTON_TOL_REL * (1 + float(cp.linalg.norm(f_ext[free_g]))):
+                converged_this = True
+                break
             du = _solve_reduced(data, rows, cols, -r, free_g, dof_red, nfree)
             u[free_g] += (1.0 if it > 1 else 0.7) * du
+        newton_iters.append(it + 1)
+        did_converge.append(bool(converged_this))
+        residual_final.append(last_rn if last_rn is not None else float("nan"))
         # ---- record (device -> host) ----
         x = (Xrest.reshape(-1) + u).reshape(nn, 3); xe = x[tets_g]
         Js = cp.stack([xe[:, 1] - xe[:, 0], xe[:, 2] - xe[:, 0], xe[:, 3] - xe[:, 0]], axis=2)
@@ -371,7 +430,10 @@ def _run_fea_gpu(p2d, tris, lm, verbose=True):
     return dict(rest=nodes, tets=tets, frames=np.array(frames), vms=np.array(vms_frames),
                 grip=grip_arr, press=np.array(press_hist), N2=N2, nlayers=NLAYERS,
                 yc=YC, R_neck=R_NECK, xc0=xc0, tip_node=tip_node,
-                cforce_list=cforce_list, vmtet_list=vmtet_list, target_idx=tgt, lm=lm)
+                cforce_list=cforce_list, vmtet_list=vmtet_list, target_idx=tgt, lm=lm,
+                newton_iters=newton_iters, did_converge=did_converge,
+                residual_final=residual_final,
+                newton_max_iters=MAX_NEWTON, newton_tol_rel=NEWTON_TOL_REL)
 
 
 def run_fea(p2d, tris, lm, verbose=True):
@@ -409,9 +471,14 @@ def run_fea(p2d, tris, lm, verbose=True):
 
     frames = []; vms_frames = []; grip = []; press_hist = []
     cforce_list = []; vmtet_list = []
+    newton_iters = []; did_converge = []; residual_final = []
+    MAX_NEWTON = 16
+    NEWTON_TOL_REL = 2e-3
     for s in range(1, NSTEPS + 1):
         press = PRESS_MAX * s / NSTEPS; cx = xc0 + press; cy = YC
-        for it in range(16):
+        converged_this = False
+        last_rn = None
+        for it in range(MAX_NEWTON):
             x = (Xrest.reshape(-1) + u).reshape(nn, 3); xe = x[tets]
             Js = np.stack([xe[:, 1] - xe[:, 0], xe[:, 2] - xe[:, 0], xe[:, 3] - xe[:, 0]], axis=2)
             F = np.einsum('nij,njk->nik', Js, invJm); R = polar_R(F)
@@ -435,9 +502,15 @@ def run_fea(p2d, tris, lm, verbose=True):
                 K = K + coo_matrix((np.concatenate(vals), (np.concatenate(rows), np.concatenate(cols))),
                                    shape=(ndof, ndof)).tocsr()
             r = f_int - f_ext; rn = np.linalg.norm(r[free])
-            if it > 0 and rn < 2e-3 * (1 + np.linalg.norm(f_ext[free])): break
+            last_rn = float(rn)
+            if it > 0 and rn < NEWTON_TOL_REL * (1 + np.linalg.norm(f_ext[free])):
+                converged_this = True
+                break
             du = spsolve(K[free][:, free].tocsc(), -r[free])
             u[free] += (1.0 if it > 1 else 0.7) * du
+        newton_iters.append(it + 1)
+        did_converge.append(bool(converged_this))
+        residual_final.append(last_rn if last_rn is not None else float("nan"))
         # record
         x = (Xrest.reshape(-1) + u).reshape(nn, 3); xe = x[tets]
         Js = np.stack([xe[:, 1] - xe[:, 0], xe[:, 2] - xe[:, 0], xe[:, 3] - xe[:, 0]], axis=2)
@@ -469,7 +542,10 @@ def run_fea(p2d, tris, lm, verbose=True):
     return dict(rest=Xrest, tets=tets, frames=np.array(frames), vms=np.array(vms_frames),
                 grip=grip_arr, press=np.array(press_hist), N2=N2, nlayers=NLAYERS,
                 yc=YC, R_neck=R_NECK, xc0=xc0, tip_node=tip_node,
-                cforce_list=cforce_list, vmtet_list=vmtet_list, target_idx=tgt, lm=lm)
+                cforce_list=cforce_list, vmtet_list=vmtet_list, target_idx=tgt, lm=lm,
+                newton_iters=newton_iters, did_converge=did_converge,
+                residual_final=residual_final,
+                newton_max_iters=MAX_NEWTON, newton_tol_rel=NEWTON_TOL_REL)
 
 
 # ----------------------------------------------------------------- metrics
@@ -504,6 +580,32 @@ def metrics(sol):
     # "locked" = the structure blew past target grip without graceful compliance and
     # is over-stressed -> a rigid jaw that crushes, not a gripper that conforms.
     locked = bool(maxvm > 0 and margin < 1.5 and g > 1.6 * TARGET_GRIP)
+    # Newton-convergence telemetry per step (A14 of the critical review): persist
+    # the did_converge flag, max iters used, and final residual so a downstream
+    # reader can tell whether a result was a clean converged solve or a silently-
+    # capped one at the 16-iter limit. `did_converge_all_steps` is the overall
+    # gate; the per-step lists are kept in case any individual step needs
+    # auditing (e.g. the first contact-engagement step often takes more iters).
+    nit = sol.get("newton_iters", [])
+    dc = sol.get("did_converge", [])
+    rf = sol.get("residual_final", [])
+    out_extra = dict(
+        did_converge_all_steps=bool(all(dc)) if dc else None,
+        n_steps_not_converged=int(sum(1 for x in dc if not x)) if dc else None,
+        newton_iters_max_used=int(max(nit)) if nit else None,
+        newton_iters_mean=round(sum(nit) / len(nit), 2) if nit else None,
+        newton_iters_per_step=list(map(int, nit)) if nit else None,
+        did_converge_per_step=[bool(x) for x in dc] if dc else None,
+        residual_final_per_step=[float(x) for x in rf] if rf else None,
+        newton_max_iters=int(sol.get("newton_max_iters", 0)),
+        newton_tol_rel=float(sol.get("newton_tol_rel", 0.0)),
+        report_mode=str(REPORT_MODE),
+        target_grip_stress_probe_N=float(TARGET_GRIP),
+        press_at_report_mm=float(PRESS_AT_REPORT),
+        nu_used=float(NU),
+        e_tpu_used=float(E_TPU),
+        nlayers_used=int(NLAYERS),
+    )
     return dict(contact_nodes=int(inside.sum()),
                 contact_arc_deg=round(contact_arc, 1),
                 pressure_cov=round(pcov, 2),
@@ -521,7 +623,8 @@ def metrics(sol):
                 grip_at_press_N=round(g, 2),
                 press_mm=round(float(sol['press'][tgt]), 2),
                 contact_y_min=round(float(yk.min()), 1) if inside.any() else None,
-                contact_y_max=round(float(yk.max()), 1) if inside.any() else None)
+                contact_y_max=round(float(yk.max()), 1) if inside.any() else None,
+                **out_extra)
 
 
 # ----------------------------------------------------------------- plots

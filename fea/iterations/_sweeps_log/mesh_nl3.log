@@ -1,0 +1,17 @@
+[_mesh_nl3] params={}
+  section: 1434 nodes / 2225 tris
+  clamp nodes=76 (2 bores)  ndof=17208 tets=20025
+  step  1/12 press= 0.83 it=8 grip=  0.41N vmmax=0.12
+  step  2/12 press= 1.67 it=10 grip=  1.44N vmmax=0.41
+  step  3/12 press= 2.50 it=9 grip=  2.48N vmmax=0.70
+  step  4/12 press= 3.33 it=10 grip=  3.52N vmmax=0.99
+  step  5/12 press= 4.17 it=10 grip=  4.55N vmmax=1.28
+  step  6/12 press= 5.00 it=10 grip=  5.58N vmmax=1.56
+  step  7/12 press= 5.83 it=9 grip=  6.62N vmmax=1.85
+  step  8/12 press= 6.67 it=9 grip=  7.67N vmmax=2.14
+  step  9/12 press= 7.50 it=10 grip=  8.77N vmmax=2.43
+  step 10/12 press= 8.33 it=10 grip=  9.87N vmmax=2.72
+  step 11/12 press= 9.17 it=10 grip= 10.97N vmmax=3.01
+  step 12/12 press=10.00 it=10 grip= 12.05N vmmax=3.29
+[_mesh_nl3] metrics: {"contact_nodes": 19, "contact_arc_deg": 13.6, "pressure_cov": 0.75, "closure_at_target": 8.33, "reached_target": false, "locked": false, "stress_spread_frac": 0.145, "engage_y_frac": 0.06, "bot_third_force_frac": 0.0, "mid_third_force_frac": 1.0, "top_third_force_frac": 0.0, "tip_inward_mm": -6.44, "max_von_mises_MPa": 3.515, "margin_x": 7.11, "grip_at_press_N": 9.87, "press_mm": 8.33, "contact_y_min": 74.0, "contact_y_max": 79.4, "did_converge_all_steps": true, "n_steps_not_converged": 0, "newton_iters_max_used": 10, "newton_iters_mean": 9.58, "newton_iters_per_step": [8, 10, 9, 10, 10, 10, 9, 9, 10, 10, 10, 10], "did_converge_per_step": [true, true, true, true, true, true, true, true, true, true, true, true], "residual_final_per_step": [0.00010887124307849735, 0.00010399470918222035, 0.0005275174714620889, 0.000606195208440448, 0.00021804639862108358, 0.0022315718772365264, 0.0017328806194003336, 0.0030925495085751013, 0.0008408704207498514, 0.0021929379365420174, 0.004348838914634847, 0.004116021786273787], "newton_max_iters": 16, "newton_tol_rel": 0.002, "report_mode": "closure", "target_grip_stress_probe_N": 12.0, "press_at_report_mm": 8.0, "nu_used": 0.42, "e_tpu_used": 40.0, "nlayers_used": 3}
+[_mesh_nl3] done in 1171s

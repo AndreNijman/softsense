@@ -56,6 +56,20 @@ five real patterns. It does:
 > ordering from tyre wet-skid, tree-frog and octopus-sucker literature. The model
 > passes all six checks. Only then did the swarm run.
 
+> ⚠️ **Caveat on the gate.** The [PLACEHOLDER]/[ESTIMATE] coefficients were
+> *chosen* so the gate passes — so "gate passes" is a **sufficient-condition**
+> test (the model *can be fit* to these 5 patterns) **not a necessary one**
+> (the model generalises to textures it wasn't tuned on). Two robustness
+> diagnostics (`scripts/baseline_gate_robustness.py`):
+> coefficient-perturbation ±50% — gate passes in **89 / 90 (99 %)** settings;
+> harsher zero-the-placeholders — gate **FAILS** (the placeholder terms are
+> doing real work, the cited Briscoe–Tabor friction alone isn't enough).
+> Neither is a true out-of-sample test; that needs a literature pattern the
+> model has never seen. See `GRIP_MODEL.md` Validation § for the full honest
+> framing, including a dispute on the published μ values the gate reproduces
+> (smooth-wet μ ≈ 0.07 is the *dynamic aquaplaning floor*, not static; sucker
+> μ ≈ 1.11 conflates suction with sliding friction).
+
 ## 3. Seven families, mass-iterated by an agent swarm
 
 A swarm of agents each **owned one texture family** (each has a different
@@ -139,9 +153,9 @@ direction is genuinely unpredictable in all axes.
 ## 6. Tier-2 FEA — what it does and doesn't confirm
 
 A 2D plane-strain contact FEA ([`scripts/texture_fea.py`](scripts/texture_fea.py))
-validates the **contact-mechanics sub-models every family shares** — not the grip
-number itself (friction + drainage rest on Tier-1 + literature; the FEA cannot and
-does not confirm those).
+validates the **structural contact-mechanics sub-models every family shares** — not
+the grip number itself, and **not the ranking-driving physics** (friction +
+drainage rest on Tier-1 + literature; the FEA cannot and does not confirm those).
 
 ![Tier-2 FEA](pictures/tier2_fea.png)
 
@@ -149,9 +163,20 @@ does not confirm those).
   **load-independent** over the operating range — so the lands carry load at the
   geometric fraction (`p_real = p_nom/φ` is right) and the soft-flattening term is
   negligible (consistent with the sensitivity result that `C_FLAT` is immaterial).
+  **Honest caveat:** under a rigid-platen / flat-top-post / plane-strain setup the
+  post cannot bulge sideways into the gap, so a load-independent φ_eff is the
+  *expected* result — this is largely a **tautological** confirmation given the
+  test geometry. A laterally-confined platen and hyperelastic post at higher
+  pressure might give a different answer (genuine sideways bulge); we did not
+  run that test.
 - **Durability:** the FEA root stress is only **1.1–1.4×** the `6·τ·AR` beam estimate;
   even at μ=1.8 the margin is **14×** (24× at μ=1.0). Durability is never the binding
   constraint — the conservative variant ships with even more margin.
+- **NOT validated by Tier-2:** the **friction physics** (Briscoe–Tabor +
+  skin slickness + edge deglaze) and the **Reynolds-drainage / channel-capacity**
+  physics. These are the ranking-driving terms in the Tier-1 model and they sit
+  on literature anchors + the [PLACEHOLDER] coefficients, not on a finite-element
+  cross-check. See `GRIP_MODEL.md` Validation §2 for the full scope honesty.
 
 ## 7. Shipped texture
 

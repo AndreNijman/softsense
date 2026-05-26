@@ -11,6 +11,18 @@ bores C, D (the real coupler mount), TPU E=40 MPa / ν=0.42, conservative yield
 Every named run below has a directory under `fea/iterations/<name>/` with its
 `eval.json`/`metrics.json` and (for renders) `wrap_render.png` + `wrap_anim.gif`.
 
+> ⚠️ **What "12 N" means throughout this log.** Every "12 N grip" reference
+> below is a **stress-probe load** used to fairly rank finger designs at a
+> closure the FEA can reach in software. It is **not** the operating force
+> the shipped drivetrain can safely deliver — the printed crown/pinion gear
+> caps the per-finger force at ≈ 0.14–0.73 N (run
+> `motor/scripts/drivetrain_force_envelope.py` for the live numbers).
+> The published 5.7–8.6× vM margins are at the 12 N probe; the implied
+> margin at the operating force is ≈ 100–700× (small-strain linear scaling).
+> The design rank ordering is preserved at any sub-`T_safe` load. See
+> `docs/TESTING_AND_SIMULATION.md §A.8 / A.12 / C.4` for the full framing
+> and `OVERNIGHT_FIXES.md #1` for the propagation through the doc stack.
+
 ---
 
 ## 0. Starting point & the user's actual goal

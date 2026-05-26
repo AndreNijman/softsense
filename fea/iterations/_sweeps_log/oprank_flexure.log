@@ -1,0 +1,13 @@
+[_oprank_flexure_lowF] params={'_gen': 'flexure'}
+  section: 1183 nodes / 2068 tris
+  clamp nodes=72 (2 bores)  ndof=14196 tets=18612
+  step  1/8 press= 1.25 it=16 grip= 50.26N vmmax=1.69
+  step  2/8 press= 2.50 it=10 grip=  0.08N vmmax=0.37
+  step  3/8 press= 3.75 it=10 grip=  0.14N vmmax=0.62
+  step  4/8 press= 5.00 it=9 grip=  0.20N vmmax=0.88
+  step  5/8 press= 6.25 it=16 grip=  0.27N vmmax=1.15
+  step  6/8 press= 7.50 it=10 grip=  0.35N vmmax=1.44
+  step  7/8 press= 8.75 it=16 grip= 64.72N vmmax=2.00
+  step  8/8 press=10.00 it=11 grip=  0.50N vmmax=2.04
+[_oprank_flexure_lowF] metrics: {"contact_nodes": 4, "contact_arc_deg": 0.0, "pressure_cov": 0.32, "closure_at_target": 7.5, "reached_target": false, "locked": false, "stress_spread_frac": 0.004, "engage_y_frac": 0.0, "bot_third_force_frac": 0.0, "mid_third_force_frac": 1.0, "top_third_force_frac": 0.0, "tip_inward_mm": -19.39, "max_von_mises_MPa": 2.063, "margin_x": 12.12, "grip_at_press_N": 0.35, "press_mm": 7.5, "contact_y_min": 74.0, "contact_y_max": 74.0, "did_converge_all_steps": false, "n_steps_not_converged": 2, "newton_iters_max_used": 16, "newton_iters_mean": 12.25, "newton_iters_per_step": [16, 10, 10, 9, 16, 10, 16, 11], "did_converge_per_step": [false, true, true, true, true, true, false, true], "residual_final_per_step": [65.02861788917598, 1.675635469490002e-05, 2.88117503378292e-05, 0.00010018343881818486, 0.00012246940191225103, 0.00017129756224788068, 667.7671613517399, 0.0011569835686278244], "newton_max_iters": 16, "newton_tol_rel": 0.002, "report_mode": "closure", "target_grip_stress_probe_N": 12.0, "press_at_report_mm": 8.0, "nu_used": 0.42, "e_tpu_used": 40.0, "nlayers_used": 3}
+[_oprank_flexure_lowF] done in 207s

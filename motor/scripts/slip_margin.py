@@ -31,7 +31,8 @@ PICS = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
 # shipped crosshatch (gripper.py FR_GRIP_*: pitch 1.8 / land 1.26 / depth 0.6)
 SHIPPED = dict(pitch=1.8, land=1.26, depth=0.6)
 # available per-finger force: gear-limited (shipped 0.034 / proposed 0.40 N.m), mid-pose
-FORCE_CASES = {"shipped gears (T_safe 0.034 N·m)": (0.034, 2.667),
+FORCE_CASES = {"shipped, radial T_safe 0.013 N·m (binding upper bound)": (0.013, 2.667),
+               "shipped, single-station T_safe 0.034 N·m": (0.034, 2.667),
                "proposed re-size (T_safe 0.40 N·m)": (0.40, 2.0)}
 
 

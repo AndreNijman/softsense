@@ -6,6 +6,14 @@ decisions; options that were considered and rejected are kept, not erased.
 
 ---
 
+> ⚠️ **What "12 N" means throughout this log.** 12 N is the finger-FEA
+> **stress-probe load** used to fairly rank finger designs in software, not
+> a force the shipped drivetrain delivers. Per the gear-tooth FEA the
+> per-finger force band is **0.14–0.73 N** (radial 2D crown FEA) or
+> 4.2–8.7 N (proposed re-size). See `OVERNIGHT_FIXES.md #1` for the full
+> propagation, `motor/DRIVETRAIN.md` for the radial crown FEA result, and
+> `motor/scripts/drivetrain_force_envelope.py` for the live force band.
+
 ## D1 — Scope & locked geometry
 Campaign = motor selection + actuator integration + ROV mounting in `motor/`.
 **Locked, untouched:** finger geometry (`fea/UNIVERSAL_FINGER.md`), grip texture

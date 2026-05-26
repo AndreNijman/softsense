@@ -16,7 +16,13 @@ Physics terms (each tagged with its source in COEFFS):
   2. Elastomer friction        tau = tau0 + alpha p [Briscoe & Tabor 1978]
   3. Hysteresis/deformation    f(object roughness)  [Persson 2001]
   4. Wet squeeze-film drainage Reynolds + channel   [tire-tread / tree-frog lit]
-  5. Partial-slip edge effic.  discrete contacts    [Cattaneo-Mindlin; gecko]
+  5. Partial-slip edge effic.  discrete-contact surrogate (monotone Hill in
+                                land size) -- the DIRECTION is supported by tyre-
+                                tread / tree-frog literature; the functional form
+                                is engineering convenience. NOT Cattaneo-Mindlin
+                                (which is (1-(T/muN)^(2/3)) for Hertzian spheres)
+                                and NOT gecko adhesion (van-der-Waals on
+                                hierarchical fibrils). [ESTIMATE]
   6. Directional coverage      M(slip direction)    [geometry]
   7. Durability                root bending stress  [beam theory; FEA-checked]
   8. Micro-suction             (dimple/sucker)      [SPECULATIVE, low weight]
@@ -144,9 +150,12 @@ def psi_dewet(geom, cond, p_real, C):
 
 
 def eta_edge(geom, C):
-    """Partial-slip edge efficiency: one big compliant pad peels from its edge
-    (low efficiency); subdividing into many small lands resets the edge stress
-    at each land (efficiency -> 1). The fibrillar/gecko benefit."""
+    """Partial-slip edge efficiency surrogate [ESTIMATE]. One big compliant pad
+    peels from its edge (low efficiency); subdividing into many small lands resets
+    the edge stress at each land (efficiency -> 1). The DIRECTION of this effect
+    is supported by tyre-tread + tree-frog wet-grip literature; the FUNCTIONAL
+    FORM here is a monotone Hill curve chosen for convenience, NOT Cattaneo-Mindlin
+    (Hertzian sphere) and NOT gecko adhesion (vdW on hierarchical fibrils)."""
     lc = geom["land_char"]
     return C["ETA_FLOOR"] + (1.0 - C["ETA_FLOOR"]) * C["LAND_CRIT"] / (C["LAND_CRIT"] + lc)
 

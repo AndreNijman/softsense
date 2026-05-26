@@ -26,7 +26,8 @@ SERVOS = {
     "STS3215":    dict(Kt=1.08, stall_Nm=2.94, cont_Nm=0.98, V=12.0),
 }
 # the chain is gear-limited: the useful holding torque is at/below T_safe
-T_HOLD_CASES = {"shipped (T_safe 0.034)": (0.034, 2.667),
+T_HOLD_CASES = {"shipped, radial T_safe 0.013": (0.013, 2.667),
+                "shipped, single-station T_safe 0.034": (0.034, 2.667),
                 "proposed re-size (T_safe 0.40)": (0.40, 2.0)}
 TIP_PULL_N = 5.0   # external disturbance pull at the fingertip, for the back-drive check
 

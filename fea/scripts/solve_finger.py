@@ -1,12 +1,41 @@
 """Geometrically-nonlinear (finite-strain) plane-strain FEA of the Fin Ray finger.
 
+PRECURSOR / CONSISTENCY-CHECK SOLVER, not the canonical production FEA. The
+canonical 3D corotational solve lives in `iter_harness.py`; this 2D plane-
+strain solve was the precursor and is retained as an order-of-magnitude
+consistency check on peak von-Mises. It DOES NOT solve the same problem as
+iter_harness:
+
+  this (solve_finger.py)                vs    iter_harness.py
+  -------------------------                   ----------------
+  2D plane-strain                              3D corotational (3-layer extrude)
+  St-Venant-Kirchhoff finite-strain            corotational small-strain
+  ν = 0.45                                     ν = 0.42
+  nodal force-controlled contact patch         rigid-cylinder displacement-
+    (no rigid object, no contact search)        controlled, penalty contact
+  load-control limit point at ~5.7 N           pushes through to 12 N stress probe
+  P1 triangles                                 linear tets
+
+So an apples-to-apples cross-validation has not been done; "two solves agree
+on peak vM ~2.7 MPa" is an order-of-magnitude consistency claim, not a true
+cross-derivation. See `docs/TESTING_AND_SIMULATION.md §A.11` for the table
+and `OVERNIGHT_FIXES.md #3` for the framing fix.
+
 Model: St.-Venant-Kirchhoff, total Lagrangian, analytic consistent tangent,
 Newton iteration with load stepping. Mounts (C/D bores) clamped; a horizontal
 contact load is applied on a patch of the contact face (the artifact push). The
 slanted ribs make the tip curl inward -> the Fin Ray wrap, emergent (no contact
 search needed -> robust). Outputs deformed configs + von Mises + force/closure.
 
-TPU ~95A assumed: E, nu below (ASSUMED literature values, not measured).
+TPU ~95A assumed: E, nu below (engineering ESTIMATES, not measured on the
+print; see docs/MATERIALS.md and docs/PRINT_PROFILE_P1S_TPU.md for the
+honest provenance).
+
+Note: the 5.4 N F_TARGET is INTENTIONALLY just below the load-control limit
+point at ~5.7 N — the geometry sits at the edge of a snap instability under
+force control, which the 3D displacement-controlled solver can push past but
+the 2D force-control here cannot. That itself is a finding worth knowing
+about; it does not invalidate the precursor's peak-vM number.
 
 Usage:
   python solve_finger.py selftest      # validate analytic tangent vs FD
