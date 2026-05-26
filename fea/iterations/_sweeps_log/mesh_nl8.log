@@ -1,1 +1,8 @@
 [_mesh_nl8] params={}
+  section: 1434 nodes / 2225 tris
+  clamp nodes=171 (2 bores)  ndof=38718 tets=53400
+  step  1/12 press= 0.83 it=8 grip=  0.42N vmmax=0.11
+  step  2/12 press= 1.67 it=10 grip=  1.47N vmmax=0.40
+  step  3/12 press= 2.50 it=11 grip=  2.52N vmmax=0.69
+  step  4/12 press= 3.33 it=9 grip=  3.58N vmmax=0.97
+  step  5/12 press= 4.17 it=10 grip=  4.63N vmmax=1.25

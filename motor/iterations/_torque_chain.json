@@ -8,11 +8,38 @@
     "STS3215": 0.98
   },
   "T_safe": {
-    "shipped (i_g 2.667)": 0.034,
+    "shipped, radial 2D crown (inner-edge bound)": 0.013,
+    "shipped, single-station 2D crown": 0.034,
     "proposed re-size (i_g 2.0)": 0.4
   },
   "curves": {
-    "shipped (i_g 2.667) | XW540-T260": {
+    "shipped, radial 2D crown (inner-edge bound) | XW540-T260": {
+      "i_g": 2.667,
+      "T_cont": 1.9,
+      "T_safe": 0.013,
+      "T_binding": 0.013,
+      "binding": "gear",
+      "F_mid_closed": 0.2,
+      "F_mid_open": 0.12,
+      "F_band_closed": [
+        0.16,
+        0.28
+      ]
+    },
+    "shipped, radial 2D crown (inner-edge bound) | STS3215": {
+      "i_g": 2.667,
+      "T_cont": 0.98,
+      "T_safe": 0.013,
+      "T_binding": 0.013,
+      "binding": "gear",
+      "F_mid_closed": 0.2,
+      "F_mid_open": 0.12,
+      "F_band_closed": [
+        0.16,
+        0.28
+      ]
+    },
+    "shipped, single-station 2D crown | XW540-T260": {
       "i_g": 2.667,
       "T_cont": 1.9,
       "T_safe": 0.034,
@@ -25,7 +52,7 @@
         0.73
       ]
     },
-    "shipped (i_g 2.667) | STS3215": {
+    "shipped, single-station 2D crown | STS3215": {
       "i_g": 2.667,
       "T_cont": 0.98,
       "T_safe": 0.034,

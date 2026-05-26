@@ -11,3 +11,7 @@
   step  8/12 press= 6.67 it=11 grip=  7.77N vmmax=2.11
   step  9/12 press= 7.50 it=10 grip=  8.87N vmmax=2.40
   step 10/12 press= 8.33 it=10 grip=  9.99N vmmax=2.69
+  step 11/12 press= 9.17 it=10 grip= 11.10N vmmax=2.97
+  step 12/12 press=10.00 it=11 grip= 12.20N vmmax=3.25
+[_mesh_nl5] metrics: {"contact_nodes": 29, "contact_arc_deg": 13.6, "pressure_cov": 0.75, "closure_at_target": 8.33, "reached_target": false, "locked": false, "stress_spread_frac": 0.144, "engage_y_frac": 0.06, "bot_third_force_frac": 0.0, "mid_third_force_frac": 1.0, "top_third_force_frac": 0.0, "tip_inward_mm": -6.47, "max_von_mises_MPa": 3.552, "margin_x": 7.04, "grip_at_press_N": 9.99, "press_mm": 8.33, "contact_y_min": 74.0, "contact_y_max": 79.4, "did_converge_all_steps": true, "n_steps_not_converged": 0, "newton_iters_max_used": 11, "newton_iters_mean": 9.83, "newton_iters_per_step": [9, 9, 10, 9, 10, 9, 10, 11, 10, 10, 10, 11], "did_converge_per_step": [true, true, true, true, true, true, true, true, true, true, true, true], "residual_final_per_step": [8.267346569750334e-06, 0.0001140944991189255, 0.00018145024748384566, 0.0009034755615349523, 0.0012107841793788428, 0.001956998867303564, 0.0018243134395937496, 0.000623245068267243, 0.0007253782207812761, 0.001680968444878543, 0.0009243413699529307, 0.0003627878143742326], "newton_max_iters": 16, "newton_tol_rel": 0.002, "report_mode": "closure", "target_grip_stress_probe_N": 12.0, "press_at_report_mm": 8.0, "nu_used": 0.42, "e_tpu_used": 40.0, "nlayers_used": 5}
+[_mesh_nl5] done in 1552s

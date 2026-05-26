@@ -1,1 +1,17 @@
 [_locking_nu48] params={}
+  section: 1434 nodes / 2225 tris
+  clamp nodes=76 (2 bores)  ndof=17208 tets=20025
+  step  1/12 press= 0.83 it=8 grip=  0.47N vmmax=0.11
+  step  2/12 press= 1.67 it=10 grip=  1.68N vmmax=0.39
+  step  3/12 press= 2.50 it=9 grip=  2.89N vmmax=0.67
+  step  4/12 press= 3.33 it=10 grip=  4.10N vmmax=0.96
+  step  5/12 press= 4.17 it=9 grip=  5.30N vmmax=1.26
+  step  6/12 press= 5.00 it=10 grip=  6.52N vmmax=1.56
+  step  7/12 press= 5.83 it=10 grip=  7.74N vmmax=1.87
+  step  8/12 press= 6.67 it=9 grip=  8.98N vmmax=2.19
+  step  9/12 press= 7.50 it=10 grip= 10.27N vmmax=2.53
+  step 10/12 press= 8.33 it=10 grip= 11.57N vmmax=2.87
+  step 11/12 press= 9.17 it=10 grip= 12.86N vmmax=3.21
+  step 12/12 press=10.00 it=10 grip= 14.13N vmmax=3.55
+[_locking_nu48] metrics: {"contact_nodes": 21, "contact_arc_deg": 13.7, "pressure_cov": 0.88, "closure_at_target": 8.33, "reached_target": true, "locked": false, "stress_spread_frac": 0.153, "engage_y_frac": 0.06, "bot_third_force_frac": 0.0, "mid_third_force_frac": 1.0, "top_third_force_frac": 0.0, "tip_inward_mm": -6.97, "max_von_mises_MPa": 3.735, "margin_x": 6.69, "grip_at_press_N": 11.57, "press_mm": 8.33, "contact_y_min": 74.0, "contact_y_max": 79.4, "did_converge_all_steps": true, "n_steps_not_converged": 0, "newton_iters_max_used": 10, "newton_iters_mean": 9.58, "newton_iters_per_step": [8, 10, 9, 10, 9, 10, 10, 9, 10, 10, 10, 10], "did_converge_per_step": [true, true, true, true, true, true, true, true, true, true, true, true], "residual_final_per_step": [0.0024265328580290366, 0.0004035575044216792, 0.00010477402560537506, 0.0013431722921746305, 0.0031648800323342244, 0.00047819552851009354, 0.0020782255547330177, 0.004389327063580467, 0.006578850130066307, 0.002093995169292351, 0.0025102651806144594, 0.0029423368512398944], "newton_max_iters": 16, "newton_tol_rel": 0.002, "report_mode": "closure", "target_grip_stress_probe_N": 12.0, "press_at_report_mm": 8.0, "nu_used": 0.48, "e_tpu_used": 40.0, "nlayers_used": 3}
+[_locking_nu48] done in 674s

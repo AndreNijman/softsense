@@ -1,1 +1,17 @@
 [_locking_nu40] params={}
+  section: 1434 nodes / 2225 tris
+  clamp nodes=76 (2 bores)  ndof=17208 tets=20025
+  step  1/12 press= 0.83 it=9 grip=  0.40N vmmax=0.12
+  step  2/12 press= 1.67 it=10 grip=  1.41N vmmax=0.42
+  step  3/12 press= 2.50 it=10 grip=  2.42N vmmax=0.71
+  step  4/12 press= 3.33 it=9 grip=  3.43N vmmax=1.01
+  step  5/12 press= 4.17 it=9 grip=  4.44N vmmax=1.30
+  step  6/12 press= 5.00 it=10 grip=  5.45N vmmax=1.58
+  step  7/12 press= 5.83 it=10 grip=  6.46N vmmax=1.87
+  step  8/12 press= 6.67 it=9 grip=  7.49N vmmax=2.16
+  step  9/12 press= 7.50 it=10 grip=  8.56N vmmax=2.46
+  step 10/12 press= 8.33 it=10 grip=  9.63N vmmax=2.76
+  step 11/12 press= 9.17 it=9 grip= 10.70N vmmax=3.05
+  step 12/12 press=10.00 it=10 grip= 11.76N vmmax=3.33
+[_locking_nu40] metrics: {"contact_nodes": 19, "contact_arc_deg": 13.6, "pressure_cov": 0.75, "closure_at_target": 8.33, "reached_target": false, "locked": false, "stress_spread_frac": 0.139, "engage_y_frac": 0.06, "bot_third_force_frac": 0.0, "mid_third_force_frac": 1.0, "top_third_force_frac": 0.0, "tip_inward_mm": -6.36, "max_von_mises_MPa": 3.535, "margin_x": 7.07, "grip_at_press_N": 9.63, "press_mm": 8.33, "contact_y_min": 74.0, "contact_y_max": 79.4, "did_converge_all_steps": true, "n_steps_not_converged": 0, "newton_iters_max_used": 10, "newton_iters_mean": 9.58, "newton_iters_per_step": [9, 10, 10, 9, 9, 10, 10, 9, 10, 10, 9, 10], "did_converge_per_step": [true, true, true, true, true, true, true, true, true, true, true, true], "residual_final_per_step": [2.8292930989360144e-05, 9.230712878634481e-05, 0.000349351239326884, 0.0011404529883406794, 0.0009420545925061086, 0.000599381014254373, 0.0002905459344561093, 0.003608348392861409, 0.00022475274572841835, 0.0013307455493828278, 0.006024320067639239, 0.004331133158106469], "newton_max_iters": 16, "newton_tol_rel": 0.002, "report_mode": "closure", "target_grip_stress_probe_N": 12.0, "press_at_report_mm": 8.0, "nu_used": 0.4, "e_tpu_used": 40.0, "nlayers_used": 3}
+[_locking_nu40] done in 738s

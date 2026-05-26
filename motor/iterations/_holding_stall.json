@@ -6,7 +6,13 @@
       "stall_current_A": 5.11,
       "cont_current_A": 1.02,
       "holding": {
-        "shipped (T_safe 0.034)": {
+        "shipped, radial T_safe 0.013": {
+          "hold_torque_Nm": 0.013,
+          "hold_current_A": 0.007,
+          "backdrive_hold_torque_Nm": 0.327,
+          "backdrive_current_A": 0.007
+        },
+        "shipped, single-station T_safe 0.034": {
           "hold_torque_Nm": 0.034,
           "hold_current_A": 0.018,
           "backdrive_hold_torque_Nm": 0.327,
@@ -27,7 +33,13 @@
       "stall_current_A": 2.72,
       "cont_current_A": 0.91,
       "holding": {
-        "shipped (T_safe 0.034)": {
+        "shipped, radial T_safe 0.013": {
+          "hold_torque_Nm": 0.013,
+          "hold_current_A": 0.012,
+          "backdrive_hold_torque_Nm": 0.327,
+          "backdrive_current_A": 0.012
+        },
+        "shipped, single-station T_safe 0.034": {
           "hold_torque_Nm": 0.034,
           "hold_current_A": 0.031,
           "backdrive_hold_torque_Nm": 0.327,

@@ -43,7 +43,19 @@
     }
   ],
   "force_cases": {
-    "shipped gears (T_safe 0.034 N\u00b7m)": {
+    "shipped, radial T_safe 0.013 N\u00b7m (binding upper bound)": {
+      "F_available_N": 0.2,
+      "slip_margin": {
+        "smooth_wet": 0.1518,
+        "rough_wet": 0.3418,
+        "ridged_wet": 0.3418,
+        "slimy": 0.0881,
+        "soft_wet": 0.1758,
+        "small_curved": 0.1148,
+        "dry_smooth": 0.1551
+      }
+    },
+    "shipped, single-station T_safe 0.034 N\u00b7m": {
       "F_available_N": 0.51,
       "slip_margin": {
         "smooth_wet": 0.3969,
