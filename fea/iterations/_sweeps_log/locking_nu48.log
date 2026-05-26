@@ -1,8 +1,1 @@
 [_locking_nu48] params={}
-  section: 1434 nodes / 2225 tris
-  clamp nodes=76 (2 bores)  ndof=17208 tets=20025
-  step  1/12 press= 0.83 it=8 grip=  0.47N vmmax=0.11
-  step  2/12 press= 1.67 it=10 grip=  1.68N vmmax=0.39
-  step  3/12 press= 2.50 it=9 grip=  2.89N vmmax=0.67
-  step  4/12 press= 3.33 it=10 grip=  4.10N vmmax=0.96
-  step  5/12 press= 4.17 it=9 grip=  5.30N vmmax=1.26
