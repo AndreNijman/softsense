@@ -37,12 +37,16 @@
   + `motor_sensitivity.py` (weighted pick + ±50%). Study: `MOTOR_STUDY.md`; also
   `REQUIREMENTS.md`, `SURVEY.md`, `SELECTION.md`, `DRIVETRAIN.md`, `MOTOR_MODEL.md`,
   `SENSING.md`, `ELECTRICAL.md`, `ROV_INTEGRATION.md`, `BENCH_TEST.md`,
-  `FAILURE_MODES.md`, `DECISION_LOG.md`. **Sensing pivot:** the actuator is the
+  `FAILURE_MODES.md`, `DECISION_LOG.md`, `INTERFACES.md`. **Sensing pivot:** the actuator is the
   grip-force sensor (motor current → torque → tip force); the printed crown/pinion
   is the structural limit (`T_safe`) and the motor current-limit is its protection.
   Selected: smart serial servo (DYNAMIXEL XW540-T260) primary, magnetic-coupling
   dry-pod fallback. The drivetrain (gear teeth) in `gripper.py` is **unlocked**;
   finger/texture/print-profile are locked.
+- `motor/interfaces/` — mounting-interface dossiers (research only, no CAD yet):
+  Reach Bravo 7 / Alpha 5, ISO 9409-1 cobot flange, Schilling/Kraft work-class
+  wrist, fixed BlueROV2-chassis mount. Top-level comparison in `motor/INTERFACES.md`.
+  Three adapters P0-ready; Alpha 5 + Schilling-bolt-on blocked on NDA dims.
 - `docs/PRINT_PROFILE_P1S_TPU.md` + `profiles/` — print the fingers in **eSUN eTPU-95A on a
   Bambu P1S, 0.4 mm hardened nozzle** (importable Bambu Studio filament+process).
 - `regen.sh` — rebuild all derived artifacts (poses, parts, plates, heroes, GIF).
