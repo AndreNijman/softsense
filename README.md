@@ -62,12 +62,14 @@ guidance is in `UNDERWATER.md`.
 |---|---|
 | **`TESTING_AND_SIMULATION.md`** | **How we tested & simulated everything** — in-depth, judge-facing account of every simulation (finger FEA + grip-texture model), the physics/numerics inside each, what they prove, fidelity honesty, and exact reproduce commands. Start here for "how do you know it works?". |
 | `gripper.py` | Parametric build123d generator + four-bar solver + Fin Ray finger + enclosure (source of truth). Env vars: `GRIPPER_OPEN` = 0…1 (pose), `GRIPPER_FINGER_SCALE` = 0.6…2.5 (finger size). |
-| `gripper_interactive.step` + `.gripper_interactive.step.js` | **Interactive** — drag the `open` slider to rotate the shaft live in CAD Explorer. |
-| `gripper_closed/mid/open.step` | Static poses at open = 0 / 0.5 / 1. |
-| `gripper_motion.gif` | Rendered open↔close animation. |
-| `gripper_hero_open.png`, `gripper_hero_closed.png` | 3D hero renders. |
-| `UNDERWATER.md` | Engineering guide: gears underwater, flooded vs sealed, material BOM, sealing, drainage, checklist. |
-| `DFM.md` | Design-for-3D-printing standards (walls, overhangs, holes, clearances, edge-breaks) and how each part complies. |
+| `derived/gripper_interactive.step` + `.gripper_interactive.step.js` | **Interactive** — drag the `open` slider to rotate the shaft live in CAD Explorer. |
+| `derived/gripper_{closed,mid,open}.step` | Static poses at open = 0 / 0.5 / 1. |
+| `motor/cad/output/system_assembly_T2_*.step` | **Full integrated system** (gripper + canister + servo + shaft + seal + penetrators), one STEP per servo option. Worked example: `system_assembly_T2_STS3250.step` (≈USD 130 total). |
+| `renders/gripper_motion.gif` | Rendered open↔close animation of the **full system** (gripper + canister). |
+| `renders/gripper_hero_open.png`, `renders/gripper_hero_closed.png` | Hero renders of the full system. |
+| `renders/gripper_xray.png`, `renders/gripper_xray.gif` | Cutaway showing the servo + shaft + lip seal inside the canister. |
+| `docs/UNDERWATER.md` | Engineering guide: gears underwater, flooded vs sealed, material BOM, sealing, drainage, checklist. |
+| `docs/DFM.md` | Design-for-3D-printing standards (walls, overhangs, holes, clearances, edge-breaks) and how each part complies. |
 | `fea/UNIVERSAL_FINGER.md` | **The finger design study** — how the Fin Ray geometry was chosen by multi-shape FEA across sizes for universal grasping. |
 | `fea/DECISION_LOG.md` | **Full decision log** — every approach tried, dead end, and number behind the finger redesign (~90 FEA runs, 2 families, agent swarm). |
 | `fea/SCALABILITY.md` | **Scalability study** — the finger across `FINGER_SCALE` 0.6–2.5: usable band ≈ 0.6–1.1× (down-scaling safe; up-scaling limited by fixed walls). |
@@ -78,30 +80,35 @@ guidance is in `UNDERWATER.md`.
 | `motor/REQUIREMENTS.md`, `motor/SURVEY.md`, `motor/SELECTION.md` | Torque/speed/sensing requirements from the kinematics; a 12-agent sourced survey of waterproof actuators × sensing modalities; the weighted selection + ±50% sensitivity across depth tiers (smart serial servo primary, magnetic-coupling fallback). |
 | `motor/DRIVETRAIN.md`, `motor/MOTOR_MODEL.md`, `motor/SENSING.md` | Gear-tooth FEA + the `T_safe` ceiling and the kept ratio; the sim model (forward + inverse current→force) with ±50% sensitivity; the force-via-current sensor (calibration, noise, honest limits). |
 | `motor/ELECTRICAL.md`, `motor/ROV_INTEGRATION.md`, `motor/BENCH_TEST.md`, `motor/FAILURE_MODES.md`, `motor/DECISION_LOG.md` | Controller/tether/telemetry; M4-flange mount + galvanic isolation + modularity interfaces; the validation test plan; the FMEA; and the decision log (the sensing pivot + conductive-foam removal). |
-| `PRINT_PROFILE_P1S_TPU.md` + `profiles/*.json` | **Importable Bambu Studio profiles** (filament + process) for printing the fingers in **eSUN eTPU-95A on a P1S / 0.4 mm hardened nozzle** — every setting + rationale, and the FEA re-check confirming the stats for eSUN. |
+| `docs/PRINT_PROFILE_P1S_TPU.md` + `profiles/*.json` | **Importable Bambu Studio profiles** (filament + process) for printing the fingers in **eSUN eTPU-95A on a P1S / 0.4 mm hardened nozzle** — every setting + rationale, and the FEA re-check confirming the stats for eSUN. |
 | `CLAUDE.md` | Agent/people working notes — incl. the **compute policy** (heavy/high-quality FEA & renders on the MSI; routine work local). |
-| `MSI_REMOTE.md` | The MSI remote FEA/render node: setup, run commands, GPU benchmark, gotchas. |
+| `docs/MSI_REMOTE.md` | The MSI remote FEA/render node: setup, run commands, GPU benchmark, gotchas. |
+| `motor/cad/` | **Every bought + printed actuator-system part in CAD**, plus the integrated assemblies. See `motor/cad/README.md`. |
+| `scripts/` | Helper scripts: `export_parts.py`, `make_print_plates.py`, `make_print_set.py`, `render_full_system.sh`. |
+| `derived/` | Regenerable build artifacts (poses, interactive sidecars). Rebuild with `./regen.sh`. |
+| `attic/` | Stale scratch (older GLB sidecars, render_bundle, fea_work) staged for review/deletion. |
 
 ## Regenerate / re-pose
 
 ```bash
 source /home/andre/.cad-venv/bin/activate          # build123d + OCP toolchain
 STEP=/home/andre/.claude/skills/cad/scripts/step
-GRIPPER_OPEN=0.7 python $STEP gripper.py -o gripper_open70.step   # any pose 0..1
-GRIPPER_FINGER_SCALE=1.6 python $STEP gripper.py -o gripper_big.step  # bigger fingers
+GRIPPER_OPEN=0.7 python $STEP gripper.py -o derived/gripper_open70.step   # any pose 0..1
+GRIPPER_FINGER_SCALE=1.6 python $STEP gripper.py -o derived/gripper_big.step  # bigger fingers
 python gripper.py                                  # numeric kinematic self-check
+./regen.sh                                         # full rebuild (poses + parts + plates + renders)
 ```
 
 ## Interactive viewer
 
-Open `gripper_interactive.step` in CAD Explorer and drag the **`open`** slider
+Open `derived/gripper_interactive.step` in CAD Explorer and drag the **`open`** slider
 (= turning the shaft); mesh and edges move together live.
 
 ```bash
 cd /home/andre/.claude/skills/render
 EXPLORER_WORKSPACE_ROOT=/home/andre/gripper-cad EXPLORER_ROOT_DIR=. \
   npm --prefix scripts/viewer run dev:ensure -- \
-  --workspace-root /home/andre/gripper-cad --root-dir . --file gripper_interactive.step
+  --workspace-root /home/andre/gripper-cad --root-dir . --file derived/gripper_interactive.step
 ```
 
 ## Coordinate convention

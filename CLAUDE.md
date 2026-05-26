@@ -5,14 +5,14 @@
 **Heavy / high-quality runs → the MSI. Everything else → local.**
 
 - **Run on the MSI** (`ssh andremsi`, an RTX-3070 laptop set up as a remote FEA/render
-  node — see `MSI_REMOTE.md`) for: high-resolution / high-quality FEA, full
+  node — see `docs/MSI_REMOTE.md`) for: high-resolution / high-quality FEA, full
   multi-object batteries, big sweeps, long render jobs — anything intensive, so the
   main machine isn't tied up.
 - **Stay local** for: quick iteration, single screens, edits, doc work, light renders.
 - The MSI has the full stack in `C:\Users\andre\cad-venv` (build123d, gmsh, scipy,
   numpy, matplotlib, cupy) and a repo clone at `C:\Users\andre\gripper-cad`. Exact
   commands + the gotchas (cmd.exe `set "VAR=1"` quoting; nvrtc DLL on PATH) are in
-  `MSI_REMOTE.md`.
+  `docs/MSI_REMOTE.md`.
 - **GPU note:** the solver has a CuPy GPU backend (`GRIPPER_FEA_GPU=1`) but at the
   gripper's mesh sizes (≤25k DOF) **CPU is faster** (GPU is overhead-bound; crossover
   is ~100k+ DOF). Keep CPU default; GPU is only worth it for future very-high-res work.
@@ -43,7 +43,7 @@
   Selected: smart serial servo (DYNAMIXEL XW540-T260) primary, magnetic-coupling
   dry-pod fallback. The drivetrain (gear teeth) in `gripper.py` is **unlocked**;
   finger/texture/print-profile are locked.
-- `PRINT_PROFILE_P1S_TPU.md` + `profiles/` — print the fingers in **eSUN eTPU-95A on a
+- `docs/PRINT_PROFILE_P1S_TPU.md` + `profiles/` — print the fingers in **eSUN eTPU-95A on a
   Bambu P1S, 0.4 mm hardened nozzle** (importable Bambu Studio filament+process).
 - `regen.sh` — rebuild all derived artifacts (poses, parts, plates, heroes, GIF).
 

@@ -186,5 +186,5 @@ python motor/scripts/motor_sensitivity.py  # +/-50% envelope
 Docs: `REQUIREMENTS.md` · `SURVEY.md` · `SELECTION.md` · `DRIVETRAIN.md` ·
 `MOTOR_MODEL.md` · `SENSING.md` · `ROV_INTEGRATION.md` · `ELECTRICAL.md` ·
 `BENCH_TEST.md` · `FAILURE_MODES.md` · `DECISION_LOG.md`. Siblings:
-`../fea/UNIVERSAL_FINGER.md`, `../grip/GRIP_TEXTURE.md`, `../TESTING_AND_SIMULATION.md`,
-`../UNDERWATER.md`.
+`../fea/UNIVERSAL_FINGER.md`, `../grip/GRIP_TEXTURE.md`, `../docs/TESTING_AND_SIMULATION.md`,
+`../docs/UNDERWATER.md`.

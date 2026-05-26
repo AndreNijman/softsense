@@ -368,7 +368,24 @@ def assemble_servo_choices():
     return Compound(label="servo_lineup", children=parts)
 
 
-_ASM = {"T2": assemble_t2, "T3": assemble_t3, "LINEUP": assemble_servo_choices}
+def assemble_t2_xray():
+    """T2 lip-seal assembly with the ACRYLIC TUBE OMITTED — the literal 'xray'
+    view. Same coordinate frame, same parts, same connectivity asserts; just
+    no opaque cylinder hiding the servo + shaft + lip seal.
+
+    We override `br_tube_3in_240` in the assemble_t2 path by post-filtering
+    the Compound. Simpler than splitting the assembly logic.
+    """
+    asm = assemble_t2()
+    keep = [c for c in asm.children
+            if not (isinstance(c, Compound) and "br_acrylic_tube_240" in (c.label or ""))]
+    return Compound(label=asm.label + "_XRAY", children=keep)
+
+
+_ASM = {"T2": assemble_t2,
+        "T3": assemble_t3,
+        "LINEUP": assemble_servo_choices,
+        "T2_XRAY": assemble_t2_xray}
 
 
 def gen_step():

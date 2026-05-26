@@ -8,9 +8,9 @@ that is the campaign's core thesis.
 
 > **Honesty.** This is an integration *plan* with stated assumptions; mass/trim
 > numbers are engineering estimates (measured gripper values cited from
-> `../UNDERWATER.md §4`). Connector depth ratings are vendor-catalogue figures,
+> `../docs/UNDERWATER.md §4`). Connector depth ratings are vendor-catalogue figures,
 > not bench-tested at this stage. The bench validation programme is `BENCH_TEST.md`.
-> Cross-links: `../UNDERWATER.md`, `SELECTION.md`, `DRIVETRAIN.md`,
+> Cross-links: `../docs/UNDERWATER.md`, `SELECTION.md`, `DRIVETRAIN.md`,
 > `DECISION_LOG.md`. `ELECTRICAL.md` (the sibling power-bus detail doc) is a
 > forward reference — it owns voltage rail, fusing, regulator, and tether ΔV
 > budgets not repeated here.
@@ -31,12 +31,12 @@ to the arm from above it. The two interfaces share the same bolt pattern.
 from `gripper.py` flange geometry before drilling). Four bolts give symmetric
 moment loading and allow the pattern to clear the drain holes in the bottom wall.
 
-### 1b. Galvanic isolation (from `../UNDERWATER.md §5`)
+### 1b. Galvanic isolation (from `../docs/UNDERWATER.md §5`)
 
 The gripper is **100 % polymer — it contributes zero metal to the bolted joint.**
 The only galvanic risk is external: M4 fasteners passing through the printed PETG
 flange into the (typically aluminium or titanium) ROV arm create a stainless/
-aluminium or titanium/stainless couple in seawater. Isolate per `../UNDERWATER.md §5`:
+aluminium or titanium/stainless couple in seawater. Isolate per `../docs/UNDERWATER.md §5`:
 
 | Isolation element | Purpose | Notes |
 |---|---|---|
@@ -155,7 +155,7 @@ load cell during `BENCH_TEST.md §2 calibration` to anchor this estimate.)
 - **Pressure-induced lip lift-off** at ΔP ≥ ~5–10 bar (single-lip NBR's edge of
   envelope). Mitigation at T3: dual-lip (HMSA7) or step to Option B.
 - **Particulate scoring** of the shaft (sand, biofilm). Mitigation: post-dive
-  fresh-water rinse (`../UNDERWATER.md §"Post-dive checklist"`).
+  fresh-water rinse (`../docs/UNDERWATER.md §"Post-dive checklist"`).
 - **Soft-shaft groove-out** if the shaft surface is printed PETG/PA12-GF rather
   than hard metal — the lip eats a circumferential groove and leaks within O(10³)
   cycles. **Use anodised aluminium or 316 stainless for any sustained service.**
@@ -262,7 +262,7 @@ for a ≤ 3 m tether drop; derate for longer runs (defer to `ELECTRICAL.md`).
 **The flooded gripper itself requires no pressure compensation.** By design, the
 enclosure floods completely: every internal void is vented (5+ bottom drains,
 4 side drains, 4 snap windows, 2 top slots, journal bore clearances — verified
-in `../UNDERWATER.md §3`). At any operating depth the cavity pressure equilibrates
+in `../docs/UNDERWATER.md §3`). At any operating depth the cavity pressure equilibrates
 to ambient; there is no enclosed air pocket under load, no differential pressure
 across the walls (beyond the hydrostatic head on the ≤ 3 mm printed wall sections,
 which is negligible at T2). **Pressure compensation hardware is N/A for the gripper.**
@@ -278,7 +278,7 @@ which is negligible at T2). **Pressure compensation hardware is N/A for the grip
 
 ## 5. Buoyancy trim and COM/COG shift
 
-### 5a. Gripper alone (measured from `../UNDERWATER.md §4`)
+### 5a. Gripper alone (measured from `../docs/UNDERWATER.md §4`)
 
 - Solid material volume: **98.5 cm³**
 - Dry mass: **~124 g** (PETG + eSUN eTPU-95A, 100 % infill)
@@ -303,7 +303,7 @@ motor cavity voids that flood or stay gas-filled).
 | XW540 body volume | **~120 cm³** (estimate; assume floods partially) | Datasheet envelope; state as assumption |
 | Buoyant force in seawater | 120 cm³ × 1.025 g/cm³ ≈ **123 g** | Archimedes |
 | Net buoyancy, actuator | 185 − 123 = **+62 g (sinks)** | estimate |
-| Gripper net buoyancy | +23 g (sinks) | `../UNDERWATER.md §4` |
+| Gripper net buoyancy | +23 g (sinks) | `../docs/UNDERWATER.md §4` |
 | **System net (gripper + actuator)** | **+85 g (sinks)** | sum |
 
 > **This is an estimate.** The XW540's internal void fraction (motor coil gap,
@@ -373,10 +373,10 @@ Before mounting the gripper to an ROV arm for a T2 dive:
 - [ ] Weigh and displacement-test full assembly (gripper + actuator + canister + partial cable); confirm net buoyancy within ±30 g of target.
 - [ ] Trim as needed (foam/ballast, §5d) with cable attached and arm at operating attitude.
 - [ ] Run full open↔close cycle on the surface; confirm telemetry and `present_current` readable at ≥ 50 Hz.
-- [ ] Run pre-dive checklist from `../UNDERWATER.md` (snap pins, drain clear, cavity flood, cover clips).
+- [ ] Run pre-dive checklist from `../docs/UNDERWATER.md` (snap pins, drain clear, cavity flood, cover clips).
 
 ---
 
-Cross-links: `../UNDERWATER.md`, `SELECTION.md`, `DRIVETRAIN.md`, `SENSING.md`,
+Cross-links: `../docs/UNDERWATER.md`, `SELECTION.md`, `DRIVETRAIN.md`, `SENSING.md`,
 `DECISION_LOG.md`, `REQUIREMENTS.md`, `ELECTRICAL.md` (forward ref — power-bus
 detail), `BENCH_TEST.md` (buoyancy + force calibration validation).

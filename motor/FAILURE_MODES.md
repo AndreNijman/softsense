@@ -11,7 +11,7 @@ Tier-3 fallback: magnetic-coupling dry-pod (FOC BLDC, CAN-FD).
 > qualitative engineering judgements (L/M/H; 1 = nuisance → 5 = loss of
 > gripper or specimen damage). Hardware validation is the job of
 > `BENCH_TEST.md`. Cross-links throughout: `DRIVETRAIN.md`, `SENSING.md`,
-> `ELECTRICAL.md`, `BENCH_TEST.md`, `../UNDERWATER.md`.
+> `ELECTRICAL.md`, `BENCH_TEST.md`, `../docs/UNDERWATER.md`.
 
 ---
 
@@ -32,7 +32,7 @@ Tier-3 fallback: magnetic-coupling dry-pod (FOC BLDC, CAN-FD).
 |---|---|
 | **Cause** | O-ring blow-out or pinch on the servo body (XW540 IP68 rated; STS3215 IP54 — requires canister for T2/T3); connector flood; housing cracked under pressure cycling; inadequate pre-dive seal check. |
 | **Detection** | Erratic or elevated `present_current` at rest (electrolysis current); unexpected temperature anomaly; RS-485 comms loss or CRC errors; servo hardware-error register flag; bus isolation resistance drop detectable with a topside megohm check before dive. |
-| **Mitigation** | IP68 body on primary servo. Sealed canister for budget build and all T2/T3 deployments. Wet-mate or potted connector per tier (`../UNDERWATER.md §6`). Pre-dive seal and continuity check protocol. Pressure-cycle test per `BENCH_TEST.md`. Do not exceed rated depth tier. |
+| **Mitigation** | IP68 body on primary servo. Sealed canister for budget build and all T2/T3 deployments. Wet-mate or potted connector per tier (`../docs/UNDERWATER.md §6`). Pre-dive seal and continuity check protocol. Pressure-cycle test per `BENCH_TEST.md`. Do not exceed rated depth tier. |
 | **Graceful degradation** | Loss of that actuator axis. Both axes on the same bus — one can be isolated in firmware. The magnetic-pod fallback (T3) removes the shaft-seal failure path entirely: no rotating shaft penetrates the housing. |
 
 ### M3 — Tether power loss / brown-out under stall current
@@ -59,7 +59,7 @@ Tier-3 fallback: magnetic-coupling dry-pod (FOC BLDC, CAN-FD).
 |---|---|
 | **Cause** | Wet-side connector not rated for depth; improper mate or damaged seal; conductor corrosion after repeated salt-water cycles; pinhole crack in potting compound. |
 | **Detection** | RS-485 comms loss or corrupted packets; `present_current` elevated or erratic at no command; topside ground-fault detector trips; ROV bus current anomaly. |
-| **Mitigation** | Wet-mate or fully potted connector for every depth tier (`../UNDERWATER.md §6`). Inspect and pressure-test connector pre-dive. Nylon shoulder bushings at the M4 flange mount isolate servo power-return from the ROV frame, preventing stray return current through seawater (`ELECTRICAL.md §5`). |
+| **Mitigation** | Wet-mate or fully potted connector for every depth tier (`../docs/UNDERWATER.md §6`). Inspect and pressure-test connector pre-dive. Nylon shoulder bushings at the M4 flange mount isolate servo power-return from the ROV frame, preventing stray return current through seawater (`ELECTRICAL.md §5`). |
 | **Graceful degradation** | Lose that actuator axis. Connector-level short isolated from ROV bus by in-line fuse and frame isolation — other gripper axis and ROV subsystems unaffected if isolation is intact. Abort dive for connector inspection. |
 
 ### M6 — Gear tooth wear and fatigue over cycles
@@ -201,4 +201,4 @@ conventional position-only gripper.
 > inherit the honesty caveats of `DRIVETRAIN.md §7`, `SENSING.md §6`, and
 > `ELECTRICAL.md §6c`.
 
-Cross-links: `DRIVETRAIN.md` · `SENSING.md` · `ELECTRICAL.md` · `BENCH_TEST.md` · `../UNDERWATER.md`
+Cross-links: `DRIVETRAIN.md` · `SENSING.md` · `ELECTRICAL.md` · `BENCH_TEST.md` · `../docs/UNDERWATER.md`

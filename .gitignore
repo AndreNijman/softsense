@@ -12,3 +12,9 @@ render_bundle/
 fea/iterations/**/*.npz
 fea/iterations/**/section.step
 fea/iterations/_*.log
+
+# Attic — staged-for-deletion (kept around for review; not deleted by reorg).
+attic/
+
+# Render-frame scratch produced by scripts/render_full_system.sh
+motor/cad/output/frame_*.step

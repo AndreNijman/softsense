@@ -3,13 +3,13 @@
 This document is the **wiring and control plan** for the smart-serial-servo
 actuator system. Numbers (voltage drop, wire resistance, current) are
 **computed estimates with stated assumptions**, not bench-measured values.
-Cross-links: `SENSING.md`, `DRIVETRAIN.md`, `SELECTION.md`, `../UNDERWATER.md`.
+Cross-links: `SENSING.md`, `DRIVETRAIN.md`, `SELECTION.md`, `../docs/UNDERWATER.md`.
 
 > **Scope.** Covers the **smart-serial-servo ladder** — primary DYNAMIXEL XW540-T260,
 > value-tier XM540-W270-R, deep-budget Feetech STS3250, rock-bottom Feetech STS3215
 > (`SELECTION.md` D7) — and the tier-3 fallback (magnetic-coupling pod with a FOC
 > BLDC motor running moteus/ODrive). The connector sealing strategy is in
-> `../UNDERWATER.md §6`; the material/depth-tier split is in `SELECTION.md`.
+> `../docs/UNDERWATER.md §6`; the material/depth-tier split is in `SELECTION.md`.
 > Ground-truth force calibration is in `SENSING.md §3`.
 
 ---
@@ -63,7 +63,7 @@ half-duplex; the U2D2 handles TX-enable toggling automatically.
 ### 3a. Conductor sizing — voltage drop vs tether length
 
 Peak current budget is the **stall current**, not the run current
-(`../UNDERWATER.md §7`). Stall values:
+(`../docs/UNDERWATER.md §7`). Stall values:
 
 | Servo | Stall current (datasheet) | Run current (typ.) |
 |---|---|---|
@@ -223,7 +223,7 @@ a ground loop that seawater and thruster switching can excite. Tether shield: co
 
 ### 5b. Isolation at the M4 arm joint
 
-The 4 × M4 flange holes mate the gripper to the ROV arm (`../UNDERWATER.md §5`).
+The 4 × M4 flange holes mate the gripper to the ROV arm (`../docs/UNDERWATER.md §5`).
 If the arm is metal, the joint is an electrical coupling point.
 
 **Mitigation (mandatory for metal arms):** nylon shoulder bushings (Ø4.5 mm, M4
@@ -234,7 +234,7 @@ stray return current routing through the joint into seawater.
 ### 5c. Seawater as a conductor
 
 Seawater (resistivity ~0.2–0.3 Ω·m) forms a galvanic cell between any two metals
-at different potentials. The gripper is **all-polymer** (`../UNDERWATER.md §5`) — no
+at different potentials. The gripper is **all-polymer** (`../docs/UNDERWATER.md §5`) — no
 exposed metal in the printed assembly. The concern is the servo body (XW540:
 aluminium) and tether connector shells. Keep servo body at GND potential; float
 or isolate connector shells from signal ground.
@@ -323,4 +323,4 @@ electronics, no wet connectors beyond the servo body and the tether bulkhead.
 > against a bench load cell before relying on the telemetry for force control.
 
 Cross-links: `SENSING.md`, `DRIVETRAIN.md`, `SELECTION.md`, `REQUIREMENTS.md`,
-`../UNDERWATER.md`.
+`../docs/UNDERWATER.md`.
