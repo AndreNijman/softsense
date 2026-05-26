@@ -37,13 +37,19 @@ Reporting is force-targeted (compare the grasp at equal grip force). Two targets
 run because each answers a different scalability question:
 
 - **Fixed 12 N at every scale** — *delicate-grasp invariance*: "if I print this
-  bigger/smaller, does it still grasp objects gently?" (The project grasps delicate
-  artifacts, so a gentle force is wanted regardless of size.)
+  bigger/smaller, does it still grasp objects gently?" 12 N is the **finger-FEA
+  stress-probe load** (see `docs/TESTING_AND_SIMULATION.md §A.8`); the shipped
+  drivetrain can't deliver 12 N (per-finger operating force is 0.14–0.73 N — see
+  `motor/scripts/drivetrain_force_envelope.py`). The 12 N target is used here
+  as a *comparative probe*: in the small-strain elastic regime, scaling
+  invariance at 12 N implies scaling invariance at any sub-`T_safe` load
+  (the rank order is preserved).
 - **Force ∝ s² (area scaling)** — 0.6×→4.3 N, 0.8×→7.7 N, 1×→12 N, 1.5×→27 N,
   2×→48 N, 2.5×→75 N — *mechanical similitude*: "at the same fingertip pressure, does
   the deformation behave the same?" This is where the fixed-wall effect shows
   cleanest (beam deflection ∝ F·L³/EI, and I doesn't scale like L⁴ when walls are
-  fixed).
+  fixed). Again, these are stress-probe loads; the operating force is much
+  lower across the whole scale band.
 
 ## 3. Keeping the comparison fair (press stroke + mesh scale too)
 
@@ -98,7 +104,10 @@ cannot reach *either* target force — definitive evidence the limit is the **fi
 walls** (mechanical), not a force-target mismatch. At small scales the s²-force is too
 *gentle* (0.6× @4.3 N scores 0.44 vs 0.65 @12 N): a small, relatively stiff finger
 both tolerates and benefits from a firmer grip, so **fixed ~12 N is the better
-operating choice across the whole usable band.**
+stress-probe choice across the whole usable band** — keeping in mind that the
+absolute newton number is the FEA's design-comparison probe, not what the
+drivetrain can deliver in service. The scalability claim is *rank invariance
+of the comparison*, not "every printed-size finger can apply 12 N safely".
 
 ## 5. The usable scale band
 
