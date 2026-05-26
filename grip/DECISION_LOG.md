@@ -3,6 +3,22 @@
 The blow-by-blow: every approach, dead end, correction and number behind
 [`GRIP_TEXTURE.md`](GRIP_TEXTURE.md). Chronological.
 
+> ⚠️ **Updated honest framing (see `OVERNIGHT_FIXES.md` #5–#7, #11).** The
+> grip-model "literature gate" is a **sufficient-condition** test (the
+> Tier-1 model *can be fit* to reproduce the published wet-grip ordering on
+> the 5 reference patterns; the [PLACEHOLDER] coefficients were chosen so
+> it does). It is **not** a true out-of-sample test, and the μ values it
+> reproduces are **not** calibrated absolute friction
+> (smooth-wet μ ≈ 0.07 is the dynamic aquaplaning floor, sucker μ ≈ 1.11
+> conflates suction with sliding friction). The shipped crosshatch is the
+> **engineering-judgement geometric override** of the model's invariant
+> winner (octopus-sucker); the override was applied externally and is
+> documented openly in `GRIP_TEXTURE.md §5`. See `GRIP_MODEL.md`
+> Validation § for the full honest framing and `baseline_gate_robustness.py`
+> for the perturbation diagnostic (89/90 = 99 % robustness on ±50 %
+> coefficient sweep). These callouts apply to every "the model says…"
+> claim in this log.
+
 ## 0. Brief and constraints
 
 Optimize the contact-face grip texture (the finger geometry is already locked).
