@@ -62,6 +62,7 @@ from external_parts import (
     feetech_sts3215,
     dynamixel_xm540,
     br_tube_3in_240,
+    br_tube_3in_150,
     br_end_cap_wet_lipseal,
     br_end_cap_dry_4xm10,
     wetlink_penetrator,
@@ -71,6 +72,7 @@ from external_parts import (
     n52_magnet_ring_80mm,
     ktr_minex_sa_60_8,
     TUBE_LEN_240,
+    TUBE_LEN_150,
     CAP_FLANGE_T,
     CAP_BOSS_LEN,
     CAP_TOTAL_LEN,
@@ -81,6 +83,12 @@ from printed_adapters import (
     wet_d_socket,
     servo_cradle,
     cradle_endcap_spacer,
+    wrist_plate,
+    canister_fairing,
+    pod_cap_shroud,
+    WRIST_PLATE_H,
+    CANISTER_FAIRING_OD,
+    POD_CAP_T,
 )
 
 VARIANT = os.environ.get("GRIPPER_CANISTER_VARIANT", "T2").upper()
@@ -378,14 +386,139 @@ def assemble_t2_xray():
     """
     asm = assemble_t2()
     keep = [c for c in asm.children
-            if not (isinstance(c, Compound) and "br_acrylic_tube_240" in (c.label or ""))]
+            if not (isinstance(c, Compound) and "br_acrylic_tube" in (c.label or ""))]
     return Compound(label=asm.label + "_XRAY", children=keep)
+
+
+# ==========================================================================
+# UNIBODY variant — printed PA12-GF snap-on shrouds turn the T2 stack into
+# one continuous-looking object. Pressure-bearing parts stay BR catalogue;
+# the cosmetic shrouds (wrist_plate, canister_fairing, pod_cap_shroud) do
+# the visual unification. Drivetrain + sensing unchanged. 150 mm tube
+# replaces the 240 mm (servo + cradle = 104 mm fits with 46 mm cable bend).
+#
+# Final render flips the assembly 180° about world X so the canister
+# extends UP (toward the ROV arm mount) and the fingers reach DOWN —
+# the "as-mounted on an ROV arm" view that reads as a real wrist.
+# ==========================================================================
+def assemble_t2_unibody():
+    """T2 lip-seal assembly, full visual unibody variant.
+
+    Same internal architecture as `assemble_t2`. Differences:
+      - 150 mm BR tube (BR-102649-150) replaces the 240 mm.
+      - wrist_plate around the wet-side BR cap, matching gripper flange bolt
+        pattern on its outer face.
+      - canister_fairing covers the BR tube (cosmetic; same printed family).
+      - pod_cap_shroud covers the BR dry cap, single visible cable exit.
+      - Final +180° X rotation -> as-mounted orientation (canister UP, fingers DOWN).
+    """
+    parts = []
+
+    # 1. Gripper (already world-frame Z-up).
+    parts.append(_make_gripper())
+
+    # 2. Wet D-socket (gripper-side coupler engagement).
+    parts.append(_move_bottom_at(wet_d_socket(), WET_DSOCKET_BOT_Z))
+
+    # 3. Ø8 shaft.
+    shaft_centre_z = (SHAFT_TOP_Z + SHAFT_BOT_Z) / 2.0
+    parts.append(_move_to_canister_axis(gobilda_shaft_8x50(), shaft_centre_z))
+
+    # 4. Lip seal at cap centroid.
+    seal_z = WET_CAP_EXT_FACE_Z - CAP_FLANGE_T / 2.0
+    parts.append(_move_to_canister_axis(lip_seal_8x14x4(), seal_z))
+
+    # 5. Wet end cap (drilled Ø14 H7).
+    parts.append(_move_bottom_at(br_end_cap_wet_lipseal(), WET_CAP_EXT_FACE_Z))
+
+    # 5b. **wrist_plate** wraps the wet end cap. Origin = top face (gripper side).
+    # Its top face must sit AT or just above the wet cap exterior face so it
+    # presents a clean visible bracket; its body extends in +Z into the gap
+    # between the wet cap and the gripper flange.
+    wrist_top_z = WET_CAP_EXT_FACE_Z + 0.0
+    parts.append(_move_bottom_at(wrist_plate(), wrist_top_z - WRIST_PLATE_H))
+
+    # 6. Acrylic tube — **150 mm variant** for the unibody config.
+    tube_top_z_uni = WET_CAP_EXT_FACE_Z - CAP_FLANGE_T   # below the cap flange
+    tube_bot_z_uni = tube_top_z_uni - TUBE_LEN_150
+    tube_centre_z_uni = (tube_top_z_uni + tube_bot_z_uni) / 2.0
+    parts.append(_move_to_canister_axis(br_tube_3in_150(), tube_centre_z_uni))
+
+    # 6b. **canister_fairing** covers the BR tube. Centred on the tube.
+    parts.append(_move_to_canister_axis(
+        canister_fairing(length=TUBE_LEN_150), tube_centre_z_uni))
+
+    # 7. Dry end cap (flipped, exterior face at the bottom).
+    dry_cap = br_end_cap_dry_4xm10().moved(Location((0, 0, 0), (1, 0, 0), 180))
+    dry_cap_ext_z = tube_bot_z_uni - CAP_FLANGE_T
+    dry_cap_int_z = tube_bot_z_uni + CAP_BOSS_LEN
+    parts.append(_move_bottom_at(dry_cap, dry_cap_ext_z))
+
+    # 7b. **pod_cap_shroud** covers the dry cap. Its origin is centre of its
+    # gripper-side face; we want that face to sit AT the cap exterior face
+    # (below). The shroud body extends downward (away from the canister)
+    # so the cable exit is visible. Flip it so +Z points down here.
+    pod_shroud = pod_cap_shroud().moved(Location((0, 0, 0), (1, 0, 0), 180))
+    parts.append(_move_bottom_at(pod_shroud, dry_cap_ext_z))
+
+    # 8. Single WetLink penetrator + 3 blank M10 plugs (hidden behind the
+    # pod_cap_shroud). The visible cable exits through the shroud's hole.
+    PCD = 60.0
+    pen_pos = [(math.radians(90),  wetlink_penetrator()),
+               (math.radians(0),   wetlink_blank_m10()),
+               (math.radians(180), wetlink_blank_m10()),
+               (math.radians(270), wetlink_blank_m10())]
+    for ang, part in pen_pos:
+        cx = SHAFT_X_W + PCD / 2 * math.cos(ang)
+        cy = SHAFT_Y_W + PCD / 2 * math.sin(ang)
+        part_flipped = part.moved(Location((0, 0, 0), (1, 0, 0), 180))
+        parts.append(part_flipped.moved(Location((cx, cy, dry_cap_ext_z))))
+
+    # 9. Servo + horn-adapter + cradle (same as assemble_t2 — anchored to
+    # the shaft bottom).
+    servo_part, sw, sl, sh, horn_h, horn_od = _select_servo()
+    SHAFT_ENGAGE, HORN_ADAPTER_T = 10.0, 12.0
+    horn_adapter_top_z = SHAFT_BOT_Z + SHAFT_ENGAGE
+    horn_adapter_bot_z = horn_adapter_top_z - HORN_ADAPTER_T
+    servo_horn_top_z = horn_adapter_bot_z
+    servo_body_top_z = servo_horn_top_z - horn_h
+    servo_bot_z = servo_body_top_z - sh
+    cradle_bot_z = servo_bot_z - 6.0
+    cradle_top_z = cradle_bot_z + (sh + horn_h + 6.0)
+
+    # Connectivity assertions.
+    assert WET_CAP_INT_FACE_Z - cradle_top_z >= 0.5, (
+        f"cradle top {cradle_top_z:.2f} too close to wet cap interior "
+        f"{WET_CAP_INT_FACE_Z:.2f}")
+    assert cradle_bot_z - dry_cap_int_z > 5.0, (
+        f"cradle bottom {cradle_bot_z:.2f} penetrates dry cap interior "
+        f"{dry_cap_int_z:.2f}")
+
+    parts.append(_move_bottom_at(
+        servo_cradle(servo_w=sw, servo_l=sl, servo_h=sh, horn_oh=horn_h),
+        cradle_bot_z))
+    parts.append(_move_bottom_at(servo_part, servo_bot_z))
+    parts.append(_move_bottom_at(servo_horn_adapter(horn_od=horn_od),
+                                  horn_adapter_bot_z))
+
+    cable_run_mm = cradle_bot_z - dry_cap_int_z
+    print(f"  [unibody]  shaft bot z         = {SHAFT_BOT_Z:.2f}")
+    print(f"  [unibody]  cradle bot z        = {cradle_bot_z:.2f}")
+    print(f"  [unibody]  tube length         = {TUBE_LEN_150:.0f} mm")
+    print(f"  [unibody]  dry cap cable run   = {cable_run_mm:.2f} mm")
+
+    asm = Compound(label=f"gripper_canister_T2_UNIBODY_{SERVO}", children=parts)
+
+    # As-mounted orientation: canister UP, fingers DOWN.
+    asm = asm.moved(Location((0, 0, 0), (1, 0, 0), 180))
+    return asm
 
 
 _ASM = {"T2": assemble_t2,
         "T3": assemble_t3,
         "LINEUP": assemble_servo_choices,
-        "T2_XRAY": assemble_t2_xray}
+        "T2_XRAY": assemble_t2_xray,
+        "T2_UNIBODY": assemble_t2_unibody}
 
 
 def gen_step():

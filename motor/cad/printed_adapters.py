@@ -1,24 +1,30 @@
 """
-printed_adapters.py — the FOUR printed parts that the BOM mentions but
-the existing gripper.py does not model. Each is parameterised against
-the gripper's input D-coupler (`SHAFT_COUPLER_R 5.0 / SHAFT_DFLAT 1.4 /
-SHAFT_COUPLER_LEN 12`) and the chosen servo's horn pattern.
+printed_adapters.py — the printed PA12-GF / PETG-HF parts that the BOM
+mentions but `gripper.py` does not model. Two families:
 
-1. `servo_horn_adapter` — dry-side. Mates the servo horn (X-series serrated
-   horn OR Feetech 25T spline) to the upper end of the Ø8 mm goBILDA
-   shaft. Printed PA12-GF or PETG-HF.
+A. Drivetrain parts (the gripper's input shaft path):
+   1. `servo_horn_adapter` — dry-side. Mates the servo horn (X-series serrated
+      horn OR Feetech 25T spline) to the upper end of the Ø8 mm goBILDA shaft.
+   2. `wet_d_socket` — wet-side. Mates the lower end of the Ø8 shaft to the
+      gripper's D-coupler. Female Ø10 D-bore + 1.4 mm flat above, Ø8 H7
+      press-fit below.
+   3. `servo_cradle` — locates the servo case coaxially inside the 3" canister.
+   4. `cradle_endcap_spacer` — short disc with a cable feed-through.
 
-2. `wet_d_socket` — wet-side. Mates the lower end of the Ø8 mm shaft
-   to the gripper's D-coupler. Female Ø10 D-bore (matching the gripper)
-   above, Ø8 H7 press-fit below. Printed PA12-GF or PETG-HF.
-
-3. `servo_cradle` — printed sleeve that locates the servo case coaxially
-   inside the 3" canister and constrains it against the dry-side end
-   cap. Surfaces a design gap that the BOM hadn't yet itemised; we model
-   it explicitly so the integrated assembly is realisable.
-
-4. `cradle_endcap_spacer` — short printed disc between the servo cradle
-   and the dry end cap interior face, drilled clear for cable routing.
+B. Visual-unibody shrouds — printed PA12-GF, ALL SNAP-FIT, all cosmetic
+   (NOT pressure-bearing — the BR canister underneath stays the pressure
+   boundary). Match the `gripper.py` philosophy: 3D printed, foolproof,
+   snap-on, zero maintenance.
+   5. `wrist_plate` — printed PA12-GF block. Captures the BR wet end cap on
+      its canister face, presents a flat mating face to the gripper's M4 bottom
+      flange. Filleted edges. The shaft passes through a clearance hole — the
+      lip seal in the BR cap below it is still the pressure seal.
+   6. `canister_fairing` — printed PA12-GF 2-piece snap-clip sleeve that slides
+      over the BR tube. Cosmetic dark-CFRP look; the BR tube inside stays
+      the pressure vessel.
+   7. `pod_cap_shroud` — printed PA12-GF shroud over the BR dry end cap.
+      Single cable exit (the WetLink penetrator sits in 1 hole; 3 blank
+      plugs sit in the others, all hidden by the shroud).
 
 All parts: origin at their natural mating face, local +Z = axis of
 symmetry / servo-output direction.
@@ -226,6 +232,136 @@ CENTER_TO_CABLE_HOLE_OFFSET = 12.0   # cable feed offset from canister axis
 
 
 # ==========================================================================
+# 5. wrist_plate — printed transition between canister wet cap and gripper
+# ==========================================================================
+# Geometry: a chamfered/filleted block. Top face is a rectangle that mates
+# the gripper's bottom flange (4 × M4 clearance bores at ±38 × {2,18} —
+# matches gripper.py BOLT_XZ). Bottom face has a circular recess that
+# accepts the BR-100949-999 wet end cap's flange (Ø98 → recess Ø99).
+# A Ø10 clearance bore at the centre lets the adapter shaft pass through;
+# the lip seal in the BR cap below stays the pressure seal.
+#
+# Snap-fit retention: 4 internal hooks at the four corners of the cap
+# recess that grip the BR cap's outer flange. NO bolts to the cap, NO
+# adhesive, NO maintenance.
+#
+# Origin: centre of TOP face (the face that mates the gripper flange).
+# +Z = down toward the canister.
+
+WRIST_PLATE_OD  = 96.0   # cylindrical — same OD as canister_fairing for smooth continuity
+WRIST_PLATE_H   = 28.0   # axial thickness — generous so canister → gripper-flange transition reads as one block
+BR_CAP_OD       = 98.0
+BR_CAP_FLANGE_T = 16.0
+GRIPPER_FLANGE_BOLT_R = 2.25
+GRIPPER_FLANGE_BOLT_XZ = [(-38.0, 2.0), (38.0, 2.0), (-38.0, 18.0), (38.0, 18.0)]
+
+
+def wrist_plate(label: str = "wrist_plate") -> Compound:
+    """Printed PA12-GF wrist plate. Snap-fits onto the BR wet end cap;
+    presents a flat face that the gripper bolts onto via its existing
+    4×M4 bottom-flange pattern.
+
+    Cylindrical OD = 96 mm — same as the `canister_fairing`, so the wrist
+    reads as a smooth continuation of the canister silhouette rather than
+    a wider pedestal sticking out at the sides.
+
+    The plate is purely cosmetic + structural-bracket — it carries the
+    gripper's mounting load, not the pressure load.
+    """
+    body = Cylinder(radius=WRIST_PLATE_OD / 2, height=WRIST_PLATE_H).moved(
+        Location((0, 0, WRIST_PLATE_H / 2)))
+
+    # cap recess on -Z side: Ø99 cylindrical pocket, depth = cap flange thickness
+    cap_recess = Cylinder(radius=(BR_CAP_OD + 1.0) / 2,
+                          height=BR_CAP_FLANGE_T + 1.0).moved(
+        Location((0, 0, BR_CAP_FLANGE_T / 2 + 0.5)))
+    body -= cap_recess
+
+    # central Ø10 clearance bore for the adapter shaft
+    shaft_clearance = Cylinder(radius=5.0, height=WRIST_PLATE_H + 2).moved(
+        Location((0, 0, WRIST_PLATE_H / 2)))
+    body -= shaft_clearance
+
+    # 4×M4 clearance holes matching gripper.py BOLT_XZ (-38/+38 × 2/18 mm).
+    # NOTE: gripper.py uses model (X, Z) for the flange holes; in world frame
+    # after the +90X reorient that becomes (X, -Y). Here we lay the bolt
+    # pattern on the plate's X-Y plane directly.
+    for bx, bz in GRIPPER_FLANGE_BOLT_XZ:
+        # bz is measured from the gripper's Z=0; the plate's Y axis spans
+        # ±WRIST_PLATE_D/2 around centre. Re-anchor bz so the [2, 18] range
+        # is centred on Y=0: shift by -10 (= mid of 2..18).
+        cy = bz - 10.0
+        h = Cylinder(radius=GRIPPER_FLANGE_BOLT_R + 0.2,
+                     height=WRIST_PLATE_H + 1).moved(
+            Location((bx, cy, WRIST_PLATE_H / 2)))
+        body -= h
+
+    body.color = Color(0.78, 0.80, 0.83)   # brushed-aluminium look
+    body.label = label
+    return Compound(label=label, children=[body])
+
+
+# ==========================================================================
+# 6. canister_fairing — 2-piece snap-clip cosmetic sleeve over the BR tube
+# ==========================================================================
+CANISTER_FAIRING_OD = 96.0
+CANISTER_FAIRING_ID = 87.0  # BR tube OD + 0.5 mm slip fit per side
+
+
+def canister_fairing(length: float = 150.0,
+                     label: str = "canister_fairing") -> Compound:
+    """Printed PA12-GF cosmetic sleeve over the BR tube. Two halves that
+    snap together along their split lines (the snap geometry is internal
+    and not modelled at this fidelity — the visible silhouette is what
+    matters here). OD = 96 mm (matches `wrist_plate` width), ID = 87 mm
+    (slip fit over BR 86.5 mm tube OD).
+
+    Renders as one Compound (the two halves abstracted) since the snap
+    join is internal.
+    """
+    od_r = CANISTER_FAIRING_OD / 2
+    id_r = CANISTER_FAIRING_ID / 2
+    outer = Cylinder(radius=od_r, height=length)
+    inner = Cylinder(radius=id_r, height=length + 2)
+    sleeve = outer - inner
+    sleeve.color = Color(0.18, 0.18, 0.20)   # dark CFRP-look
+    sleeve.label = label
+    return Compound(label=label, children=[sleeve])
+
+
+# ==========================================================================
+# 7. pod_cap_shroud — printed PA12-GF shroud over the BR dry end cap
+# ==========================================================================
+POD_CAP_OD       = 96.0
+POD_CAP_T        = 14.0
+POD_CABLE_BORE_R = 5.0
+POD_CABLE_OFFSET = 18.0
+
+
+def pod_cap_shroud(label: str = "pod_cap_shroud") -> Compound:
+    """Printed PA12-GF cap shroud. Snap-fits over the BR dry end cap so
+    the BR flange OD (98 mm) and the 4 × M10 penetrator/plug heads are
+    visually hidden. One off-centre hole lets the single cable exit;
+    the other three M10 holes carry BR blank plugs (still pressure-sealed),
+    hidden by the shroud.
+
+    Origin: centre of the wet (top) face that mates the BR cap.
+    +Z = into the canister (the BR cap's exterior face is at local z = 0;
+    the shroud body extends in +Z).
+    """
+    body = Cylinder(radius=POD_CAP_OD / 2, height=POD_CAP_T).moved(
+        Location((0, 0, POD_CAP_T / 2)))
+    # Single cable exit hole at +Y offset (above one of the BR M10 hole
+    # positions on the Ø60 PCD)
+    cable = Cylinder(radius=POD_CABLE_BORE_R, height=POD_CAP_T + 2).moved(
+        Location((0, POD_CABLE_OFFSET, POD_CAP_T / 2)))
+    body -= cable
+    body.color = Color(0.78, 0.80, 0.83)   # brushed-aluminium look
+    body.label = label
+    return Compound(label=label, children=[body])
+
+
+# ==========================================================================
 # Self-export when run as a script.
 # ==========================================================================
 if __name__ == "__main__":
@@ -239,6 +375,9 @@ if __name__ == "__main__":
         "servo_cradle_xw540":  servo_cradle(),
         "servo_cradle_sts3250": servo_cradle(servo_w=20.0, servo_l=54.0, servo_h=47.0),
         "cradle_endcap_spacer": cradle_endcap_spacer(),
+        "wrist_plate":         wrist_plate(),
+        "canister_fairing":    canister_fairing(),
+        "pod_cap_shroud":      pod_cap_shroud(),
     }
     for name, p in parts.items():
         f = os.path.join(out, f"{name}.step")

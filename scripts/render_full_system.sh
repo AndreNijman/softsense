@@ -28,7 +28,7 @@ mkdir -p renders motor/cad/output
 FRAMES_DIR=$(mktemp -d)
 trap "rm -rf $FRAMES_DIR" EXIT
 
-build_step() {  # $1 = "VARIANT,OPEN" (e.g. "T2,0.5" or "T2_XRAY,0")
+build_step() {  # $1 = "VARIANT,OPEN" (e.g. "T2_UNIBODY,0.5" or "T2_XRAY,0")
     local VAR=${1%,*}
     local OPEN=${1#*,}
     local TAG=$(printf "frame_%s_open%s" "$VAR" "$OPEN")
@@ -39,13 +39,13 @@ build_step() {  # $1 = "VARIANT,OPEN" (e.g. "T2,0.5" or "T2_XRAY,0")
 export -f build_step
 export STEPCLI SYS SERVO MESHTOL
 
-# Three poses × two variants (full + xray) = 6 STEPs, 3 cores -> ~7 min wall.
+# Three poses × two variants (unibody + xray) = 6 STEPs, 3 cores -> ~7 min wall.
 echo "[building 6 keyframe STEPs in parallel — ~7 min wall]"
-printf "T2,0\nT2,0.5\nT2,1\nT2_XRAY,0\nT2_XRAY,0.5\nT2_XRAY,1\n" | xargs -P 3 -I{} bash -c 'build_step "$@"' _ {}
+printf "T2_UNIBODY,0\nT2_UNIBODY,0.5\nT2_UNIBODY,1\nT2_XRAY,0\nT2_XRAY,0.5\nT2_XRAY,1\n" | xargs -P 3 -I{} bash -c 'build_step "$@"' _ {}
 
 echo "[heroes]"
-$SNAP --input motor/cad/output/frame_T2_open1.step   --output renders/gripper_hero_open.png   --mode view --camera iso --theme technical --size-profile assembly-large >/dev/null
-$SNAP --input motor/cad/output/frame_T2_open0.step   --output renders/gripper_hero_closed.png --mode view --camera iso --theme technical --size-profile assembly-large >/dev/null
+$SNAP --input motor/cad/output/frame_T2_UNIBODY_open1.step   --output renders/gripper_hero_open.png   --mode view --camera iso --theme technical --size-profile assembly-large >/dev/null
+$SNAP --input motor/cad/output/frame_T2_UNIBODY_open0.step   --output renders/gripper_hero_closed.png --mode view --camera iso --theme technical --size-profile assembly-large >/dev/null
 cp -f "$RENDER_VIEWER_ROOT/renders/gripper_hero_open.png"   renders/ 2>/dev/null || true
 cp -f "$RENDER_VIEWER_ROOT/renders/gripper_hero_closed.png" renders/ 2>/dev/null || true
 echo "  hero_open + hero_closed"
@@ -58,7 +58,7 @@ echo "[motion gif frames]"
 n=0
 for OPEN in $GIF_FRAMES; do
     OUT=$(printf "f_%03d.png" $n)
-    $SNAP --input motor/cad/output/frame_T2_open${OPEN}.step --output "$OUT" --mode view --camera iso --theme technical --width 1000 --height 750 >/dev/null
+    $SNAP --input motor/cad/output/frame_T2_UNIBODY_open${OPEN}.step --output "$OUT" --mode view --camera iso --theme technical --width 1000 --height 750 >/dev/null
     cp -f "$RENDER_VIEWER_ROOT/$OUT" "$FRAMES_DIR/$OUT"
     n=$((n+1))
 done

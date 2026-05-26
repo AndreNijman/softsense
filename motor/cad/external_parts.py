@@ -202,6 +202,7 @@ TUBE_OD_3IN      = 86.5
 TUBE_ID_3IN_ACR  = 76.2
 TUBE_WALL_ACR    = (TUBE_OD_3IN - TUBE_ID_3IN_ACR) / 2.0
 TUBE_LEN_240     = 240.0
+TUBE_LEN_150     = 150.0   # `BR-102649-150` shorter variant for the unibody config
 
 CAP_OD           = 98.0           # full flange OD (slightly wider than tube)
 CAP_FLANGE_T     = 16.0           # exterior flange thickness
@@ -212,19 +213,30 @@ CAP_PCD_M10      = 60.0           # 4-hole pattern PCD
 SEAL_BORE_D      = 14.0           # Ø14 H7 in-build for the lip seal
 
 
-def br_tube_3in_240(label: str = "br_acrylic_tube_240") -> Compound:
-    """3" cast-acrylic LOCKING tube, 240 mm, 150 m depth, USD 25.
-    Part `BR-102649-240`.
-    Axis = local Z; centred on origin (so each end is at z = ±120).
+def br_tube_3in(length: float = TUBE_LEN_240,
+                label: str = "br_acrylic_tube") -> Compound:
+    """3" cast-acrylic LOCKING tube, 150 m depth, USD 25.
+    Part `BR-102649-{length}` — 150, 240, 300, 400 mm length variants.
+    Axis = local Z; centred on origin.
     """
     od_r = TUBE_OD_3IN / 2
     id_r = TUBE_ID_3IN_ACR / 2
-    outer = Cylinder(radius=od_r, height=TUBE_LEN_240)
-    inner = Cylinder(radius=id_r, height=TUBE_LEN_240 + 2)
+    outer = Cylinder(radius=od_r, height=length)
+    inner = Cylinder(radius=id_r, height=length + 2)
     tube = outer - inner
     tube.color = C_ACRYLIC
     tube.label = label
     return Compound(label=label, children=[tube])
+
+
+def br_tube_3in_240(label: str = "br_acrylic_tube_240") -> Compound:
+    """Convenience: the 240 mm-length variant (legacy default)."""
+    return br_tube_3in(length=TUBE_LEN_240, label=label)
+
+
+def br_tube_3in_150(label: str = "br_acrylic_tube_150") -> Compound:
+    """Convenience: the 150 mm-length variant (unibody default)."""
+    return br_tube_3in(length=TUBE_LEN_150, label=label)
 
 
 def _br_cap_blank_body() -> Compound:
