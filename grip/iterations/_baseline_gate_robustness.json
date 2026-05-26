@@ -1,0 +1,485 @@
+{
+  "n_pass": 89,
+  "n_total": 90,
+  "pass_fraction": 0.989,
+  "per_coefficient": [
+    {
+      "coeff": "CAP0",
+      "mult": 0.5,
+      "passes": true
+    },
+    {
+      "coeff": "CAP0",
+      "mult": 0.75,
+      "passes": true
+    },
+    {
+      "coeff": "CAP0",
+      "mult": 1.0,
+      "passes": true
+    },
+    {
+      "coeff": "CAP0",
+      "mult": 1.25,
+      "passes": true
+    },
+    {
+      "coeff": "CAP0",
+      "mult": 1.5,
+      "passes": true
+    },
+    {
+      "coeff": "EDGE_PIERCE",
+      "mult": 0.5,
+      "passes": true
+    },
+    {
+      "coeff": "EDGE_PIERCE",
+      "mult": 0.75,
+      "passes": true
+    },
+    {
+      "coeff": "EDGE_PIERCE",
+      "mult": 1.0,
+      "passes": true
+    },
+    {
+      "coeff": "EDGE_PIERCE",
+      "mult": 1.25,
+      "passes": true
+    },
+    {
+      "coeff": "EDGE_PIERCE",
+      "mult": 1.5,
+      "passes": true
+    },
+    {
+      "coeff": "C_EDGE",
+      "mult": 0.5,
+      "passes": true
+    },
+    {
+      "coeff": "C_EDGE",
+      "mult": 0.75,
+      "passes": true
+    },
+    {
+      "coeff": "C_EDGE",
+      "mult": 1.0,
+      "passes": true
+    },
+    {
+      "coeff": "C_EDGE",
+      "mult": 1.25,
+      "passes": true
+    },
+    {
+      "coeff": "C_EDGE",
+      "mult": 1.5,
+      "passes": true
+    },
+    {
+      "coeff": "EDGE_DEGLAZE",
+      "mult": 0.5,
+      "passes": true
+    },
+    {
+      "coeff": "EDGE_DEGLAZE",
+      "mult": 0.75,
+      "passes": true
+    },
+    {
+      "coeff": "EDGE_DEGLAZE",
+      "mult": 1.0,
+      "passes": true
+    },
+    {
+      "coeff": "EDGE_DEGLAZE",
+      "mult": 1.25,
+      "passes": true
+    },
+    {
+      "coeff": "EDGE_DEGLAZE",
+      "mult": 1.5,
+      "passes": true
+    },
+    {
+      "coeff": "SKIN_SLICK",
+      "mult": 0.5,
+      "passes": true
+    },
+    {
+      "coeff": "SKIN_SLICK",
+      "mult": 0.75,
+      "passes": true
+    },
+    {
+      "coeff": "SKIN_SLICK",
+      "mult": 1.0,
+      "passes": true
+    },
+    {
+      "coeff": "SKIN_SLICK",
+      "mult": 1.25,
+      "passes": true
+    },
+    {
+      "coeff": "SKIN_SLICK",
+      "mult": 1.5,
+      "passes": true
+    },
+    {
+      "coeff": "MU_GOOD",
+      "mult": 0.5,
+      "passes": true
+    },
+    {
+      "coeff": "MU_GOOD",
+      "mult": 0.75,
+      "passes": true
+    },
+    {
+      "coeff": "MU_GOOD",
+      "mult": 1.0,
+      "passes": true
+    },
+    {
+      "coeff": "MU_GOOD",
+      "mult": 1.25,
+      "passes": true
+    },
+    {
+      "coeff": "MU_GOOD",
+      "mult": 1.5,
+      "passes": true
+    },
+    {
+      "coeff": "C_HYS",
+      "mult": 0.5,
+      "passes": true
+    },
+    {
+      "coeff": "C_HYS",
+      "mult": 0.75,
+      "passes": true
+    },
+    {
+      "coeff": "C_HYS",
+      "mult": 1.0,
+      "passes": true
+    },
+    {
+      "coeff": "C_HYS",
+      "mult": 1.25,
+      "passes": true
+    },
+    {
+      "coeff": "C_HYS",
+      "mult": 1.5,
+      "passes": true
+    },
+    {
+      "coeff": "C_FLAT",
+      "mult": 0.5,
+      "passes": true
+    },
+    {
+      "coeff": "C_FLAT",
+      "mult": 0.75,
+      "passes": true
+    },
+    {
+      "coeff": "C_FLAT",
+      "mult": 1.0,
+      "passes": true
+    },
+    {
+      "coeff": "C_FLAT",
+      "mult": 1.25,
+      "passes": true
+    },
+    {
+      "coeff": "C_FLAT",
+      "mult": 1.5,
+      "passes": true
+    },
+    {
+      "coeff": "LAND_CRIT",
+      "mult": 0.5,
+      "passes": true
+    },
+    {
+      "coeff": "LAND_CRIT",
+      "mult": 0.75,
+      "passes": true
+    },
+    {
+      "coeff": "LAND_CRIT",
+      "mult": 1.0,
+      "passes": true
+    },
+    {
+      "coeff": "LAND_CRIT",
+      "mult": 1.25,
+      "passes": true
+    },
+    {
+      "coeff": "LAND_CRIT",
+      "mult": 1.5,
+      "passes": true
+    },
+    {
+      "coeff": "ETA_FLOOR",
+      "mult": 0.5,
+      "passes": true
+    },
+    {
+      "coeff": "ETA_FLOOR",
+      "mult": 0.75,
+      "passes": true
+    },
+    {
+      "coeff": "ETA_FLOOR",
+      "mult": 1.0,
+      "passes": true
+    },
+    {
+      "coeff": "ETA_FLOOR",
+      "mult": 1.25,
+      "passes": true
+    },
+    {
+      "coeff": "ETA_FLOOR",
+      "mult": 1.5,
+      "passes": true
+    },
+    {
+      "coeff": "T_GRASP",
+      "mult": 0.5,
+      "passes": true
+    },
+    {
+      "coeff": "T_GRASP",
+      "mult": 0.75,
+      "passes": true
+    },
+    {
+      "coeff": "T_GRASP",
+      "mult": 1.0,
+      "passes": true
+    },
+    {
+      "coeff": "T_GRASP",
+      "mult": 1.25,
+      "passes": true
+    },
+    {
+      "coeff": "T_GRASP",
+      "mult": 1.5,
+      "passes": true
+    },
+    {
+      "coeff": "H0_FILM",
+      "mult": 0.5,
+      "passes": true
+    },
+    {
+      "coeff": "H0_FILM",
+      "mult": 0.75,
+      "passes": true
+    },
+    {
+      "coeff": "H0_FILM",
+      "mult": 1.0,
+      "passes": true
+    },
+    {
+      "coeff": "H0_FILM",
+      "mult": 1.25,
+      "passes": true
+    },
+    {
+      "coeff": "H0_FILM",
+      "mult": 1.5,
+      "passes": true
+    },
+    {
+      "coeff": "SUCT_GAIN",
+      "mult": 0.5,
+      "passes": true
+    },
+    {
+      "coeff": "SUCT_GAIN",
+      "mult": 0.75,
+      "passes": true
+    },
+    {
+      "coeff": "SUCT_GAIN",
+      "mult": 1.0,
+      "passes": true
+    },
+    {
+      "coeff": "SUCT_GAIN",
+      "mult": 1.25,
+      "passes": true
+    },
+    {
+      "coeff": "SUCT_GAIN",
+      "mult": 1.5,
+      "passes": true
+    },
+    {
+      "coeff": "W_PRIMARY",
+      "mult": 0.5,
+      "passes": true
+    },
+    {
+      "coeff": "W_PRIMARY",
+      "mult": 0.75,
+      "passes": true
+    },
+    {
+      "coeff": "W_PRIMARY",
+      "mult": 1.0,
+      "passes": true
+    },
+    {
+      "coeff": "W_PRIMARY",
+      "mult": 1.25,
+      "passes": true
+    },
+    {
+      "coeff": "W_PRIMARY",
+      "mult": 1.5,
+      "passes": false
+    },
+    {
+      "coeff": "W_HOLD",
+      "mult": 0.5,
+      "passes": true
+    },
+    {
+      "coeff": "W_HOLD",
+      "mult": 0.75,
+      "passes": true
+    },
+    {
+      "coeff": "W_HOLD",
+      "mult": 1.0,
+      "passes": true
+    },
+    {
+      "coeff": "W_HOLD",
+      "mult": 1.25,
+      "passes": true
+    },
+    {
+      "coeff": "W_HOLD",
+      "mult": 1.5,
+      "passes": true
+    },
+    {
+      "coeff": "W_SAFE",
+      "mult": 0.5,
+      "passes": true
+    },
+    {
+      "coeff": "W_SAFE",
+      "mult": 0.75,
+      "passes": true
+    },
+    {
+      "coeff": "W_SAFE",
+      "mult": 1.0,
+      "passes": true
+    },
+    {
+      "coeff": "W_SAFE",
+      "mult": 1.25,
+      "passes": true
+    },
+    {
+      "coeff": "W_SAFE",
+      "mult": 1.5,
+      "passes": true
+    },
+    {
+      "coeff": "W_DAMAGE",
+      "mult": 0.5,
+      "passes": true
+    },
+    {
+      "coeff": "W_DAMAGE",
+      "mult": 0.75,
+      "passes": true
+    },
+    {
+      "coeff": "W_DAMAGE",
+      "mult": 1.0,
+      "passes": true
+    },
+    {
+      "coeff": "W_DAMAGE",
+      "mult": 1.25,
+      "passes": true
+    },
+    {
+      "coeff": "W_DAMAGE",
+      "mult": 1.5,
+      "passes": true
+    },
+    {
+      "coeff": "INCON_PEN",
+      "mult": 0.5,
+      "passes": true
+    },
+    {
+      "coeff": "INCON_PEN",
+      "mult": 0.75,
+      "passes": true
+    },
+    {
+      "coeff": "INCON_PEN",
+      "mult": 1.0,
+      "passes": true
+    },
+    {
+      "coeff": "INCON_PEN",
+      "mult": 1.25,
+      "passes": true
+    },
+    {
+      "coeff": "INCON_PEN",
+      "mult": 1.5,
+      "passes": true
+    }
+  ],
+  "failed_settings": [
+    {
+      "coeff": "W_PRIMARY",
+      "mult": 1.5,
+      "failed_checks": [
+        "tread beats ridges"
+      ]
+    }
+  ],
+  "zero_placeholders_check": {
+    "zeroed": [
+      "CAP0",
+      "EDGE_PIERCE",
+      "C_EDGE",
+      "C_HYS",
+      "SUCT_GAIN"
+    ],
+    "passes": false,
+    "failed_checks": [
+      "tread beats ridges"
+    ]
+  },
+  "interpretation": [
+    "This sweep perturbs each placeholder/estimate coefficient by +/-50% from default, one at a time (90 settings). The literature gate passes in 89/90 settings, a robustness fraction of 99%.",
+    "When all five 'physical-tag' placeholder coefficients are zeroed simultaneously, the gate FAILS -- this is the harshest internal test: it asks whether the ordering would survive if every placeholder were declared to be zero (i.e. only the [cited] terms drive the model). The result is diagnostic of how much of the gate's pass comes from the placeholder coefficients vs the cited physics.",
+    "NEITHER OF THESE IS A TRUE OUT-OF-SAMPLE TEST. The proper test would be: add reference patterns the model has never seen (e.g. a recent bio-inspired study not used to tune the model) and check the ordering. We have not done that. The gate as it stands proves the model CAN BE FIT to reproduce the published ordering on these 5 patterns; it does not prove generalisation to arbitrary new textures.",
+    "Dispute on the published mu values the gate reproduces: the smooth-wet mu_hold ~ 0.07 figure quoted in the gate output is the dynamic-aquaplaning floor (tyre wet-skid at speed), not the static smooth-wet TPU coefficient (closer to 0.2-0.4 from elastomer literature). The sucker mu_hold ~ 1.11 conflates the suction normal-pressure differential mechanism with a sliding friction coefficient -- they have different units of physical meaning. So even the numbers reproduced should be read as rank-only, not as calibrated absolute friction."
+  ]
+}
