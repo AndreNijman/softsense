@@ -155,3 +155,34 @@ EXPLORER_WORKSPACE_ROOT=/home/andre/gripper-cad EXPLORER_ROOT_DIR=. \
   behaviour — the CAD shows the undeformed finger; the motion model opens/closes
   it rigidly.
 - Dimensions are inferred from one reference image, not measured hardware.
+
+## Honest framing on the published headlines
+
+- The finger-FEA **12 N target** is a **stress-probe load** used to fairly rank
+  finger designs in software, **not** an operating force the shipped drivetrain
+  delivers. The printed crown/pinion gear caps the input torque at `T_safe`
+  (≈ 0.013 N·m radial 2D / 0.034 N·m single-station 2D), which through the
+  kinematics chain maps to a per-finger **operating-force band of 0.14 – 0.73 N**
+  on the shipped gears, or 4.2 – 8.7 N on the proposed (un-implemented)
+  re-size. Run `motor/scripts/drivetrain_force_envelope.py` for live numbers.
+- The "**5.7 – 8.6× safety margin**" in the finger FEA is at the 12 N
+  stress-probe load. The implied margin at the actual drivetrain-deliverable
+  operating force is ≈ **100 – 700×** (small-strain linear scaling); the design
+  is much safer than 5.7× suggests at the load it actually sees. The ranking
+  across finger designs is preserved at any sub-`T_safe` load because the
+  regime is small-strain elastic.
+- The 2D plane-strain and 3D corotational solves agree on the order of
+  magnitude of peak vM (~2.7 MPa) but **don't solve the same problem** —
+  different BCs, ν, strain measure, and load level. See `fea/FEA.md` and
+  `docs/TESTING_AND_SIMULATION.md §A.11` for the apples-to-apples table.
+- The Tier-1 grip-texture model is rank-only, **its 5-pattern literature gate
+  is sufficient-condition (not a true out-of-sample test)**, and the shipped
+  crosshatch is the empirical winner only **after a geometric tileability
+  override** of the model's own winner (the octopus-sucker). See
+  `grip/GRIP_TEXTURE.md §5` and `grip/GRIP_MODEL.md` Validation §.
+- `T_safe` is a 2D plane-stress upper bound. The crown FACE gear is genuinely
+  a 3D problem (contact line, base-disk compliance, tangential+radial+axial
+  decomposition) that the 2D models don't fully capture; the straight-flank
+  face teeth themselves will gall/edge-load in PA12-GF rather than roll cleanly.
+  The only bench-grade ceiling is the printed-coupon torque-to-failure test in
+  `motor/BENCH_TEST.md`.
