@@ -3,3 +3,5 @@
   clamp nodes=72 (2 bores)  ndof=14196 tets=18612
   step  1/8 press= 1.25 it=16 grip= 50.26N vmmax=1.69
   step  2/8 press= 2.50 it=10 grip=  0.08N vmmax=0.37
+  step  3/8 press= 3.75 it=10 grip=  0.14N vmmax=0.62
+  step  4/8 press= 5.00 it=9 grip=  0.20N vmmax=0.88

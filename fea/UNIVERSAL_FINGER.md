@@ -156,6 +156,15 @@ ceiling (§4). All von-Mises margins stay **5.7–8.6× at the 12 N stress-probe
 (eSUN printed strength 25 MPa); see the callout in §2 for what this means under
 the drivetrain's actual operating force.
 
+> ⚠️ **Locking correction (`fea/FEA.md` P2-vs-P1 section).** A locking-stable
+> P2 (quadratic-triangle) re-run of the 2D plane-strain precursor shows the
+> linear-element solver under-reports peak vM by ~50 % at the 12 N stress-
+> probe load. The "5.7–8.6× margin" headline is therefore optimistic — a
+> locking-free reading is closer to **3.8–5.7×** at 12 N. The
+> rank-preservation claim still survives at the drivetrain operating force
+> (margins ≈ 120–300× at 0.3 N regardless), so the DESIGN call is unchanged,
+> but the absolute fragility number in this file was too generous.
+
 ### What changed on the part
 
 | lever | old (`w7`) | new (shipped) | why |

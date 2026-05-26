@@ -166,11 +166,17 @@ EXPLORER_WORKSPACE_ROOT=/home/andre/gripper-cad EXPLORER_ROOT_DIR=. \
   on the shipped gears, or 4.2 – 8.7 N on the proposed (un-implemented)
   re-size. Run `motor/scripts/drivetrain_force_envelope.py` for live numbers.
 - The "**5.7 – 8.6× safety margin**" in the finger FEA is at the 12 N
-  stress-probe load. The implied margin at the actual drivetrain-deliverable
-  operating force is ≈ **100 – 700×** (small-strain linear scaling); the design
-  is much safer than 5.7× suggests at the load it actually sees. The ranking
-  across finger designs is preserved at any sub-`T_safe` load because the
-  regime is small-strain elastic.
+  stress-probe load and was computed with **linear** tetrahedra, which
+  volumetrically lock at near-incompressible ν. A locking-stable P2
+  (quadratic) re-run of the 2D precursor (`fea/scripts/solve_finger_p2.py`,
+  this branch) shows peak vM is ~50 % higher than the P1 reading at the same
+  load. The locking-corrected margin is therefore closer to **3.8 – 5.7×**
+  at the 12 N stress probe. The implied margin at the actual
+  drivetrain-deliverable operating force (0.17 – 0.35 N from the 3D crown
+  FEA) is ≈ **120 – 365×** (small-strain linear scaling; empirically
+  verified across the locking + mesh sweep settings — peak vM at F = 0.3 N
+  is 0.07–0.09 MPa). The design call is unchanged; the absolute safety
+  number is corrected.
 - The 2D plane-strain and 3D corotational solves agree on the order of
   magnitude of peak vM (~2.7 MPa) but **don't solve the same problem** —
   different BCs, ν, strain measure, and load level. See `fea/FEA.md` and
