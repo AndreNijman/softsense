@@ -96,9 +96,18 @@ product thesis, quantified.
   `present_current`). Plastic case, no IP rating, needs a canister.
   **Buy:** [OpenELAB — Feetech STS3250 C002](https://openelab.io/products/feetech-sts3250-c002-servo-12v),
   **€63.85 (≈ AUD 110)**, ships within 72 h (verified May 2026; US retailers carry
-  it at USD 43–97 with stock varying). This is the rock-bottom "still genuinely
-  usable" tier; the well-known **STS3215** (~AUD 34) is even cheaper but its
-  ~0.98 N·m continuous torque is marginal vs the 1.2 N·m target.
+  it at USD 43–97 with stock varying).
+- **ROCK-BOTTOM (~AUD 44): Feetech STS3215 (C018, 12 V)** — same SCS TTL half-duplex
+  bus and load/position/voltage/temperature feedback as the STS3250, but a smaller
+  motor: **30 kg·cm / 2.94 N·m stall** @ 12 V, **~0.98 N·m continuous**. *Honest read:*
+  continuous torque sits **below the 1.2 N·m design target but above the 0.6 N·m
+  floor** — adequate for **intermittent grip-and-hold at the practical mid-face
+  contact point** (`REQUIREMENTS.md` §2), not for sustained tip-tip clamping at 12 N.
+  Plastic case, no IP rating, canister required. **Buy:**
+  [eckstein-shop.de — Feetech ST-3215-C018](https://eckstein-shop.de/feetech-st-3215-c018-servo-en),
+  **€26.45 (≈ AUD 44)** (verified May 2026; also ~USD 23 at offthegridsun.com and
+  at RobotShop). The cheap-as-chips path — same control code, same load-cell
+  calibration in `SENSING.md`, scaled to a smaller torque envelope.
 - **FALLBACK (T3): magnetic-coupling dry-pod** — no shaft penetration → depth set
   only by static pod seals; pole-slip is a built-in force limiter; sensing inherited
   from the pod motor.
