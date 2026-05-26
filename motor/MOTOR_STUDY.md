@@ -86,8 +86,19 @@ product thesis, quantified.
   **USD 494.39** (≈ AUD 766; in stock, verified May 2026). The *only* difference is it has
   **no IP68 body** — but at the T2 (≤ 30 m) design point the XW540's IP68 is just 1 m
   freshwater and needs a pressure canister anyway, so **in the canister the two are
-  functionally equivalent**, making the XM540-W270 the better value. (For pure bench/T1,
-  the **Feetech STS3215**, ~AUD 34, is the rock-bottom option; STS3250 ~USD 88 the mid step.)
+  functionally equivalent**, making the XM540-W270 the better value.
+- **DEEP-BUDGET OPTION (~AUD 110, in stock): Feetech STS3250** — 50 kg·cm / **4.9 N·m
+  stall** @ 12V (sustained ~2.45 N·m after the firmware torque-protection kicks in —
+  *still* well above the 1.2 N·m design floor), TTL half-duplex serial on the same
+  single-wire bus principle as Dynamixel, with `load / position / speed / voltage /
+  temperature` feedback (load % is the torque proxy — calibrated by the same bench
+  load-cell rig in `SENSING.md` exactly as you would calibrate Dynamixel's
+  `present_current`). Plastic case, no IP rating, needs a canister.
+  **Buy:** [OpenELAB — Feetech STS3250 C002](https://openelab.io/products/feetech-sts3250-c002-servo-12v),
+  **€63.85 (≈ AUD 110)**, ships within 72 h (verified May 2026; US retailers carry
+  it at USD 43–97 with stock varying). This is the rock-bottom "still genuinely
+  usable" tier; the well-known **STS3215** (~AUD 34) is even cheaper but its
+  ~0.98 N·m continuous torque is marginal vs the 1.2 N·m target.
 - **FALLBACK (T3): magnetic-coupling dry-pod** — no shaft penetration → depth set
   only by static pod seals; pole-slip is a built-in force limiter; sensing inherited
   from the pod motor.
