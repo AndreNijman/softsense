@@ -45,11 +45,26 @@ and reusing it per object. Each object is scored on:
 
 and the universal score is the battery mean minus a grip-inconsistency penalty.
 
-Crucial fix mid-investigation: **force-targeted reporting.** Pressing a fixed *closure*
-rewards stiff fingers with crushing force and starves compliant ones, so all candidates
-are instead reported at the **first closure reaching a 12 N target grip** — same grip
-force, compare the wrap. A `locked` flag catches structures that blow past target grip
-while over-stressed (a rigid jaw, not a gripper).
+Crucial fix mid-investigation: **force-targeted reporting** (`REPORT_MODE="grip"`).
+Pressing a fixed *closure* rewards stiff fingers with crushing force and starves
+compliant ones, so all candidates are reported at the **first closure reaching a
+12 N target grip** — same grip force, compare the wrap. A `locked` flag catches
+structures that blow past target grip while over-stressed (a rigid jaw, not a
+gripper). **Doc-vs-code disclosure:** the production default of `iter_harness.py`
+is actually `REPORT_MODE="closure"` reporting at `PRESS_AT_REPORT = 8.0` mm; the
+force-targeted mode was used selectively to handle stiff-vs-compliant comparison
+in the swarm. The "grip swings 7×" measurement and most of the per-family
+universal-score numbers in this file come from closure-mode runs; the equal-grip
+panel renders are force-targeted.
+
+> ⚠️ **What 12 N means.** 12 N is a **stress-probe load** used to fairly rank
+> finger designs at a closure the FEA can reach in software. It is **not** the
+> operating force the shipped drivetrain delivers — the printed crown/pinion's
+> root-bending ceiling (`T_safe ≈ 0.034 N·m`) maps through the kinematics chain
+> to a per-finger force band of **0.35–0.73 N** (current gears) or
+> **4.2–8.7 N** (proposed re-size). The implied vM margin at the operating
+> force is **≈100–300×**, not the 5.7–8.6× quoted at 12 N. Run
+> `motor/scripts/drivetrain_force_envelope.py` for live numbers.
 
 The 2-object screen initially mis-ranked candidates (an R20-box resonance scored 0.72
 on screen but 0.595 on the full battery); a **3-object screen (R12 + R30 + box)** was
@@ -137,7 +152,9 @@ sizes (≈87°), gives ~2–2.5× the contact arc on every cylinder, and grips e
 consistent safe ~12 N — where the **old finger's grip swung 7×** with object position.
 On round objects the new finger makes more contact but the grip-teeth keep
 pressure-evenness mixed (higher cov) — round-object *even wrap* is still the physics
-ceiling (§4). All von-Mises margins stay **5.7–8.6×** (eSUN printed strength 25 MPa).
+ceiling (§4). All von-Mises margins stay **5.7–8.6× at the 12 N stress-probe load**
+(eSUN printed strength 25 MPa); see the callout in §2 for what this means under
+the drivetrain's actual operating force.
 
 ### What changed on the part
 
@@ -154,10 +171,11 @@ ceiling (§4). All von-Mises margins stay **5.7–8.6×** (eSUN printed strength
 
 ## 6. The result, in pictures
 
-All renders are at **equal 12 N grip force** (the fair basis — a softer finger needs
-more closure to reach the same grip). Colour = von-Mises stress (the load path
-through the finger); grey = the rigid object being grasped; "contact spans X mm" = how
-much of the finger length is engaged.
+All renders are at **equal 12 N grip force** (the stress-probe load used as a
+fair basis — a softer finger needs more closure to reach the same grip; see §2
+callout for what 12 N is and isn't). Colour = von-Mises stress (the load path
+through the finger); grey = the rigid object being grasped; "contact spans X mm"
+= how much of the finger length is engaged.
 
 ### One finger, every shape & size
 

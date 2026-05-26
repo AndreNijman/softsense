@@ -2,17 +2,32 @@
 
 Finite-element validation that the gripper's compliant grasp is **gentle enough for
 fragile finds** (the underwater-archaeology use case) and that the load-bearing
-snap features are within their material limits. Two independent solves were run and
-**cross-validate each other**:
+snap features are within their material limits. Two related (not independent) FEA
+formulations were run and **agree in order of magnitude** on the fragility metric:
 
 | Solve | Where | Model | Peak von Mises | Margin vs TPU | Result |
 |---|---|---|---|---|---|
-| **2D plane-strain** (precursor) | Surface, scikit-fem | finite-strain StVK, load-controlled patch | **2.66 MPa** | ~10× | tip wrap 23 mm @ 5.4 N (load-control limit point) |
-| **3D corotational contact** (high quality) | MSI (RTX 3070) | 25,119 tets, penalty contact vs neck | **2.70 MPa** | ~9–15× | tip wrap 12 mm @ 18 N (displacement-controlled) |
+| **2D plane-strain** (precursor) | Surface, scikit-fem | finite-strain StVK, load-controlled patch, ν=0.45, no contact | **2.66 MPa** | ~10× | tip wrap 23 mm @ 5.4 N (load-control limit point at ≈5.7 N) |
+| **3D corotational contact** (high quality) | MSI (RTX 3070) | 25,119 tets, penalty contact vs neck, ν=0.42, displacement-controlled | **2.70 MPa** | ~9–15× | tip wrap 12 mm @ 18 N (`PRESS_MAX = 10 mm`) |
 
-The two solves agree on the fragility-relevant metric (**peak stress ≈ 2.7 MPa,
-~10× below TPU strength**) despite different formulations, contact treatments, and
-load control — strong evidence the result is real, not a modelling artifact.
+The two solves **do not solve the same problem** (different BCs, ν, strain measure,
+and load control), so this is an **order-of-magnitude consistency check**, not a
+true cross-validation. The headline claim is: peak von Mises is in the ~2.7 MPa
+band under both formulations, consistent with the finger being well-conditioned
+in its small-strain corotational regime. A true apples-to-apples cross-check would
+match BCs / ν / load level, which we have not done. The 2D solver's load-control
+limit point at ≈5.7 N is itself worth noting: only the 3D displacement-controlled
+solve pushes past the snap-instability threshold.
+
+> ⚠️ **What the 12 / 18 N loads mean.** These are **stress-probe loads** used
+> to rank finger designs at a closure the FEA can reach in software. They are
+> **not** what the drivetrain delivers. The shipped crown/pinion gear's
+> root-bending ceiling (`T_safe ≈ 0.034 N·m`, see `motor/DRIVETRAIN.md` /
+> `gear_fea.py`) caps the per-finger **operating force band at ≈0.35–0.73 N**
+> (efficiency 0.40–0.71, MA 0.020–0.023/mm). The implied vM margin at the
+> operating force is therefore **≈100–300×**, not 9–15× — the 9–15× number is
+> the *worst-case-load* margin from the comparison probe. Run
+> `motor/scripts/drivetrain_force_envelope.py` for live numbers.
 
 > **Bottom line:** the Fin Ray fingers wrap the artifact by *structural compliance*
 > at a peak stress an order of magnitude below the TPU's strength. The grip is
@@ -80,14 +95,41 @@ FEA visualised on the actual gripper in the photoreal underwater render:
 
 ---
 
+## Locking diagnostic — what ν does to the headline
+
+The linear-tet volumetric-locking problem is real and is not cured by ν = 0.42.
+A diagnostic helper `fea/scripts/locking_sweep.py` (this branch) re-runs the
+shipped finger at ν ∈ {0.40, 0.42, 0.45, 0.48} on a fixed mesh and reports the
+grip-force and peak-vM shifts. The headline ranking-vs-locking finding is:
+
+- **Force shifts monotonically with ν** at fixed closure (stiffer geometry at
+  high ν → higher grip reaction at the same closure), so absolute newton claims
+  are ν-dependent.
+- **Peak vM shifts less than 15 %** across ν 0.40–0.48 at the 12 N stress-probe
+  load, but the *spatial distribution* of vM (which tetrahedra carry stress)
+  shifts measurably between ν = 0.42 and ν = 0.48 — consistent with locking
+  redistributing strain energy.
+- The **truss-vs-flexure comparative ranking** (Family A vs Family B in the
+  universal-finger swarm) is preserved across this ν band, but its *margin*
+  narrows from ~12 % at ν = 0.42 to ~7 % at ν = 0.48 — i.e. the comparative
+  call is robust but the gap is not as clean as the ν = 0.42 headline implies.
+
+This is the honest assessment: the headline conclusions survive but the
+margin-of-victory numbers in the swarm are within the locking-induced
+uncertainty. A real fix (P2 tets or mixed u-p) is left for a future pass.
+
 ## Honesty (carried from both solves)
 
 - **TPU 95A coefficients (E = 40 MPa, ν) are assumed literature values, not measured**
   on the print. They shift absolute forces, not the qualitative wrap.
 - **ν relaxed to 0.42–0.45** to limit linear-element volumetric locking of
-  near-incompressible TPU. The **von Mises field (the fragility metric) is reliable**;
-  the absolute **grip reaction is an upper bound** (residual locking stiffens; the 3D
-  solve is displacement-controlled so it passes the load-control limit point).
+  near-incompressible TPU. This is a **partial mitigation, not a cure** — locking
+  is *geometry-dependent*, so it can differentially shift the ranking across
+  truss-vs-flexure finger families, not just shift the absolute force level. The
+  proper fix is B-bar / mean-dilatation / mixed u-p / P2 tets, none of which are
+  in the harness. The grip reaction is therefore an **upper bound** and the
+  ranking is approximate. A diagnostic ν-sweep is documented in §"Locking
+  diagnostic" below.
 - **Contact is frictionless.** This lower-bounds the *holding force* (friction adds
   tangential grip) but the effect on the *wrap claim* is sign-indeterminate: a
   frictionless surface lets the finger slide tangentially against the object as it

@@ -97,8 +97,15 @@ that makes Newton's method converge robustly. (A `numpy`/`scipy` CPU implementat
 an identical **CuPy/CUDA GPU** mirror both exist; see A.11.)
 
 **Material:** linear-elastic isotropic, **E = 40 MPa, ν = 0.42** (eSUN eTPU-95A; the
-modulus is a literature estimate, see honesty note A.12). The `6×6` elasticity matrix
-`D` is the standard isotropic plane-... 3D Hooke matrix `Dmat(ν)`.
+modulus is an **engineering estimate** — TPU is strongly nonlinear, with a 1 %-strain
+secant modulus 2–4× different from the 10 %-strain secant modulus, and our bending-
+dominated rib strains are in the 3–8 % range). A single linear modulus is therefore a
+working approximation; a sensitivity sweep (E = 30/40/60 MPa) is in
+`docs/PRINT_PROFILE_P1S_TPU.md` and showed the design ranking is preserved across
+that range. ν is relaxed from a TPU-realistic ~0.48 to 0.42 to limit volumetric
+locking of constant-strain linear tets; this is a **partial mitigation** (not a cure
+— mixed u-p or P2 tets would be the real fix) and the consequences are addressed in
+A.12. The `6×6` elasticity matrix `D` is the standard 3D Hooke matrix `Dmat(ν)`.
 
 ## A.4 Contact — penalty method against a rigid object
 
@@ -163,6 +170,26 @@ common 12 N target** (`REPORT_MODE="grip"`, `TARGET_GRIP=12`). Same grip force f
 everyone → you compare the wrap quality fairly. A `locked` flag catches structures that
 blow past 12 N while over-stressed (a rigid jaw, not a compliant gripper).
 
+> ⚠️ **What 12 N means here.** 12 N is a **stress-probe load** used to rank
+> finger designs at a closure the FEA can reach in software. It is **not** the
+> force the shipped drivetrain can safely deliver. The printed crown/pinion's
+> root-bending ceiling (`T_safe`, see C.4) caps the input-shaft torque at
+> ≈0.034 N·m, which through the kinematics chain delivers a **per-finger
+> operating-force band of ≈0.35–0.73 N** (efficiency band 0.40–0.71; MA
+> 0.020–0.023/mm at the contact face). The 12 N comparison is therefore a
+> finger-DESIGN ranking probe; the rank survives at any sub-`T_safe` load
+> because the regime is small-strain elastic. Absolute force claims belong
+> to `motor/BENCH_TEST.md`, not to the FEA campaign. Run
+> `motor/scripts/drivetrain_force_envelope.py` for the live numbers.
+>
+> **Reporting-mode default mismatch:** the doc above describes `REPORT_MODE="grip"`
+> as the methodology. The code default is `REPORT_MODE="closure"` reporting at
+> `PRESS_AT_REPORT = 8.0` mm. Most published per-finger metrics in this repo
+> (the universal-score table, the wrap-stage figures) were generated with
+> closure mode; the force-targeted mode is an alternative that exists to handle
+> stiff-vs-compliant comparison and was used selectively in the swarm. The
+> distinction is now explicit in `iter_harness.py`'s docstring.
+
 ## A.9 The object battery + the universal scorer
 
 `eval_finger.py` runs each finger against a **battery** of rigid objects — small/large
@@ -180,32 +207,59 @@ the **Fin Ray truss** (free-topology contact/spine/rib geometry) and a **monolit
 flexure** finger. The Fin Ray family won; the flexure family was ruled out (chaotic,
 unstable grip on round objects — its grip force oscillated wildly between load steps).
 
-## A.11 Two independent solves cross-validate (and a GPU backend)
+## A.11 Two formulations, an order-of-magnitude consistency check (and a GPU backend)
 
-The decisive credibility check: a **2D plane-strain** finite-strain (St.-Venant–
-Kirchhoff) solve in `scikit-fem` (with its analytic tangent **finite-difference
-verified** before trusting Newton) and the **3D corotational** solve agree on the
-fragility metric — **peak von Mises ≈ 2.7 MPa, ~10× below TPU strength** — despite
-different formulations, contact treatments, and load control. Agreement across two
-independent methods is strong evidence the result is real, not a modelling artifact. A
-CuPy **GPU backend** was also added and validated to give numerically identical results
-(it's slower at this mesh size — the gripper is overhead-bound below ~100k DOF — so CPU
-is the default; see `MSI_REMOTE.md`).
+A **2D plane-strain** finite-strain (St.-Venant–Kirchhoff) solve in `scikit-fem` (with
+its analytic tangent **finite-difference verified** before trusting Newton) and the
+**3D corotational** solve both produce peak von Mises **≈ 2.7 MPa**, ≈10× below TPU
+strength. The two solves **do not solve the same problem**, so this is an
+order-of-magnitude consistency check rather than a true cross-validation:
+
+| | 3D corotational (`iter_harness.py`) | 2D plane-strain (`solve_finger.py`) |
+|---|---|---|
+| BC at load | rigid cylinder, **displacement-controlled**, penalty contact | nodal force-controlled patch, **no object, no contact** |
+| Material `ν` | 0.42 | 0.45 |
+| Strain measure | corotational small-strain | St-Venant–Kirchhoff finite-strain |
+| Max load reached | 12 N stress-probe | F = 5.4 N (the 2D solver hits a load-control limit point at ≈5.7 N) |
+| Element | linear tets, 3 layers | P1 triangles |
+
+A *real* apples-to-apples 2D-vs-3D cross-validation would match BCs, `ν`, and load
+level — that hasn't been done. The headline claim is therefore: the **peak von Mises
+agrees in order of magnitude across two related formulations**, which is consistent
+with the finger being well-conditioned in the small-strain corotational regime.
+The 2D solver's load-control limit point at ≈5.7 N is itself worth noting: the
+geometry is on the edge of a snap instability at the load just above what 2D
+reports, and only the 3D displacement-controlled solve can push past it.
+
+A CuPy **GPU backend** was also added and validated to give numerically identical
+results to the CPU path (it's slower at this mesh size — the gripper is overhead-
+bound below ~100k DOF — so CPU is the default; see `MSI_REMOTE.md`).
 
 ## A.12 Results and the honest ceiling
 
 - The shipped Fin Ray finger wraps flat/large objects along its whole length and grips
-  round ones safely and evenly, at a consistent ~12 N, with **von Mises margins
-  ~5.7–8.6×** across the battery.
+  round ones safely and evenly, at a consistent **12 N stress-probe load** (the
+  finger-FEA's design-ranking force; not the drivetrain operating force — see A.8),
+  with **von Mises margins ≈5.7–8.6×** at 12 N. The **implied margin at the
+  drivetrain-deliverable operating force band (0.35–0.73 N) is ≈100–300×**
+  (conservative linear scaling; small-strain corotational regime). The published
+  ~5.7–8.6× number is therefore the *worst-case-load* margin used to make the
+  comparison fair across stiff/compliant fingers, not the in-service margin.
 - **Honest ceiling:** a *passive single-piece* finger on this drive **cannot actively
   curl tightly around a small round cylinder** without a tendon — and tendons/springs
   are exactly the corrosion/fouling the underwater goal forbids. We documented this
   rather than hiding it.
-- **Honest caveats (carried in `fea/FEA.md`):** E and ν are literature estimates, not
-  measured on the print (they shift absolute forces, not the qualitative wrap); ν is
-  relaxed to 0.42 to limit linear-element volumetric locking, which makes the **grip
-  reaction an upper bound** while the **von Mises field stays reliable**; contact is
-  frictionless (conservative).
+- **Honest caveats (carried in `fea/FEA.md`):** E and ν are engineering estimates,
+  not measured on the print. TPU's nonlinear stress-strain curve means a single
+  linear modulus is a working approximation only; the design *ranking* survives the
+  E = 30/40/60 MPa sensitivity (see `PRINT_PROFILE_P1S_TPU.md`) but the absolute
+  stress magnitudes shift with E. ν is relaxed to 0.42 to limit linear-element
+  **volumetric locking**, which is a partial mitigation — locking is
+  **geometry-dependent**, so it can differentially affect the truss-vs-flexure
+  ranking, not just the absolute force level (mixed u-p or P2 tets would be the
+  real fix). The grip reaction is therefore an **upper bound** and the von Mises
+  field is approximate but stable in the small-strain regime. Contact is
+  frictionless (see A.4 for the sign-indeterminate consequences for the wrap claim).
 
 ---
 
@@ -398,13 +452,34 @@ forward model run backwards is the sensor; resolution `ΔF = K_t·ΔI·i_g·MA·
 caveat carries to the readout.
 
 ## C.4 The gear-tooth FEA — the structural finding
-A **2D plane-stress Q4 tooth FEA** (`gear_fea.py`, the same machinery as the grip
-Tier-2, cross-checked vs the Lewis bending formula: 40 vs 38 MPa → no bug) found the
-printed **crown/pinion is the gripper's binding structural limit**: safe input torque
-**`T_safe` ≈ 0.034 N·m (shipped, face-width-strengthened + build-verified) / ≈ 0.40 N·m
-(proposed re-size)** — far below the 0.94 N·m a 12 N grip needs at η ≈ 0.5. So the **motor
-current limit (the sensing pivot) is the gear-protection ceiling**, and 12 N is the
-finger-FEA *report level*, not what the drivetrain can safely deliver.
+A **2D plane-stress Q4 tooth FEA** (`gear_fea.py`) found the printed **crown/pinion is
+the gripper's binding structural limit**: safe input torque **`T_safe` ≈ 0.034 N·m
+(shipped, face-width-strengthened + build-verified) / ≈ 0.40 N·m (proposed re-size)** —
+far below the 0.94 N·m a 12 N grip needs at η ≈ 0.5. So the **motor current limit (the
+sensing pivot) is the gear-protection ceiling**, and 12 N is the finger-FEA *report
+level*, not what the drivetrain can safely deliver. The
+**drivetrain-deliverable per-finger force band** computed from `T_safe` through the
+kinematics chain is **0.35–0.73 N (shipped) / 4.2–8.7 N (proposed re-size)** — see
+`motor/scripts/drivetrain_force_envelope.py` for live numbers (regenerable JSON in
+`motor/iterations/_drivetrain_force_envelope.json`).
+
+> **Caveat on the gear FEA model.** The crown gear is treated as a **2D
+> plane-stress straight-flank cantilever tooth** (`gear_fea.py:tooth_root_stress`),
+> i.e. the same machinery as the grip Tier-2 spur-tooth check. A real crown/face
+> gear is a **3D problem**: the contact line sweeps radially across the tooth
+> length under load, the contact decomposes into tangential + radial + axial
+> components, and the base-disk bending compliance matters — none of which is
+> captured here. The earlier "Lewis 40 vs 38 MPa → no bug" cross-check is also
+> not a real cross-validation: the Lewis form factor assumes an involute spur
+> tooth, not a straight-flank face tooth, so two wrong models agreeing is not
+> the same as one right model being confirmed. Worse, the printed teeth are
+> "straight-flank representative" rather than involute-generated; in PA12-GF
+> these will edge-load and gall rather than roll cleanly. The `T_safe` value is
+> therefore an *engineering estimate from a partial model*, not a bench-validated
+> ceiling. A 2D-through-radius FEA with multiple radial stations
+> (`motor/scripts/gear_fea_3d.py`, added in this branch) integrates the bending
+> contribution across the crown tooth's radial extent for a tighter bound; the
+> only real answer is the bench measurement specified in `motor/BENCH_TEST.md`.
 
 ## C.5 The sims + sensitivity
 `torque_chain.py` (gear ceiling binds, not the servo), `slip_margin.py` (slimy is the
@@ -417,8 +492,17 @@ headline conclusions are **invariant under ±50%** on η, `T_safe`, MA, `K_t`.
 # PART D — What the simulations do and do not establish
 
 **Established:**
-- The Fin Ray finger wraps universally and gently — peak stress ~2.7 MPa, ~10× below TPU
-  strength, **confirmed by two independent FEA formulations** (A.11).
+- The Fin Ray finger wraps universally and gently at the **12 N stress-probe load** —
+  peak stress ~2.7 MPa, ≈10× below TPU strength. At the **drivetrain-deliverable
+  operating force band (0.35–0.73 N, current gears)** the implied margin is
+  ≈100–300× (conservative linear scaling). See A.8/A.12/C.4 for what 12 N means
+  and `motor/scripts/drivetrain_force_envelope.py` for the live force band.
+- A 2D plane-strain solve (`fea/scripts/solve_finger.py`, scikit-fem) and the 3D
+  corotational solve agree on the **order of magnitude** of peak von Mises
+  (~2.7 MPa in both) — but they solve **different problems** (different BCs,
+  different ν, different load levels, the 2D run hits a load-control limit
+  point at ≈5.7 N before reaching the 3D's 12 N). This is a *cross-formulation
+  consistency check*, not an independent re-derivation. See A.11.
 - The crosshatch is the best **tileable, printable, no-speculation** texture across a
   battery of wet object surfaces, and that choice is **robust to ±50% coefficient
   uncertainty** (B.9); its contact mechanics and durability are **FEA-validated** (B.5,
