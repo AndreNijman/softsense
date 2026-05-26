@@ -38,9 +38,12 @@ SYSTEM_STEP = ROOT / "motor" / "cad" / "output" / \
     "system_assembly_T2_UNIBODY_STS3250.step"
 OUTPUT_DIR = ROOT / "motor" / "cad" / "output"
 
-WORLD_DRY_CAP_Z = 333.0
+WORLD_POD_CAP_TOP_Z = 275.0   # top face of pod_cap_shroud in as-mounted world frame
 WORLD_CANISTER_X = 0.0
 WORLD_CANISTER_Y = -12.0
+
+# Back-compat alias (some helpers below still reference the old name).
+WORLD_DRY_CAP_Z = WORLD_POD_CAP_TOP_Z
 
 # Pod-base bolt PCD (per _base.py POD_BOLT_PCD)
 POD_BOLT_PCD = 78.0

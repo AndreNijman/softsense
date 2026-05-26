@@ -181,12 +181,14 @@ def pod_base(thickness: float = 14.0,
         h = Cylinder(radius=bolt_r, height=thickness + 1.0).moved(
             Location((cx, cy, thickness / 2)))
         body -= h
-    # cable exit slot (WetLink, ~Ø14 effective) on +Y side, between bolts
+    # cable exit slot — aligned with the unibody's WetLink penetrator.
+    # The unibody places the WetLink at (world X=0, world Y=+18) which is
+    # adapter Y=+30 (the canister axis is at world Y=-12; adapter origin
+    # sits on canister axis). Slot Ø16 to clear the Ø14 penetrator body.
     if cable_slot:
-        # Place the slot just inside the bolt PCD so it doesn't clip the
-        # outer rim; centred on +Y axis.
-        slot_cy = bolt_pcd / 2 * 0.55
-        slot = Cylinder(radius=CABLE_SLOT_W / 2, height=thickness + 1.0).moved(
+        slot_cy = 30.0
+        slot = Cylinder(radius=CABLE_SLOT_W / 2 + 1.0,
+                        height=thickness + 1.0).moved(
             Location((0, slot_cy, thickness / 2)))
         body -= slot
     # edge break on the outer cylinder top + bottom
