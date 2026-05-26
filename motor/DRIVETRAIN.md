@@ -75,13 +75,17 @@ because `CROWN_RC` is capped at ~11 by the sector teeth (which reach R_GEAR + 0.
 
 ## 4. Ratio decision — KEEP 24/9 = 2.667:1
 
-The selected budget servo (Feetech STS3215, cont. 0.98 N·m) is the binding floor:
-at 2.667:1 it reaches 12 N at the **tip** continuous; dropping to 2.2:1 it falls to
-~11.4 N and the "one decision, two price points" framing collapses. So the ratio is
-**revisited and deliberately kept** — the real Phase-4 change is *engineered teeth*
-and a *derived current ceiling*, not a ratio tweak. (The proposed re-size's geometry
-happens to land at i_g 2.0 as a by-product of the bigger module + fewer teeth — a
-~5 % grip-at-tip reduction for the budget servo, accepted as the structural price.)
+The **rock-bottom budget servo in the ladder** — Feetech STS3215, cont. 0.98 N·m —
+is the binding floor: at 2.667:1 it reaches 12 N at the **tip** continuous; dropping
+to 2.2:1 it falls to ~11.4 N and the budget option no longer hits 12 N. So the
+ratio is **revisited and deliberately kept** — the real Phase-4 change is
+*engineered teeth* and a *derived current ceiling*, not a ratio tweak. (The
+proposed re-size's geometry happens to land at i_g 2.0 as a by-product of the
+bigger module + fewer teeth — a ~5 % grip-at-tip reduction for the STS3215,
+accepted as the structural price; the **deep-budget STS3250 (cont ~2.45 N·m)**
+and **value-tier XM540-W270 (cont 2.12 N·m)** and **flight XW540-T260 (cont
+1.9 N·m)** all have ample torque headroom over the ratio and are not constrained
+by it.)
 
 ## 5. What was implemented vs proposed
 
@@ -125,13 +129,16 @@ one):
 | servo | stall torque | × shipped T_safe | × proposed T_safe |
 |---|---|---|---|
 | DYNAMIXEL XW540-T260 | 9.5 N·m | ~280× | ~12–24× |
+| Feetech STS3250 | **4.9 N·m** | ~144× | ~12× |
 | Feetech STS3215 | 2.94 N·m | ~86× | ~4–7× |
 
-Both ≫ T_safe → **"one decision, two *ESC profiles*"**: same torque setpoint
+All three ≫ T_safe → **"one decision, three *ESC profiles*"**: same torque setpoint
 (~0.5 N·m-class motor for a useful grip on the re-sized train), but each servo needs
 its own current-limit configured to the same torque ceiling. (Resolution check for
 `SENSING.md`: XW540 `present_current` 2.69 mA/step ≈ 0.005 N·m/step — a 0.05 N·m
-ceiling is ~10 LSB of headroom: fine but tight; Feetech 6.5 mA/step is tighter.)
+ceiling is ~10 LSB of headroom: fine but tight; **STS3250 K_t ≈ 1.17 N·m/A** so a
+0.05 N·m ceiling = ~43 mA, well inside the load-feedback proxy's resolution; the
+STS3215's 6.5 mA/step is the tightest of the three.)
 
 ## 8. Why the fallback wins where this can't
 

@@ -31,7 +31,7 @@ while reading current back gives the force estimate.
 
 | Modality | At stall? | Accuracy | Role |
 |---|---|---|---|
-| **Smart-servo `present_current`** (XW540 2.69 mA ≈ 0.005 N·m/step; STS3215 6.5 mA) | yes | ±3–5 % calibrated | **primary** |
+| **Smart-servo current/load telemetry** (XW540 `present_current` 2.69 mA ≈ 0.005 N·m/step; **STS3250 `present_load` % — proxy for torque on the same SCS bus, K_t ≈ 1.17 N·m/A, load-cell-calibrated identically**; STS3215 `present_current` 6.5 mA, K_t ≈ 1.08) | yes | ±3–5 % calibrated | **primary** |
 | **FOC `iq`/torque** (moteus int32 = 1 mA/1 mN·m) | yes | ±2–5 % calibrated | primary (BLDC fallback) |
 | Brushed DC + current shunt (INA226/240) | partial | ±10–20 % raw, ±5–10 % cal | secondary |
 | Sensorless hall/back-EMF | **NO — blind < 10–20 % rated speed** | contact-detect only | never primary |

@@ -169,7 +169,8 @@ concentric barrier wall, dry pod, alignment.
 | DYNAMIXEL XW430-T333 | ~0.62 / 3.1 | 10–14.8 | IP68 (1 m FW) | Present_Current 2.69 mA/u | ~100–200 Hz | RS-485 | ~0.006 N·m ✓ | ~1372 | T1 (cont below floor) | [22] |
 | DYNAMIXEL XM430-W350 | ~0.82 / 4.1 | 10–14.8 | none (canister) | Present_Current 2.69 mA/u | ~100–200 Hz | RS-485 | ~0.005 N·m ✓ | ~517 | T1–T2 canister (cont marginal) | [22] |
 | DYNAMIXEL XM540-W270 | ~2.1 / 10.6 | 10–14.8 | none (canister) | Present_Current 2.69 mA/u | ~100–200 Hz | RS-485 | ~0.007 N·m ✓ | ~766 | T1–T2 canister | [22] |
-| **Feetech STS3215** ★ (cheap) | ~0.98 / 2.94 | 7.4–12.6 | none (canister) | Present_Current 6.5 mA/u | ~100 Hz | SCS TTL | ~0.007 N·m ✓ | **~34** | T1–T2 canister (cont marginal) | [22] |
+| **Feetech STS3250** ★ (deep-budget) | **~2.45 / 4.9** | 6–12 | none (canister) | **load / pos / V / temp** (load % = torque proxy; same SCS bus as STS3215 — per-unit, verify if `present_current` reg is also exposed) | ~100 Hz | SCS TTL | ~0.005 N·m via load %-cal | **~110** | T1–T2 canister (cont clears 1.2 floor with margin) | [22] |
+| **Feetech STS3215** ★ (rock-bottom) | ~0.98 / 2.94 | 7.4–12.6 | none (canister) | Present_Current 6.5 mA/u | ~100 Hz | SCS TTL | ~0.007 N·m ✓ | **~34–44** | T1–T2 canister (cont marginal) | [22] |
 | Hiwonder LX-16A / HX-35H / HTD-45H | 0.19–0.44 cont | 6–12.6 | none | **no current register** (pos/temp/V only) | ~30 Hz | TTL | — | 26–46 | **DEAD-sense** | [22] |
 
 **Verdict — the natural R10 winner.** These expose `present_current` +
@@ -180,10 +181,13 @@ only the **XW series is IP68** (1 m freshwater → T1 stock; T2 needs a thin
 pressure canister because 30 m ≈ 3.1 bar ≫ the 1.1 bar IP68 test, and seawater
 adds corrosion). Torque-wise only **XW540-T260 (≈1.9 N·m)** and **XW540-T140
 (≈1.38 N·m)** clear the 1.2 N·m continuous floor *and* are IP68 — but at ~AUD 1925.
-The **Feetech STS3215 (~AUD 34)** has the telemetry and stall (2.94 N·m) but is
-canister-only and marginal on continuous (0.98 N·m) — the obvious **cheap T1
-dev** part. Note Hiwonder serial servos are **DEAD** (serial bus but *no current
-register*).
+For the budget tier, the **Feetech STS3250 (~AUD 110)** is the new
+recommendation: same SCS TTL bus + load-feedback model as the STS3215, but a real
+**4.9 N·m stall** (and ~2.45 N·m sustained post-protection) clears the 1.2 N·m
+design floor that the STS3215 cannot. The **STS3215 (~AUD 34–44)** stays in the
+ladder as the rock-bottom T1 dev part — canister-only and marginal on continuous
+(0.98 N·m), but cheapest. Note Hiwonder serial servos are **DEAD** (serial bus
+but *no current register*).
 
 ---
 
@@ -216,7 +220,8 @@ paths or a slip-detecting position encoder, not finger wiring [M5].
 | B | **FOC BLDC (moteus/ODrive) + gearmotor in a builder canister** | best dynamic sensing, holds at stall, high torque | control + housing overhead | T1–T2 (T3 oil) |
 | C | **JMC IHSS57 closed-loop stepper (RS-485)** | current+position telemetry, 2.0 N·m, one sealed body, ~AUD 200 | holding heat in canister | T1–T2 |
 | D | **Magnetic coupling + smart-servo/FOC dry pod** | no dynamic seal → T3; sensing inherited; pole-slip force-limit | most mechanical build (pod, barrier, rotor bearing) | **T2–T3** |
-| E | **Feetech STS3215 (canister)** | telemetry at ~AUD 34 — the cheap bench/dev part | cont. torque 0.98 N·m (marginal), not waterproof stock | **T1 dev** |
+| E1 | **Feetech STS3250 (canister)** — *new deep-budget* | same SCS bus + load-% torque proxy, **clears 1.2 N·m cont. floor** (stall 4.9 N·m, sustained ~2.45 N·m) at ~AUD 110 | plastic, no IP rating, canister required | **T1–T2 budget** |
+| E2 | **Feetech STS3215 (canister)** | telemetry at ~AUD 34–44 — the rock-bottom bench/dev part | cont. torque 0.98 N·m (marginal), not waterproof stock | **T1 dev** |
 | — | brushed worm-DC + shunt | cheap, strong torque, zero hold-current | only ±10–20 % sensing | T1–T2 (sense-limited) |
 | ✗ | all IP PWM servos, oil-potted PWM, Hiwonder serial, sensorless M200 | — | **fail R10 (no usable force telemetry / blind at stall)** | DEAD |
 

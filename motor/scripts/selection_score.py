@@ -44,9 +44,18 @@ CAND = {
         sensing=0.85, torque=0.75, modularity=0.90, integration=0.45,
         holding_thermal=0.75, cost=0.45, depth_fit=(0.80, 0.90, 0.95)),
     "E_feetech_STS3215": dict(
-        label="Feetech STS3215 (canister)",
+        label="Feetech STS3215 (canister) — rock-bottom",
         sensing=0.80, torque=0.55, modularity=0.75, integration=0.85,
         holding_thermal=0.70, cost=0.98, depth_fit=(0.80, 0.45, 0.15)),
+    "G_feetech_STS3250": dict(
+        label="Feetech STS3250 (canister) — deep-budget, larger sibling of the STS3215",
+        # same SCS TTL bus + load% feedback as the STS3215 (proxy for present_current,
+        # calibrated identically per SENSING.md); 50 kg.cm / 4.9 N.m stall @ 12V
+        # (sustained ~2.45 N.m post-protection -> clears the 1.2 N.m design floor with
+        # margin, the STS3215 doesn't). Trade: ~3x the price (AUD 110 vs 34) but real
+        # torque headroom, and a 4.2 A stall current means a wider bus/fuse budget.
+        sensing=0.78, torque=0.78, modularity=0.75, integration=0.83,
+        holding_thermal=0.70, cost=0.92, depth_fit=(0.80, 0.48, 0.17)),
     "F_worm_dc": dict(
         label="Brushed worm-DC + current shunt",
         sensing=0.40, torque=0.95, modularity=0.55, integration=0.45,

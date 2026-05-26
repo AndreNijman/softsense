@@ -12,6 +12,7 @@
     "T1": {
       "ranking": [
         "A_dynamixel_XW540",
+        "G_feetech_STS3250",
         "E_feetech_STS3215",
         "D_magnetic_pod",
         "C_jmc_stepper",
@@ -20,6 +21,7 @@
       ],
       "scores": {
         "A_dynamixel_XW540": 0.8444999999999999,
+        "G_feetech_STS3250": 0.7901,
         "E_feetech_STS3215": 0.7674000000000001,
         "D_magnetic_pod": 0.7535000000000001,
         "C_jmc_stepper": 0.7130000000000001,
@@ -34,6 +36,7 @@
       "ranking": [
         "A_dynamixel_XW540",
         "D_magnetic_pod",
+        "G_feetech_STS3250",
         "B_foc_bldc",
         "E_feetech_STS3215",
         "C_jmc_stepper",
@@ -42,6 +45,7 @@
       "scores": {
         "A_dynamixel_XW540": 0.7945000000000001,
         "D_magnetic_pod": 0.7735000000000001,
+        "G_feetech_STS3250": 0.7261,
         "B_foc_bldc": 0.7140000000000001,
         "E_feetech_STS3215": 0.6974000000000001,
         "C_jmc_stepper": 0.6930000000000001,
@@ -61,6 +65,7 @@
         "D_magnetic_pod",
         "B_foc_bldc",
         "A_dynamixel_XW540",
+        "G_feetech_STS3250",
         "E_feetech_STS3215",
         "C_jmc_stepper",
         "F_worm_dc"
@@ -69,6 +74,7 @@
         "D_magnetic_pod": 0.7835,
         "B_foc_bldc": 0.7260000000000001,
         "A_dynamixel_XW540": 0.7245,
+        "G_feetech_STS3250": 0.6641,
         "E_feetech_STS3215": 0.6374000000000001,
         "C_jmc_stepper": 0.623,
         "F_worm_dc": 0.5666

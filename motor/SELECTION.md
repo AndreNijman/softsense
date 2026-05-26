@@ -27,11 +27,19 @@ three depth tiers**. The full blow-by-blow is in `DECISION_LOG.md`.
 | Rank | **T1 ≤ 10 m** | **T2 ≤ 30 m (PRIMARY)** | **T3 > 30 m** |
 |---|---|---|---|
 | 1 | **XW540 smart serial 0.844** | **XW540 smart serial 0.795** | **magnetic pod 0.783** |
-| 2 | Feetech STS3215 0.767 | magnetic pod 0.774 | FOC BLDC 0.726 |
-| 3 | magnetic pod 0.754 | FOC BLDC 0.714 | XW540 smart serial 0.725 |
-| 4 | JMC stepper 0.713 | Feetech STS3215 0.697 | Feetech STS3215 0.637 |
-| 5 | FOC BLDC 0.710 | JMC stepper 0.693 | JMC stepper 0.623 |
-| 6 | worm-DC 0.657 | worm-DC 0.637 | worm-DC 0.567 |
+| 2 | **Feetech STS3250 0.790** | magnetic pod 0.774 | FOC BLDC 0.726 |
+| 3 | Feetech STS3215 0.767 | **Feetech STS3250 0.726** | XW540 smart serial 0.725 |
+| 4 | magnetic pod 0.754 | FOC BLDC 0.714 | **Feetech STS3250 0.664** |
+| 5 | JMC stepper 0.713 | Feetech STS3215 0.697 | Feetech STS3215 0.637 |
+| 6 | FOC BLDC 0.710 | JMC stepper 0.693 | JMC stepper 0.623 |
+| 7 | worm-DC 0.657 | worm-DC 0.637 | worm-DC 0.567 |
+
+The **STS3250 lands as the natural deep-budget peer of the rock-bottom STS3215** —
+same SCS bus, same load-feedback model, but with continuous torque ~2.45 N·m
+(sustained, post torque-protection) clearing the 1.2 N·m design floor that the
+STS3215 doesn't. It ranks #2 at T1, #3 at T2 (top of the canister-only tier
+behind XW540 and the magnetic pod), and #4 at T3. Adding it does **not flip**
+any tier's winner or change the sensitivity envelope (still 14/14 → 13/14 → 13/14).
 
 **Sensitivity:** the **smart serial servo is the robust T1 + T2 winner** — #1 in
 14/14 (T1) and 13/14 (T2) of the ±50 % weight perturbations. At T2 it yields to
@@ -55,14 +63,24 @@ must be current-limited (§Forward, `DRIVETRAIN.md`). `present_current` at 2.69 
 resolves ≈ 0.005 N·m at the servo (S2 with margin) at ~100–200 Hz over RS-485
 (S3) — R10 satisfied outright.
 
-- **Budget build within the same class & interface:** the **Feetech STS3215**
-  (~AUD 34 vs ~AUD 1925) has the same `present_current` telemetry and an in-band
-  stall (2.94 N·m); its continuous rating (0.98 N·m) is marginal vs the 1.2 N·m
-  *target* but covers the **practical mid-face grip** (≈ 0.7–0.8 N·m for 12 N at
-  η ≈ 0.5–0.55) and clears the 0.6 N·m floor. Use STS3215 for bench/dev and T1;
-  step up to the XW540-T260 for the no-compromise T2 flight part. They share the
-  bus, the control model, and the D-coupler adapter — so this is **one decision,
-  two price points**, not two designs.
+- **Budget build within the same class & interface — a two-step ladder:**
+  - **Deep-budget (~AUD 110): Feetech STS3250 (C002)** — 50 kg·cm / **4.9 N·m
+    stall** @ 12 V (sustained ~2.45 N·m after the firmware torque-protection
+    engages, still well above the 1.2 N·m design floor that the STS3215 cannot
+    meet). Same SCS TTL half-duplex bus as the STS3215, same `load / position /
+    voltage / temperature` feedback model; load % is the torque proxy (calibrated
+    identically to Dynamixel `present_current` per `SENSING.md`). K_t ≈ 1.17 N·m/A
+    (= 4.9 / 4.2 stall A), stall current 4.2 A @ 12 V — a wider bus budget than
+    the STS3215 (`ELECTRICAL.md` §3). The recommended affordable build.
+  - **Rock-bottom (~AUD 34–44): Feetech STS3215 (C018)** — 30 kg·cm / 2.94 N·m
+    stall, ~0.98 N·m continuous (marginal vs the 1.2 N·m target but covers the
+    practical mid-face grip ≈ 0.7–0.8 N·m for 12 N at η ≈ 0.5–0.55, and clears
+    the 0.6 N·m floor). For pure bench/T1 dev where the STS3250 is overkill.
+  - **Flight (~AUD 1,925): XW540-T260-R** for the no-compromise T2 build.
+
+  All three share the same control model — bus daisy-chain + commanded current
+  limit + load-cell-calibrated force readout. **One decision, three price
+  points** (with the STS3250 as the new recommended middle), not three designs.
 - **T2 sealing:** even the XW540's IP68 is only 1 m freshwater, so T2 (~3.1 bar
   seawater) still uses a thin pressure canister; the IP68 body is the backup seal
   and corrosion barrier. This is the one place the "stock-waterproof" servo still
@@ -71,7 +89,8 @@ resolves ≈ 0.005 N·m at the servo (S2 with margin) at ~100–200 Hz over RS-4
 ### FALLBACK (tier 3): magnetic-coupling drive with a smart-servo/FOC dry pod
 
 Chosen as the **tier-3 subsea-pitch** fallback (not a tier-1 cheap one — the
-cheap path is already covered by the STS3215 *inside* the primary class). It wins
+cheap path is already covered by the **STS3250 + STS3215 budget ladder** *inside*
+the primary class). It wins
 T3 outright and is the #2 at T2, so it is a real fallback, not a strawman. Its
 case: **no rotating shaft penetrates the pressure boundary**, so depth is set by
 the dry pod's *static* O-rings alone — the same drivetrain scales from pool to
@@ -118,10 +137,12 @@ Phase 4 (`DRIVETRAIN.md`) re-checked the crown/pinion + sector-gear ratio agains
 the selected servo and ran a **gear FEA**. **Finding that updates the margin claim:**
 the printed crown/pinion is the gripper's binding structural limit — safe input
 torque **T_safe ≈ 0.03 N·m as-shipped, ≈ 0.4 N·m at the proposed re-size** — far
-below both servos' stall (XW540 9.5 N·m ≈ 12–280× T_safe; STS3215 2.94 N·m). So the
-"stall headroom" above is *not* free headroom: **the firmware current limit is the
-gear-protection mechanism, mandatory on both servos** ("one decision, two ESC
-profiles"). The ratio stays 2.667:1 (the STS3215 floor). Sensing (`SENSING.md`)
+below **all three** servos' stall (XW540 9.5 N·m ≈ 12–280× T_safe; STS3250 4.9 N·m
+≈ 12–144× T_safe; STS3215 2.94 N·m ≈ 7–86×). So the "stall headroom" above is *not*
+free headroom: **the firmware current limit is the gear-protection mechanism,
+mandatory on every servo in the ladder** ("one decision, three ESC profiles" — the
+same torque ceiling, a per-servo current limit). The ratio stays 2.667:1 (anchored
+on the STS3215 rock-bottom torque floor). Sensing (`SENSING.md`)
 builds the current→force model on this drivetrain.
 
 > **Rank-only caveat (carried from `grip/GRIP_MODEL.md`).** This selection ranks

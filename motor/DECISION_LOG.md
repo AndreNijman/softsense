@@ -72,21 +72,40 @@ cost 0.08. **Sensing fidelity is a primary axis** (per D4). Result
 **T2 (13/14)**; magnetic-coupling pod wins **T3 (13/14)** — the actuator class
 flips with depth, demonstrating modularity quantitatively.
 
-## D7 — PRIMARY = smart serial-bus servo (DYNAMIXEL XW540-T260)
+## D7 — PRIMARY = smart serial-bus servo (DYNAMIXEL XW540-T260) — with a budget ladder
 Robust T1/T2 winner; native `present_current` + position on one RS-485 bus, holds
 a clean torque estimate at stall, IP68 body, ≥ 1.2 N·m cont. (1.9) with stall
-headroom (9.5). **Cost honesty:** at ~AUD 1925 it is the no-compromise flight
-part; the **Feetech STS3215 (~AUD 34)** is the *same-class, same-interface*
-budget/bench member (telemetry present; continuous torque marginal but covers the
-practical mid-face grip). One decision, two price points. T2 still needs a thin
-pressure canister (IP68 = 1 m FW only).
+headroom (9.5). **Cost honesty:** at ~AUD 1,925 it is the no-compromise flight
+part — and the same class has same-bus, same-protocol, same-sensing budget peers:
+- **DYNAMIXEL XM540-W270-R (~AUD 766 / USD 494)** — exact Dynamixel-X RS-485
+  twin, *more* torque (cont 2.12 N·m, stall 10.6); only loses the IP68 body
+  (moot at T2 since the XW540 still needs a canister there). The < $500 "just
+  as good" option.
+- **Feetech STS3250 (C002, ~AUD 110)** — *deep-budget*; same **SCS TTL
+  half-duplex bus** as the STS3215 (it's the larger-motor sibling), same
+  `load / position / voltage / temperature` feedback model (load % is the
+  torque proxy — calibrated identically per `SENSING.md`), but **50 kg·cm /
+  4.9 N·m stall** at 12 V and **~2.45 N·m sustained** post torque-protection,
+  which clears the 1.2 N·m design floor that the STS3215 doesn't. K_t ≈
+  1.17 N·m/A (= 4.9/4.2 stall A); stall current 4.2 A @ 12 V — adds a wider
+  bus/fuse line item than the STS3215 (`ELECTRICAL.md` §3, §6).
+- **Feetech STS3215 (C018, ~AUD 34–44)** — rock-bottom; same bus + literal
+  `present_current` (SCS reg, 6.5 mA/unit), but a smaller motor: 30 kg·cm /
+  2.94 N·m stall, ~0.98 N·m continuous (below the 1.2 target, above the 0.6
+  floor — adequate for intermittent mid-face grip-and-hold, not sustained tip
+  clamping). The "cheap as chips" T1 dev part.
+
+**One decision, four price points** (XW540-T260 → XM540-W270 → STS3250 → STS3215),
+not four designs. T2 still needs a thin pressure canister even for the IP68
+XW540 (1 m FW only).
 
 ## D8 — FALLBACK = magnetic-coupling drive with a smart-servo/FOC dry pod (T3)
-Chosen as the **tier-3 subsea-pitch** fallback (cheap-bench path already covered
-inside D7 by the STS3215). No dynamic shaft seal → depth set only by the dry
-pod's static seals → same drivetrain from pool to subsea. Sensing inherited from
-the pod motor; pole-slip = built-in force limiter (also caps senseable force).
-Keeps the subsea-sponsor narrative; is the genuine #2 at T2.
+Chosen as the **tier-3 subsea-pitch** fallback (cheap-bench path is already
+covered inside D7 by the **STS3250 + STS3215 budget ladder**). No dynamic shaft
+seal → depth set only by the dry pod's static seals → same drivetrain from pool
+to subsea. Sensing inherited from the pod motor; pole-slip = built-in force
+limiter (also caps senseable force). Keeps the subsea-sponsor narrative; is the
+genuine #2 at T2.
 
 ## D9 — Coupler interface: options (no silent rewrite of `SHAFT_COUPLER_*`)
 - **(1) Keep the D-coupler + a printed adapter horn (servo spline → D-socket) —
