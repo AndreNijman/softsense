@@ -133,7 +133,7 @@ the shaft carries the D-socket that mates the gripper's input D-coupler.
 | Radial lip seal, single-lip NBR (DIN 3760 Type A) | **SKF CR 8×14×4 HMS5** (shaft Ø8, OD 14, width 4 mm) | SKF / Trelleborg / Simrit / generic equivalents on McMaster, eBay, AliExpress | $3–6 |
 | Higher-rated variant (Viton, dual-lip) | **SKF CR 8×14×6 HMSA7 V** | SKF | $8–15 |
 | Sealed shaft, Ø8 mm × ~25 mm, **hard-anodised aluminium or 316 stainless** (smooth Ra ≤ 0.8 µm in the seal-contact band) | Machined locally, or print PA12-GF + polish — but PA12-GF wears under the lip over O(10³) cycles | Local fab / SendCutSend / 3D print | $2–10 |
-| Seal seat in the canister end cap | Bore Ø14 H7, depth ≥ 6 mm; **drill out one of the M10 penetrator holes** in the existing Blue Robotics aluminium end cap (`BR-100949-004`) to Ø14 H7 — light press-fit, no adhesive needed | DIY mod | — |
+| Seal seat in the canister end cap | Bore Ø14 H7, depth ≥ 6 mm, **centred** on the wet-side end cap. Start from the **blank** Blue Robotics end cap **`BR-100949-999`** (= no factory holes, the SKU's name — *not* blank in the finished assembly) and drill + ream a single Ø14 H7 bore for the lip seal — light press-fit, no adhesive. Avoids the "enlarge an M10 hole + plug the other three" alternative, which leaves unused penetrator holes to seal. | DIY mod on the blank cap | — |
 
 **Parasitic torque (closed-form bound):**
 `T_seal ≈ μ · F_n · d/2`, where the lip's normal force `F_n` combines garter-spring preload (~5 N circumferential) and pressure-induced loading `F_p ≈ P · π · d · b_lip`. For NBR (μ ≈ 0.15), Ø8 mm shaft, b_lip ≈ 0.5 mm:
