@@ -83,7 +83,9 @@ For each tetrahedron, every Newton iteration:
 1. Compute the **deformation gradient** `F` from the current node positions
    (`F = J · J_material⁻¹`, where `J` is built from the tet's edge vectors).
 2. Take the **polar decomposition** `F = R·U` to extract the pure **rotation** `R`
-   (via the symmetric eigendecomposition of `FᵀF`). `R` is the local rigid spin.
+   (via the **singular-value decomposition** `F = UₛΣVᵀ → R = UₛVᵀ`, with the last
+   `Uₛ` column flipped if `det(R) < 0`). SVD is more numerically robust than the
+   `FᵀF` eigendecomposition for near-rank-deficient `F`. `R` is the local rigid spin.
 3. Compute the **co-rotated strain** `ε = sym(Rᵀ·F) − I` — i.e. strain measured *after*
    removing the rotation. Stress is then linear-elastic in this strain.
 4. Build the **warped element stiffness** `Kₑ = R·Kₑ₀·Rᵀ` (the rest-state linear
@@ -108,9 +110,13 @@ the outward unit normal `n`, and an `inside` mask.
 We use **penalty contact**: any node that penetrates the object by `pen` gets pushed back
 out by a spring force `f_c = K_PEN · pen · n`, with **K_PEN = 2000 N/mm**. The contact
 also contributes a stiffness `K_PEN · (n ⊗ n)` to the tangent matrix so Newton stays
-quadratic. Contact is **frictionless** — a deliberately conservative choice (real
-friction only grips *better*). The finger's inward curl is **emergent**: we only push
-the object in; the truss decides how to wrap it.
+quadratic. Contact is **frictionless** — this **lower-bounds the holding force**
+(friction would add tangential grip) but the effect on the *wrap claim* is
+sign-indeterminate: a frictionless surface lets the finger slide tangentially against
+the object as it curls, which generally *helps* the wrap (no peeling at the contact
+edge). So frictionless is conservative on holding force, but **not** uniformly
+conservative on "wraps universally". The finger's inward curl is **emergent**: we only
+push the object in; the truss decides how to wrap it.
 
 ## A.5 The nonlinear solve — Newton–Raphson with load stepping
 
@@ -254,8 +260,14 @@ object **condition** (B.4) the model computes an **effective holding coefficient
    tree-frog mechanism.
 5. **Partial-slip edge efficiency** — a big monolithic compliant pad peels from its
    edge; subdividing it into many small lands resets the edge stress at each, so
-   efficiency → 1 (`η = ETA_FLOOR + (1−ETA_FLOOR)·LAND_CRIT/(LAND_CRIT+land)`). This is
-   the gecko/fibrillar benefit — small discrete contacts hold better than one big one.
+   efficiency rises with land sub-division (`η = ETA_FLOOR +
+   (1−ETA_FLOOR)·LAND_CRIT/(LAND_CRIT+land)`). This is a **monotone partial-slip
+   surrogate [ESTIMATE]**, not Cattaneo–Mindlin (which scales as
+   `1−(T/μN)^(2/3)` for a Hertzian sphere, not a Hill curve in land size) and not
+   gecko adhesion (van-der-Waals on hierarchical fibrils, a different mechanism
+   entirely). The *direction* of the effect — discrete sub-millimetre contacts
+   hold better than one monolithic pad — is well established in tyre-tread and
+   tree-frog literature; the *functional form* here is engineering convenience.
 6. **Directional coverage** — a 1-D ridge resists only cross-slip (mean of |sinθ| over
    directions ≈ 0.64, worst-case ≈ 0 along the ridge); 2-D/isotropic patterns approach 1
    in every direction. Blended as `W_PRIMARY·M_primary + (1−W_PRIMARY)·M_worst`.

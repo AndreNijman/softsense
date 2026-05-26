@@ -36,10 +36,20 @@ hollow cells. The geometry (thin 1.2 mm contact beam, 1.8 mm spine, 14 fine
 **universally** — it distributes contact pressure along the whole finger on
 flat/large objects and grips round objects safely and evenly across a wide size
 range (see `fea/UNIVERSAL_FINGER.md`). The contact face carries a **crosshatch
-micro-post grip texture** (1.8 mm posts + crossing 0.54 mm drainage channels),
-optimized by a dedicated grip-texture FEA/swarm campaign for **wet, multi-surface**
-grip — it drains the water film and grips in both directions where the old
-single-axis ridges did neither (see `grip/GRIP_TEXTURE.md`). Printed in flexible
+micro-post grip texture** (1.8 mm posts + crossing 0.54 mm drainage channels). The
+shipped pattern is **the empirical winner among textures that actually tile the
+10 mm finger blade and don't lean on a speculative term**. The Tier-1 model's raw
+winner is the **octopus-sucker (concentric)** pattern, which scores best in
+31/31 ±50% sensitivity settings, but its isotropic-ring benefit requires
+ring-count ≫ 1 across the blade width — at most one full rosette fits across
+10 mm, so the model's missing-physics term (tileability) was supplied by
+engineering judgement and the sucker was excluded. Among tile-able families,
+**crosshatch wins 23/31 sensitivity settings**; hexpad (tree-frog) is the close,
+more-isotropic runner-up. The override is documented in `grip/GRIP_TEXTURE.md §5`;
+we did *not* tune a coefficient to demote the sucker (that would be confirmation
+bias). The grip-texture campaign drains the water film and grips in both
+directions, where the old single-axis ridges did neither (see
+`grip/GRIP_TEXTURE.md`). Printed in flexible
 **TPU** (ether-based for sustained immersion — see `UNDERWATER.md`). Note: a
 passive single-piece finger conforms to flat faces but cannot fully *curl around*
 a small round cylinder without an active tendon — see the ceiling discussion in

@@ -88,7 +88,11 @@ FEA visualised on the actual gripper in the photoreal underwater render:
   near-incompressible TPU. The **von Mises field (the fragility metric) is reliable**;
   the absolute **grip reaction is an upper bound** (residual locking stiffens; the 3D
   solve is displacement-controlled so it passes the load-control limit point).
-- **Contact is frictionless** — real friction would only grip better.
+- **Contact is frictionless.** This lower-bounds the *holding force* (friction adds
+  tangential grip) but the effect on the *wrap claim* is sign-indeterminate: a
+  frictionless surface lets the finger slide tangentially against the object as it
+  curls, which generally *helps* the wrap (no edge peeling). Conservative on grip
+  N; not uniformly conservative on "wraps universally".
 - The render (see `RENDER_NOTES.md`) is **FEA-driven finger compliance + exact
   keyframed CAD kinematics + artistic sediment/water**, never "fully simulated physics".
 
