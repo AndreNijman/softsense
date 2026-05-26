@@ -29,10 +29,26 @@ Reproduce: `python motor/scripts/gear_fea.py` (→ `motor/iterations/_gear_fea.j
   **tip tangential load** bends a cantilever tooth (root thickness `s_root`, height
   `h`, loaded face width `b_eff` = min of the two mating faces); peak von-Mises is
   sampled in the root band (sharp shoulder → conservative; a real fillet lowers it).
-- **Lewis = sanity check only.** The gears are *representative straight-flank, not
-  20° involute* (`gripper.py` notes), so the standard Lewis form factor `Y` is
-  misleading. Cross-check: pinion at 10 N tip → FEA 40 MPa vs Lewis
-  `6·F·h/(b·s²)` = 38 MPa → model consistent, no bug.
+- **Lewis "cross-check" disclosure.** The earlier framing presented "Lewis 40 vs FEA
+  38 MPa → no bug" as cross-validation. It isn't: Lewis assumes a 14.5° / 20°
+  **involute spur tooth** form factor, and our teeth are *representative straight-
+  flank, not involute* (`gripper.py` notes). Two wrong models that agree are not
+  the same as one right model being confirmed. The Lewis cross-check is at best a
+  same-formulation consistency check (both are 2D Bernoulli cantilevers at the
+  pitch radius), not independent validation.
+- **Crown gear is a 3D problem, not a 2D plane-stress tooth.** A real crown / face
+  gear has a tangential tooth thickness `s_root(r)` that varies with radial
+  station, a contact line that sweeps radially under rotation, and a load that
+  decomposes into tangential + radial + axial components — none of which the
+  shipped 2D plane-stress single-station FEA captures. `gear_fea_radial.py`
+  (added on this branch) runs the same 2D FEA at five radial stations across the
+  crown's `2·CROWN_TOOTH_H` extent and reports the worst (inner-radius) station.
+  Result: the inner-edge slice carries the binding stress and `T_safe(crown)`
+  drops from **0.034 N·m → 0.013 N·m** — a **2.6× tighter upper bound** on what
+  the printed teeth can carry. This is still not a real 3D solve (the base disk's
+  bending compliance and the moving contact line are still missing). The only
+  bench-grade ceiling is the printed-coupon torque-to-failure test in
+  `motor/BENCH_TEST.md`.
 - **Allowable σ = 30 MPa** (PA12-GF, the drive-arm + pinion material per `BOM.md`).
   Basis: Polymaker Fiberon **PA6-GF25 = 84.5 MPa** tensile (ISO 527); PA12 base is
   weaker than PA6, FDM 100 %-infill knocks bulk down ~30–40 % (layer adhesion) →
@@ -58,11 +74,11 @@ the crown pitch radius** (the i_g split is irrelevant to the tooth force):
 
 ## 3. Result — T_safe (input-shaft torque at which the weakest tooth reaches 30 MPa)
 
-| geometry | pinion | crown | sector | **binding T_safe** |
-|---|---|---|---|---|
-| **as-was** (PINION_T 4, CROWN_TOOTH_H 1.6, b_eff 3.2) | 0.02 | 0.02 | 0.21 | **0.02 N·m** |
-| **shipped** (PINION_T 8, CROWN_TOOTH_H 3.0, b_eff 6.0) ✓ | 0.04 | 0.034 | 0.21 | **0.034 N·m** |
-| **proposed re-size** (CROWN_RC 11, m 1.83, 12/6 teeth, face 8) ⚠ | — | — | — | **0.40 N·m** (realistic ~0.80) |
+| geometry | pinion | crown (single-station 2D) | crown (radial 2D, inner edge) | sector | **binding T_safe** |
+|---|---|---|---|---|---|
+| **as-was** (PINION_T 4, CROWN_TOOTH_H 1.6, b_eff 3.2) | 0.02 | 0.02 | — | 0.21 | **0.02 N·m** |
+| **shipped** (PINION_T 8, CROWN_TOOTH_H 3.0, b_eff 6.0) ✓ | 0.04 | 0.034 | **0.013** | 0.21 | **0.013 N·m** (radial) / **0.034 N·m** (single-station) |
+| **proposed re-size** (CROWN_RC 11, m 1.83, 12/6 teeth, face 8) ⚠ | — | — | — | — | **0.40 N·m** (single-station conservative) |
 
 The sector gear (chunky m≈1.5) is robust; the **crown then pinion** are the weak
 links, exactly as expected for a 9-tooth, 0.67-module pinion below the involute
@@ -110,14 +126,18 @@ T_safe **is** the firmware current-limit ceiling: the actuator is current-contro
 (the sensing pivot), so commanded torque must stay below T_safe. Achievable safe grip
 `F_tip ≈ T_safe · i_g · MA · η / 2`:
 
-| geometry | T_safe | safe grip (mid-face, η 0.5) | realistic (×2) |
-|---|---|---|---|
-| shipped (face-width) | 0.034 N·m | ~0.5 N | ~1 N |
-| proposed re-size | 0.40 N·m | ~4.6 N | ~9 N |
+| geometry | T_safe (2D, by which model) | safe grip per finger (band over η, MA) |
+|---|---|---|
+| shipped (single-station 2D)   | 0.034 N·m | **0.35 – 0.73 N** |
+| shipped (radial 2D inner edge)| **0.013 N·m** | **0.13 – 0.28 N** |
+| proposed re-size (single-station) | 0.40 N·m | **4.2 – 8.7 N** |
 
-So the **shipped representative geometry is a bench/integration article** (grip < ~1 N
-before tooth yield); a **functional grip needs the re-size** (~5–9 N), and even then
-the right-angle stage caps grip below the finger's 12 N capability. *That is the
+So the **shipped representative geometry is a bench/integration article** (grip
+≪ 1 N before crown-tooth yield); a **functional grip needs the re-size**
+(~4–9 N), and even then the right-angle stage caps grip below the finger's 12 N
+*stress-probe* capability (which is itself the FEA-comparison load, not an
+operating force — see `docs/TESTING_AND_SIMULATION.md` A.8). The live force band
+is regenerated by `motor/scripts/drivetrain_force_envelope.py`. *That is the
 campaign finding*, not a number to bury.
 
 ## 7. Margin vs the selected servos — current limit is MANDATORY on both
@@ -149,9 +169,14 @@ ring ≈ 6 N·m) with margin the cramped right-angle stage can never reach — a
 pole-slip *is* a mechanical force limiter (it protects the gripper and the specimen).
 The gear FEA is the quantitative reason the fallback is a genuine #2, not a courtesy.
 
-> **Honesty.** T_safe is a conservative analytical/2D-FEA estimate (tip-load +
-> sharp-shoulder + 30 MPa + no load-sharing ≈ 2–3× conservative); the *realistic*
-> column reflects ~2× of that. It is a **ranking/sizing** number that sets the
-> current ceiling — not a certified breaking torque. Bench torque-to-failure on a
-> printed coupon is the validation (`BENCH_TEST.md`). Cross-links: `SELECTION.md`,
-> `DECISION_LOG.md`, `SENSING.md`, `fea/DECISION_LOG.md`.
+> **Honesty.** T_safe is a 2D-FEA upper-bound estimate. The crown is a 3D face
+> gear (a 2D plane-stress single-station tooth model is partial; the
+> radial-station integration on this branch is tighter but still 2D), the
+> teeth are "representative straight-flank" not involute (so they will
+> edge-load and gall in PA12-GF rather than roll cleanly), and the
+> base-disk bending compliance + moving contact line are not modelled. The
+> shipped value reads "0.013 N·m (radial 2D) / 0.034 N·m (single-station 2D)"
+> — both are conservative upper bounds, and the true ceiling is even lower.
+> Bench torque-to-failure on a printed coupon is the validation
+> (`BENCH_TEST.md`). Cross-links: `SELECTION.md`, `DECISION_LOG.md`,
+> `SENSING.md`, `fea/DECISION_LOG.md`.

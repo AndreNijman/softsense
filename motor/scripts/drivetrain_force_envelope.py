@@ -28,6 +28,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import gear_fea
+import gear_fea_radial
 import kinematics_chain as kc
 
 
@@ -94,27 +95,42 @@ def envelope_for_T_safe(T_safe_Nm, label):
 
 def run():
     gf = gear_fea.run()
-    T_safe_shipped = gf["T_safe_input_Nm"]                         # = 0.034 N.m
+    gf_radial = gear_fea_radial.run()
+    T_safe_shipped_single = gf["T_safe_input_Nm"]                  # = 0.034 N.m
+    T_safe_shipped_radial = gf_radial["worst_radial_station"]["T_safe_Nm"]  # = 0.013 N.m
     T_safe_proposed = gear_fea.proposed_resize()["T_safe_input_Nm_conservative"]
-    shipped = envelope_for_T_safe(T_safe_shipped, "shipped (crown binds)")
-    proposed = envelope_for_T_safe(T_safe_proposed, "proposed re-size (un-implemented)")
+    shipped_single = envelope_for_T_safe(T_safe_shipped_single,
+                                         "shipped (single-station 2D crown FEA)")
+    shipped_radial = envelope_for_T_safe(T_safe_shipped_radial,
+                                         "shipped (radial 2D crown FEA, inner-edge bound)")
+    proposed = envelope_for_T_safe(T_safe_proposed,
+                                   "proposed re-size (un-implemented)")
     return {
-        "shipped": shipped,
+        "shipped_single_station": shipped_single,
+        "shipped_radial_inner_edge": shipped_radial,
+        "shipped_headline": shipped_radial,
         "proposed_resize": proposed,
         "interpretation": [
             "The finger-FEA TARGET_GRIP of 12 N is a STRESS-PROBE LOAD used to "
             "rank designs at a closure the FEA can reach in software. It is "
             "NOT the operating force the shipped drivetrain can safely deliver.",
             "Per the gear-tooth FEA, the SHIPPED crown gear binds at T_safe = "
-            f"{T_safe_shipped:.3f} N.m. Through kinematics_chain, this maps to "
-            f"a per-finger force band of {shipped['F_per_finger_band_N'][0]:.2f}"
-            f"..{shipped['F_per_finger_band_N'][1]:.2f} N -- an order of "
-            "magnitude below the 12 N stress-probe load.",
-            "The implied finger-FEA vM margin at the operating force is "
-            f"{shipped['implied_margin_at_operating_force'][0]:.0f}..{shipped['implied_margin_at_operating_force'][1]:.0f}x "
+            f"{T_safe_shipped_radial:.4f} N.m (radial 2D, inner-edge bound) or "
+            f"{T_safe_shipped_single:.4f} N.m (single-station 2D, less "
+            "conservative). The radial result is the tighter upper bound and "
+            "we treat it as the headline.",
+            "Through kinematics_chain, the radial-bound T_safe maps to a per-"
+            f"finger force band of {shipped_radial['F_per_finger_band_N'][0]:.2f}"
+            f"..{shipped_radial['F_per_finger_band_N'][1]:.2f} N -- two orders "
+            "of magnitude below the 12 N stress-probe load.",
+            "Implied finger-FEA vM margin at the radial-bound operating force is "
+            f"{shipped_radial['implied_margin_at_operating_force'][0]:.0f}.."
+            f"{shipped_radial['implied_margin_at_operating_force'][1]:.0f}x "
             "(conservative; small-strain linear scaling), i.e. the finger is "
-            "WAY safer than the 5.7-8.6x at 12 N suggests, because the gear "
-            "cap limits the actual stress reached.",
+            "WAY safer than the 5.7-8.6x at 12 N suggests because the gear cap "
+            "limits the actual stress reached. (Single-station crown bound "
+            f"gives {shipped_single['implied_margin_at_operating_force'][0]:.0f}.."
+            f"{shipped_single['implied_margin_at_operating_force'][1]:.0f}x.)",
             "The headline finger-FEA conclusions are therefore: the DESIGN "
             "RANKING is valid at any sub-T_safe load (small-strain elastic "
             "regime preserves rank), the ABSOLUTE force in newtons is not "
@@ -122,32 +138,38 @@ def run():
             "magnitudes (2.7 MPa peak vM) only apply if the drivetrain were "
             "re-sized to reach 12 N. The proposed gear re-size in "
             "gear_fea.proposed_resize() would deliver "
-            f"{proposed['F_per_finger_band_N'][0]:.1f}..{proposed['F_per_finger_band_N'][1]:.1f} "
-            "N per finger.",
+            f"{proposed['F_per_finger_band_N'][0]:.1f}.."
+            f"{proposed['F_per_finger_band_N'][1]:.1f} N per finger.",
         ],
     }
 
 
 if __name__ == "__main__":
     out = run()
-    s = out["shipped"]
+    s_sing = out["shipped_single_station"]
+    s_rad = out["shipped_radial_inner_edge"]
     p = out["proposed_resize"]
     print("=== Drivetrain-deliverable per-finger force envelope ===")
-    print(f"shipped:  T_safe = {s['T_safe_Nm']:.3f} N.m")
-    print(f"          MA_mid = {s['MA_mid_per_mm']:.4f}/mm   "
-          f"MA_tip = {s['MA_tip_per_mm']:.4f}/mm")
-    print(f"          eta    = {s['eta_low']:.3f} .. {s['eta_high']:.3f}")
-    print(f"          F_per_finger band = "
-          f"{s['F_per_finger_band_N'][0]:.2f} .. "
-          f"{s['F_per_finger_band_N'][1]:.2f} N   "
-          "(vs 12 N stress-probe)")
-    print(f"          implied finger-FEA margin at operating F: "
-          f"{s['implied_margin_at_operating_force'][0]:.0f} .. "
-          f"{s['implied_margin_at_operating_force'][1]:.0f}x  "
-          "(vs 5.7-8.6x at 12 N)")
+    print("shipped (single-station 2D crown FEA, gear_fea.py headline):")
+    print(f"  T_safe = {s_sing['T_safe_Nm']:.4f} N.m")
+    print(f"  F_per_finger band = "
+          f"{s_sing['F_per_finger_band_N'][0]:.2f} .. "
+          f"{s_sing['F_per_finger_band_N'][1]:.2f} N")
+    print(f"  implied finger margin at operating F: "
+          f"{s_sing['implied_margin_at_operating_force'][0]:.0f} .. "
+          f"{s_sing['implied_margin_at_operating_force'][1]:.0f}x")
     print()
-    print(f"proposed-resize (un-implemented): T_safe = {p['T_safe_Nm']:.3f} N.m")
-    print(f"          F_per_finger band = "
+    print("shipped (radial 2D crown FEA, inner-edge bound, this branch's headline):")
+    print(f"  T_safe = {s_rad['T_safe_Nm']:.4f} N.m")
+    print(f"  F_per_finger band = "
+          f"{s_rad['F_per_finger_band_N'][0]:.2f} .. "
+          f"{s_rad['F_per_finger_band_N'][1]:.2f} N")
+    print(f"  implied finger margin at operating F: "
+          f"{s_rad['implied_margin_at_operating_force'][0]:.0f} .. "
+          f"{s_rad['implied_margin_at_operating_force'][1]:.0f}x")
+    print()
+    print(f"proposed-resize (un-implemented): T_safe = {p['T_safe_Nm']:.4f} N.m")
+    print(f"  F_per_finger band = "
           f"{p['F_per_finger_band_N'][0]:.2f} .. "
           f"{p['F_per_finger_band_N'][1]:.2f} N")
     print()
