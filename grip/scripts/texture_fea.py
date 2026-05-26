@@ -1,10 +1,23 @@
 """Tier-2 verification: 2D plane-strain FEA of a grip-texture cross-section.
 
-IMPORTANT SCOPE: this FEA validates ONLY the contact-mechanics sub-models that
-every family shares -- (1) the real-contact / land-fraction phi_eff(load), and
-(2) the root-stress durability estimate sigma_root = 6*tau*AR. It does NOT and
-cannot validate the grip number itself (friction coefficient, wet drainage); that
-rests on Tier-1 + literature. Do not read this as confirming the holding force.
+IMPORTANT SCOPE: this FEA validates ONLY the STRUCTURAL contact-mechanics sub-
+models that every family shares -- (1) the real-contact / land-fraction
+phi_eff(load), and (2) the root-stress durability estimate
+sigma_root = 6*tau*AR. It does NOT and cannot validate:
+  - the friction model (Briscoe-Tabor + skin slickness + edge deglaze);
+  - the wet drainage / Reynolds squeeze-film / channel-capacity physics;
+  - the partial-slip edge-efficiency surrogate.
+These are the ranking-driving terms in the Tier-1 model and they rest on
+literature + the [PLACEHOLDER] coefficients, not on a finite-element cross-check.
+Do not read this as confirming the holding force, and do not read it as
+confirming the texture RANKING.
+
+Honest caveat on the phi_eff result: under a rigid-platen / flat-top-post /
+plane-strain test geometry, the post cannot bulge sideways into the gap, so a
+load-independent phi_eff at the geometric value is the EXPECTED result -- this
+is largely a tautological confirmation given the test setup. A more demanding
+test (laterally-confined platen, hyperelastic post, higher pressure) could
+genuinely test C_FLAT; we did not run that test.
 
 Why 2D plane-strain: the texture is an extruded relief; a cross-section through
 one pitch in plane strain is faithful and cheap, where the 1.3mm tet mesh of the
@@ -14,7 +27,9 @@ Two studies on the SHIPPED crosshatch post (land 1.26, gap 0.54, height 0.9):
   A. CONTACT: press the post top with a rigid flat platen at increasing depth;
      measure real contact width / pitch = phi_eff(p_real). Confirms the lands
      carry load at ~the geometric fraction (=> p_real = p_nom/phi is right) and
-     calibrates C_FLAT.
+     'calibrates' C_FLAT (in scare quotes because of the tautology caveat
+     above). Result: load-independent phi_eff ~= geometric phi, C_FLAT
+     immaterial.
   B. DURABILITY: apply normal pressure + tangential traction tau=mu*p on the post
      top (sharp root = conservative, no fillet); measure peak von-Mises at the
      root and compare to the beam estimate 6*tau*AR and the Tier-1 margin.

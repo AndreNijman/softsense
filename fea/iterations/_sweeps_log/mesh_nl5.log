@@ -1,1 +1,4 @@
 [_mesh_nl5] params={}
+  section: 1434 nodes / 2225 tris
+  clamp nodes=114 (2 bores)  ndof=25812 tets=33375
+  step  1/12 press= 0.83 it=9 grip=  0.41N vmmax=0.12
