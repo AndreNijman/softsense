@@ -151,18 +151,26 @@ to probe whether the production NLAYERS=3 is mesh-converged. Outputs in
 |---|---|---|---|---|
 | **3 (production)** | **9.87** | **3.515** | **7.11** | True (12/12 steps) |
 | 5 | 9.99 | 3.552 | 7.04 | True (12/12 steps) |
-| 8 | (run still in progress; ≈2.7× the NL=3 cost, longest sweep point) | | | |
+| 8 | 10.05 | 3.598 | 6.95 | True (12/12 steps) |
 
 For a bending-dominated extruded part like the Fin Ray finger, NLAYERS=3 is
 the bare minimum on linear tets; linear tets are notoriously bad in bending
-at low counts. The sweep tests whether peak vM and grip force converge
-between NL=3 and NL=8. The completed NL=3 → NL=5 step (1.7× more elements)
-shows **+1.2 % grip and +1.1 % peak vM** — well within the noise floor.
-This is strong evidence the headlines are mesh-converged at the production
-NL=3, since the increment from NL=5 → NL=8 should be smaller still (linear
-tets converge monotonically in displacement-controlled bending). The NL=8
-point lands at `fea/iterations/_mesh_nl8/metrics.json` when the background
-run completes and a follow-up commit will close out this row.
+at low counts. Across the full NLAYERS = 3 → 8 sweep (2.7× more elements
+edge-to-edge):
+
+- **Grip rises monotonically: 9.87 → 9.99 → 10.05 N** — a 1.8 % shift
+  end-to-end, within numerical noise.
+- **Peak vM rises monotonically: 3.515 → 3.552 → 3.598 MPa** — a 2.4 %
+  shift end-to-end.
+- **Margin: 7.11 → 7.04 → 6.95×** — a 2.3 % drop.
+- All 36 Newton steps converge under the 16-iter cap (max 11 iters used).
+
+**Conclusion:** the shipped finger's headline numbers are **mesh-converged
+at the production NLAYERS=3**. The monotonic upward shift in stress with
+more layers is consistent with under-resolution at NL=3 mildly under-
+predicting peak vM (the linear-tet bending stiffness over-stiffens at low
+counts), but the magnitude of the under-prediction is small enough to be
+inside the locking-uncertainty band reported above.
 
 ## Honesty (carried from both solves)
 
