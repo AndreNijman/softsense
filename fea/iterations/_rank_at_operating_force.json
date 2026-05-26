@@ -99,26 +99,58 @@
       "vM_at_operating_F_MPa_observed": 0.0819,
       "vM_at_operating_F_MPa_fit": 0.1033,
       "margin_at_operating_F": 305.4
+    },
+    {
+      "name": "_oprank_finray2_lowF",
+      "n_points": 8,
+      "slope_MPa_per_N": 0.1601,
+      "intercept_MPa": -0.0372,
+      "R2": 0.99974,
+      "max_grip_observed_N": 33.366,
+      "max_vM_observed_MPa": 5.353,
+      "lowest_grip_observed_N": 2.404,
+      "lowest_vM_observed_MPa": 0.3735,
+      "vM_at_operating_F_MPa_observed": 0.0466,
+      "vM_at_operating_F_MPa_fit": 0.0108,
+      "margin_at_operating_F": 536.3
+    },
+    {
+      "name": "_oprank_flexure_lowF",
+      "n_points": 8,
+      "slope_MPa_per_N": 0.0136,
+      "intercept_MPa": 1.075,
+      "R2": 0.33752,
+      "max_grip_observed_N": 64.724,
+      "max_vM_observed_MPa": 2.039,
+      "lowest_grip_observed_N": 0.08,
+      "lowest_vM_observed_MPa": 0.3688,
+      "vM_at_operating_F_MPa_observed": 1.3779,
+      "vM_at_operating_F_MPa_fit": 1.0791,
+      "margin_at_operating_F": 18.1
     }
   ],
-  "n_runs": 7,
+  "n_runs": 9,
   "ranking_at_operating_force": [
+    "_oprank_finray2_lowF",
     "_locking_nu48",
     "_locking_nu45",
     "_mesh_nl8",
     "_mesh_nl5",
     "_locking_nu42",
     "_mesh_nl3",
-    "_locking_nu40"
+    "_locking_nu40",
+    "_oprank_flexure_lowF"
   ],
   "ranking_at_stress_probe": [
+    "_oprank_flexure_lowF",
     "_mesh_nl8",
     "_mesh_nl5",
     "_locking_nu42",
     "_mesh_nl3",
     "_locking_nu40",
     "_locking_nu45",
-    "_locking_nu48"
+    "_locking_nu48",
+    "_oprank_finray2_lowF"
   ],
   "rank_preserved": false,
   "interpretation": [

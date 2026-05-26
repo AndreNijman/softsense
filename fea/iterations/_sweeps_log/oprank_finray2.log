@@ -7,3 +7,7 @@
   step  4/8 press= 5.00 it=9 grip= 15.18N vmmax=2.37
   step  5/8 press= 6.25 it=8 grip= 19.79N vmmax=3.10
   step  6/8 press= 7.50 it=8 grip= 24.35N vmmax=3.84
+  step  7/8 press= 8.75 it=9 grip= 28.94N vmmax=4.60
+  step  8/8 press=10.00 it=8 grip= 33.37N vmmax=5.35
+[_oprank_finray2_lowF] metrics: {"contact_nodes": 14, "contact_arc_deg": 9.8, "pressure_cov": 0.74, "closure_at_target": 7.5, "reached_target": true, "locked": false, "stress_spread_frac": 0.029, "engage_y_frac": 0.043, "bot_third_force_frac": 0.0, "mid_third_force_frac": 1.0, "top_third_force_frac": 0.0, "tip_inward_mm": -9.14, "max_von_mises_MPa": 7.059, "margin_x": 3.54, "grip_at_press_N": 24.35, "press_mm": 7.5, "contact_y_min": 74.0, "contact_y_max": 77.8, "did_converge_all_steps": true, "n_steps_not_converged": 0, "newton_iters_max_used": 10, "newton_iters_mean": 8.62, "newton_iters_per_step": [9, 8, 10, 9, 8, 8, 9, 8], "did_converge_per_step": [true, true, true, true, true, true, true, true], "residual_final_per_step": [0.0022232205920374956, 0.0011660269113671913, 0.005649269289278783, 0.0029238362316344343, 0.002219982791230043, 0.007153552177694376, 0.005665942750561596, 0.02016186615136139], "newton_max_iters": 16, "newton_tol_rel": 0.002, "report_mode": "closure", "target_grip_stress_probe_N": 12.0, "press_at_report_mm": 8.0, "nu_used": 0.42, "e_tpu_used": 40.0, "nlayers_used": 3}
+[_oprank_finray2_lowF] done in 166s

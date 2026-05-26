@@ -82,14 +82,33 @@ def build_p2():
     return mesh, basis
 
 
-def dofs_of_nodes_p2(basis, nodes):
-    """All x/y DOFs for the given P1 vertex indices, in the P2 basis."""
-    nodal = basis.nodal_dofs                        # shape (2, n_nodes_p2)
-    return nodal[:, nodes].flatten()
+def dofs_of_nodes_p2(basis, mesh, vertex_ids):
+    """All x/y DOFs that lie on the clamp BOUNDARY for the given vertex_ids,
+    including vertex DOFs AND mid-edge DOFs of facets between those vertices.
+
+    P2 elements have edge DOFs (mid-edge nodes); just clamping vertex DOFs
+    leaves the mid-edge node free, which silently under-constrains the
+    boundary and softens the FEA -- a major bug in the original P2 setup
+    (caught by an apples-to-apples diagnostic vs P1).
+    """
+    import numpy as np
+    vertex_ids = np.asarray(vertex_ids)
+    nodal = basis.nodal_dofs[:, vertex_ids].flatten().tolist()
+    # facet_dofs: shape (n_dofs_per_facet, n_facets). We want the facets
+    # whose BOTH endpoints are in vertex_ids -- those facets lie on the
+    # clamped arc.
+    fac = mesh.facets                                # shape (2, n_facets)
+    verts = set(vertex_ids.tolist())
+    facet_mask = np.array([fac[0, k] in verts and fac[1, k] in verts
+                           for k in range(fac.shape[1])])
+    facet_ids = np.where(facet_mask)[0]
+    if basis.facet_dofs.size > 0 and len(facet_ids) > 0:
+        nodal += basis.facet_dofs[:, facet_ids].flatten().tolist()
+    return np.array(sorted(set(nodal)), dtype=np.int64)
 
 
-def x_dofs_of_nodes_p2(basis, nodes):
-    return basis.nodal_dofs[0, nodes]
+def x_dofs_of_nodes_p2(basis, vertex_ids):
+    return basis.nodal_dofs[0, vertex_ids]
 
 
 def vm_per_node_p2(mesh, basis, u):
@@ -135,7 +154,7 @@ def run_p2(NSTEP=24, F_TARGET=5.4):
     history + the peak vM at each step + the converged frames."""
     mesh, basis = build_p2()
     clamp_nodes, patch_nodes, lm = sf2d.bc_and_load(mesh, basis.with_element(ElementTriP1()))
-    D = dofs_of_nodes_p2(basis, clamp_nodes)
+    D = dofs_of_nodes_p2(basis, mesh, clamp_nodes)
     if len(patch_nodes) == 0:
         raise RuntimeError("empty contact patch")
     xpd = x_dofs_of_nodes_p2(basis, patch_nodes)
