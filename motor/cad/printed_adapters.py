@@ -36,11 +36,14 @@ import math
 
 from build123d import (
     Box,
+    Circle,
     Color,
     Compound,
     Cylinder,
     Location,
     Plane,
+    Rectangle,
+    loft,
 )
 
 # Tube ID from external_parts.py (kept hardcoded here so this module
@@ -248,15 +251,19 @@ CENTER_TO_CABLE_HOLE_OFFSET = 12.0   # cable feed offset from canister axis
 # Origin: centre of TOP face (the face that mates the gripper flange).
 # +Z = down toward the canister.
 
-WRIST_PLATE_OD  = 96.0   # cylindrical — same OD as canister_fairing for smooth continuity
-WRIST_PLATE_H   = 28.0   # axial thickness — generous so canister → gripper-flange transition reads as one block
+WRIST_PLATE_OD  = 100.0  # ≥ BR cap OD 98 so the cap fits inside the recess; matches canister_fairing OD
+WRIST_PLATE_H   = 54.0   # axial thickness — tall enough to bridge gripper flange to BR wet cap (1 housing, not a disc)
 BR_CAP_OD       = 98.0
 BR_CAP_FLANGE_T = 16.0
 GRIPPER_FLANGE_BOLT_R = 2.25
 GRIPPER_FLANGE_BOLT_XZ = [(-38.0, 2.0), (38.0, 2.0), (-38.0, 18.0), (38.0, 18.0)]
 
 
-def wrist_plate(label: str = "wrist_plate") -> Compound:
+def wrist_plate(label: str = "wrist_plate",
+                shaft_offset_x: float = 0.0,
+                shaft_offset_y: float = 0.0,
+                bolt_offset_x: float = 0.0,
+                bolt_offset_y: float = 0.0) -> Compound:
     """Printed PA12-GF wrist plate. Snap-fits onto the BR wet end cap;
     presents a flat face that the gripper bolts onto via its existing
     4×M4 bottom-flange pattern.
@@ -264,6 +271,15 @@ def wrist_plate(label: str = "wrist_plate") -> Compound:
     Cylindrical OD = 96 mm — same as the `canister_fairing`, so the wrist
     reads as a smooth continuation of the canister silhouette rather than
     a wider pedestal sticking out at the sides.
+
+    `shaft_offset_x` / `shaft_offset_y` place the Ø10 shaft clearance hole
+    off the wrist's own centre (used by the UNIBODY assembly where the
+    wrist is centred on the canister body but the drive shaft is off-centre).
+    `bolt_offset_x` / `bolt_offset_y` similarly shift the 4×M4 bolt pattern
+    so the gripper flange holes still align with the gripper's own off-centre
+    flange (-38/+38 from the gripper enclosure centre, not from the canister
+    body centre — so apply +SHAFT_OFFSET_X to shift the bolt pattern with
+    the gripper).
 
     The plate is purely cosmetic + structural-bracket — it carries the
     gripper's mounting load, not the pressure load.
@@ -277,23 +293,24 @@ def wrist_plate(label: str = "wrist_plate") -> Compound:
         Location((0, 0, BR_CAP_FLANGE_T / 2 + 0.5)))
     body -= cap_recess
 
-    # central Ø10 clearance bore for the adapter shaft
-    shaft_clearance = Cylinder(radius=5.0, height=WRIST_PLATE_H + 2).moved(
-        Location((0, 0, WRIST_PLATE_H / 2)))
+    # Through-bore at the off-centre shaft position. Ø22 (wider than the
+    # Ø16 wet D-socket) so the D-socket + shaft + lip seal all fit through
+    # the housing. The housing is purely cosmetic structural — nothing
+    # contacts the bore wall.
+    shaft_clearance = Cylinder(radius=11.0, height=WRIST_PLATE_H + 2).moved(
+        Location((shaft_offset_x, shaft_offset_y, WRIST_PLATE_H / 2)))
     body -= shaft_clearance
 
-    # 4×M4 clearance holes matching gripper.py BOLT_XZ (-38/+38 × 2/18 mm).
-    # NOTE: gripper.py uses model (X, Z) for the flange holes; in world frame
-    # after the +90X reorient that becomes (X, -Y). Here we lay the bolt
-    # pattern on the plate's X-Y plane directly.
+    # 4×M4 clearance holes for the gripper flange. gripper.py BOLT_XZ is
+    # in MODEL (X,Z); after the gripper's +90X reorient (model+Z → world-Y)
+    # the bolt holes land at world (X, Y) = (bx, -bz). Since the wrist's
+    # local frame is centred on the canister body at world (0, -12), the
+    # wrist-local coordinate is (bx - 0, -bz - (-12)) = (bx, 12 - bz).
     for bx, bz in GRIPPER_FLANGE_BOLT_XZ:
-        # bz is measured from the gripper's Z=0; the plate's Y axis spans
-        # ±WRIST_PLATE_D/2 around centre. Re-anchor bz so the [2, 18] range
-        # is centred on Y=0: shift by -10 (= mid of 2..18).
-        cy = bz - 10.0
+        cy = 12.0 - bz   # bz=2→cy=10, bz=18→cy=-6
         h = Cylinder(radius=GRIPPER_FLANGE_BOLT_R + 0.2,
                      height=WRIST_PLATE_H + 1).moved(
-            Location((bx, cy, WRIST_PLATE_H / 2)))
+            Location((bx + bolt_offset_x, cy + bolt_offset_y, WRIST_PLATE_H / 2)))
         body -= h
 
     body.color = Color(0.78, 0.80, 0.83)   # brushed-aluminium look
@@ -304,8 +321,8 @@ def wrist_plate(label: str = "wrist_plate") -> Compound:
 # ==========================================================================
 # 6. canister_fairing — 2-piece snap-clip cosmetic sleeve over the BR tube
 # ==========================================================================
-CANISTER_FAIRING_OD = 96.0
-CANISTER_FAIRING_ID = 87.0  # BR tube OD + 0.5 mm slip fit per side
+CANISTER_FAIRING_OD = 100.0   # matches wrist_plate OD so wrist→fairing reads as one body
+CANISTER_FAIRING_ID = 87.0    # BR tube OD + 0.5 mm slip fit per side
 
 
 def canister_fairing(length: float = 150.0,
@@ -332,10 +349,65 @@ def canister_fairing(length: float = 150.0,
 # ==========================================================================
 # 7. pod_cap_shroud — printed PA12-GF shroud over the BR dry end cap
 # ==========================================================================
-POD_CAP_OD       = 96.0
+POD_CAP_OD       = 100.0   # matches the pod silhouette
 POD_CAP_T        = 14.0
 POD_CABLE_BORE_R = 5.0
 POD_CABLE_OFFSET = 18.0
+
+
+# ==========================================================================
+# 8. gripper_taper_cover — printed PA12-GF tapered shroud that snaps over
+#    the gripper enclosure and visually continues the pod silhouette down
+#    until just above the fingers. Round at top (mates wrist_plate bottom),
+#    rounded-rectangle at bottom (just bigger than the gripper enclosure).
+# ==========================================================================
+GRIPPER_TAPER_COVER_H       = 50.0   # axial height — covers the enclosure body
+GRIPPER_TAPER_COVER_TOP_OD  = 100.0  # matches wrist_plate / fairing
+GRIPPER_TAPER_COVER_BOT_W   = 108.0  # enclosure 96 + 6 mm wall clearance per side
+GRIPPER_TAPER_COVER_BOT_D   = 42.0   # enclosure depth ~30 + 6 mm wall clearance per side
+GRIPPER_TAPER_COVER_WALL    = 3.0    # PA12-GF wall thickness
+
+
+def gripper_taper_cover(label: str = "gripper_taper_cover") -> Compound:
+    """Tapered printed PA12-GF cover. Snap-fits over the gripper enclosure body
+    by friction + four internal hook clips (geometry abstracted at this fidelity).
+
+    Top face: Ø100 mm circle — mates the bottom face of the `wrist_plate`
+    flush, so the canister → wrist → cover silhouette reads as one continuous
+    pod from above. Bottom face: rounded-rectangle (108 × 42 mm), slightly
+    larger than the gripper enclosure (96 × 30) so the cover slides down
+    over it. The fingers emerge UNCOVERED below the bottom face.
+
+    Hollow inside (3 mm wall) so the existing gripper enclosure body slides
+    up into it without modification. No pressure-bearing role — purely the
+    visual unibody continuation.
+
+    +Z = UP (toward wrist plate). Origin = top face centre.
+    """
+    # Outer profile: top circle, bottom rounded-rect at offset
+    top_face = Plane.XY * Circle(radius=GRIPPER_TAPER_COVER_TOP_OD / 2)
+    bot_plane = Plane.XY.offset(-GRIPPER_TAPER_COVER_H)
+    bot_face = bot_plane * Rectangle(
+        GRIPPER_TAPER_COVER_BOT_W, GRIPPER_TAPER_COVER_BOT_D)
+    outer = loft([top_face.sketch, bot_face.sketch] if hasattr(top_face, "sketch")
+                 else [top_face, bot_face])
+
+    # Inner cavity (wall-shrunk version) — opens through both top and bottom so
+    # the gripper enclosure body slides up from below, and the input shaft +
+    # D-coupler pass through the top.
+    W = GRIPPER_TAPER_COVER_WALL
+    top_in_face = Plane.XY.offset(+0.5) * Circle(
+        radius=GRIPPER_TAPER_COVER_TOP_OD / 2 - W)
+    bot_in_face = Plane.XY.offset(-GRIPPER_TAPER_COVER_H - 0.5) * Rectangle(
+        GRIPPER_TAPER_COVER_BOT_W - 2 * W,
+        GRIPPER_TAPER_COVER_BOT_D - 2 * W)
+    inner = loft([top_in_face.sketch, bot_in_face.sketch] if hasattr(top_in_face, "sketch")
+                 else [top_in_face, bot_in_face])
+
+    cover = outer - inner
+    cover.color = Color(0.62, 0.65, 0.70)   # slightly darker than wrist plate
+    cover.label = label
+    return Compound(label=label, children=[cover])
 
 
 def pod_cap_shroud(label: str = "pod_cap_shroud") -> Compound:

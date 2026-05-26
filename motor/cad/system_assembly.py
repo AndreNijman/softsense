@@ -86,9 +86,11 @@ from printed_adapters import (
     wrist_plate,
     canister_fairing,
     pod_cap_shroud,
+    gripper_taper_cover,
     WRIST_PLATE_H,
     CANISTER_FAIRING_OD,
     POD_CAP_T,
+    GRIPPER_TAPER_COVER_H,
 )
 
 VARIANT = os.environ.get("GRIPPER_CANISTER_VARIANT", "T2").upper()
@@ -99,12 +101,23 @@ OUT_DIR = os.path.join(os.path.dirname(__file__), "output")
 # World-frame anchors (post the gripper's +90X reorient)
 # --------------------------------------------------------------------------
 # Gripper input D-coupler exits the flange bottom face at:
-SHAFT_X_W = G.DRIVE_X                              # -12
+SHAFT_X_W = G.DRIVE_X                              # -12 (off-centre by design — the
+                                                   # gripper drives off the left gear pivot)
 SHAFT_Y_W = -G.DRIVE_Z                             # -11.72
 FLANGE_BOT_Z = G.BOT_FLANGE_Y[0]                   # -25 (flange bottom face)
 GRIPPER_COUPLER_BOT_Z = (G.BOT_FLANGE_Y[0]
                          - G.SHAFT_SHOULDER_T
                          - G.SHAFT_COUPLER_LEN)    # -25 - 2 - 12 = -39
+
+# Canister body is CENTRED on the gripper enclosure CENTROID. The gripper
+# enclosure spans model ENC_X (-48..48) × ENC_Z (0..24), so its centroid in
+# world frame (after the gripper's +90X reorient: model+Y→world+Z, model+Z→world-Y)
+# is at world (X=0, Y=-12). The SHAFT is off-centre at (X=-12, Y≈-12) — so
+# Y is essentially aligned with the enclosure but X is offset by 12 mm.
+CANISTER_X_W = 0.0                                 # gripper enclosure ENC_X centroid
+CANISTER_Y_W = -12.0                               # gripper enclosure ENC_Z centroid (= 12) → world -Y
+SHAFT_OFFSET_X = SHAFT_X_W - CANISTER_X_W          # -12 — shaft offset from canister axis
+SHAFT_OFFSET_Y = SHAFT_Y_W - CANISTER_Y_W          # ~+0.3 — essentially zero (shaft Y nearly = canister Y)
 
 # Canister hangs below the gripper. We leave a small air gap between the
 # bottom of the gripper coupler and the top of the wet D-socket: the D-socket
@@ -154,13 +167,39 @@ CRADLE_BOT_Z = SPACER_TOP_Z
 
 def _move_to_canister_axis(part, z_centre):
     """Move a part whose local origin is on its symmetry axis (z = 0) to
-    sit centred on the canister axis at world z=z_centre."""
+    sit centred on the SHAFT axis (off-centre by 12 mm) — legacy T2 helper."""
     return part.moved(Location((SHAFT_X_W, SHAFT_Y_W, z_centre)))
 
 
 def _move_bottom_at(part, z_bot):
     """Move a part whose local origin is on its BOTTOM face to sit on the
-    canister axis with that bottom face at world z=z_bot."""
+    SHAFT axis (off-centre by 12 mm) at world z=z_bot — legacy T2 helper."""
+    return part.moved(Location((SHAFT_X_W, SHAFT_Y_W, z_bot)))
+
+
+# --- UNIBODY placement helpers --------------------------------------------
+# Canister body is centred on the gripper enclosure (CANISTER_X_W, CANISTER_Y_W)
+# = (0, 0). Shaft + lip seal + horn adapter + D-socket are placed at the OFFSET
+# shaft position (SHAFT_X_W, SHAFT_Y_W) so they engage the gripper's actual
+# (off-centre) input D-coupler.
+
+def _to_canister_body(part, z_centre):
+    """Origin-on-axis part → centred on canister body (X=0, Y=0)."""
+    return part.moved(Location((CANISTER_X_W, CANISTER_Y_W, z_centre)))
+
+
+def _bottom_at_canister_body(part, z_bot):
+    """Origin-on-bottom part → centred on canister body, bottom at z_bot."""
+    return part.moved(Location((CANISTER_X_W, CANISTER_Y_W, z_bot)))
+
+
+def _to_shaft(part, z_centre):
+    """Origin-on-axis part → centred on shaft axis (off-centre)."""
+    return part.moved(Location((SHAFT_X_W, SHAFT_Y_W, z_centre)))
+
+
+def _bottom_at_shaft(part, z_bot):
+    """Origin-on-bottom part → centred on shaft axis (off-centre), bottom at z_bot."""
     return part.moved(Location((SHAFT_X_W, SHAFT_Y_W, z_bot)))
 
 
@@ -377,17 +416,24 @@ def assemble_servo_choices():
 
 
 def assemble_t2_xray():
-    """T2 lip-seal assembly with the ACRYLIC TUBE OMITTED — the literal 'xray'
-    view. Same coordinate frame, same parts, same connectivity asserts; just
-    no opaque cylinder hiding the servo + shaft + lip seal.
+    """UNIBODY assembly with the canister fairing + acrylic tube OMITTED —
+    the literal 'xray' view. Shows the servo, cradle, shaft, lip seal, and
+    BR end caps inside the canister cavity. Uses the same UNIBODY frame
+    (canister centred on gripper enclosure, drive off-centre, as-mounted
+    orientation) so the xray + the hero match visually.
 
-    We override `br_tube_3in_240` in the assemble_t2 path by post-filtering
-    the Compound. Simpler than splitting the assembly logic.
+    NB: assemble_t2_unibody() applies a 180° X rotation on the outer
+    Compound's Location. Filtering its children drops that outer Location,
+    so we re-apply the same rotation to the result.
     """
-    asm = assemble_t2()
+    asm = assemble_t2_unibody()
     keep = [c for c in asm.children
-            if not (isinstance(c, Compound) and "br_acrylic_tube" in (c.label or ""))]
-    return Compound(label=asm.label + "_XRAY", children=keep)
+            if not (isinstance(c, Compound)
+                    and any(s in (c.label or "")
+                            for s in ("br_acrylic_tube", "canister_fairing")))]
+    result = Compound(label=asm.label + "_XRAY", children=keep)
+    result = result.moved(Location((0, 0, 0), (1, 0, 0), 180))
+    return result
 
 
 # ==========================================================================
@@ -404,11 +450,20 @@ def assemble_t2_xray():
 def assemble_t2_unibody():
     """T2 lip-seal assembly, full visual unibody variant.
 
-    Same internal architecture as `assemble_t2`. Differences:
+    Canister BODY (tube, fairing, wrist plate, end caps, pod shroud, servo
+    cradle, servo, dry penetrators) is **centred on the gripper enclosure**
+    at (CANISTER_X_W, CANISTER_Y_W) = (0, 0).
+
+    DRIVE CHAIN (shaft, lip seal, horn adapter, wet D-socket) stays on
+    the **off-centre SHAFT axis** at (SHAFT_X_W, SHAFT_Y_W) = (-12, -11.72)
+    so it engages the gripper's actual input D-coupler. Result: the canister
+    visually sits centred on the gripper, the drive crosses through it
+    off-centre — exactly how a real ROV gripper wrist works.
+
+    Other differences from `assemble_t2`:
       - 150 mm BR tube (BR-102649-150) replaces the 240 mm.
-      - wrist_plate around the wet-side BR cap, matching gripper flange bolt
-        pattern on its outer face.
-      - canister_fairing covers the BR tube (cosmetic; same printed family).
+      - wrist_plate (Ø96 cylinder) around the wet-side BR cap.
+      - canister_fairing covers the BR tube.
       - pod_cap_shroud covers the BR dry cap, single visible cable exit.
       - Final +180° X rotation -> as-mounted orientation (canister UP, fingers DOWN).
     """
@@ -417,65 +472,88 @@ def assemble_t2_unibody():
     # 1. Gripper (already world-frame Z-up).
     parts.append(_make_gripper())
 
-    # 2. Wet D-socket (gripper-side coupler engagement).
-    parts.append(_move_bottom_at(wet_d_socket(), WET_DSOCKET_BOT_Z))
+    # 2. Wet D-socket (gripper-side coupler engagement) — ON THE SHAFT AXIS.
+    parts.append(_bottom_at_shaft(wet_d_socket(), WET_DSOCKET_BOT_Z))
 
-    # 3. Ø8 shaft.
+    # 3. Ø8 shaft — ON THE SHAFT AXIS.
     shaft_centre_z = (SHAFT_TOP_Z + SHAFT_BOT_Z) / 2.0
-    parts.append(_move_to_canister_axis(gobilda_shaft_8x50(), shaft_centre_z))
+    parts.append(_to_shaft(gobilda_shaft_8x50(), shaft_centre_z))
 
-    # 4. Lip seal at cap centroid.
+    # 4. Lip seal at cap centroid — ON THE SHAFT AXIS.
     seal_z = WET_CAP_EXT_FACE_Z - CAP_FLANGE_T / 2.0
-    parts.append(_move_to_canister_axis(lip_seal_8x14x4(), seal_z))
+    parts.append(_to_shaft(lip_seal_8x14x4(), seal_z))
 
-    # 5. Wet end cap (drilled Ø14 H7).
-    parts.append(_move_bottom_at(br_end_cap_wet_lipseal(), WET_CAP_EXT_FACE_Z))
+    # 5. Wet end cap — CENTRED ON CANISTER BODY with the Ø14 H7 lip-seal bore
+    # drilled OFF-CENTRE at the shaft position (real-world: drill the BR cap
+    # at the offset; in CAD: pass the offset through).
+    cap_centred = br_end_cap_wet_lipseal(bore_offset_x=SHAFT_OFFSET_X,
+                                         bore_offset_y=SHAFT_OFFSET_Y)
+    parts.append(_bottom_at_canister_body(cap_centred, WET_CAP_EXT_FACE_Z))
 
-    # 5b. **wrist_plate** wraps the wet end cap. Origin = top face (gripper side).
-    # Its top face must sit AT or just above the wet cap exterior face so it
-    # presents a clean visible bracket; its body extends in +Z into the gap
-    # between the wet cap and the gripper flange.
-    wrist_top_z = WET_CAP_EXT_FACE_Z + 0.0
-    parts.append(_move_bottom_at(wrist_plate(), wrist_top_z - WRIST_PLATE_H))
+    # 5b. wrist_plate — TALL HOUSING that bolts to the gripper flange at the
+    # top, spans the air gap between the flange and the BR wet cap, and
+    # cradles the wet cap inside its bottom recess. Its TOP face sits at
+    # the gripper flange's bottom face (FLANGE_BOT_Z = -25), so the M4 bolts
+    # in the gripper flange pass straight into the wrist plate's top face
+    # bolt holes. The shaft + D-socket + lip seal all pass through its
+    # central Ø22 through-bore (off-centre at the shaft axis).
+    wrist_top_z = FLANGE_BOT_Z                                  # = -25
+    parts.append(_bottom_at_canister_body(
+        wrist_plate(shaft_offset_x=SHAFT_OFFSET_X,
+                    shaft_offset_y=SHAFT_OFFSET_Y),
+        wrist_top_z - WRIST_PLATE_H))
 
-    # 6. Acrylic tube — **150 mm variant** for the unibody config.
-    tube_top_z_uni = WET_CAP_EXT_FACE_Z - CAP_FLANGE_T   # below the cap flange
+    # 6. Acrylic tube (150 mm) — CENTRED ON CANISTER BODY.
+    tube_top_z_uni = WET_CAP_EXT_FACE_Z - CAP_FLANGE_T
     tube_bot_z_uni = tube_top_z_uni - TUBE_LEN_150
     tube_centre_z_uni = (tube_top_z_uni + tube_bot_z_uni) / 2.0
-    parts.append(_move_to_canister_axis(br_tube_3in_150(), tube_centre_z_uni))
+    parts.append(_to_canister_body(br_tube_3in_150(), tube_centre_z_uni))
 
-    # 6b. **canister_fairing** covers the BR tube. Centred on the tube.
-    parts.append(_move_to_canister_axis(
+    # 6b. canister_fairing — CENTRED ON CANISTER BODY.
+    parts.append(_to_canister_body(
         canister_fairing(length=TUBE_LEN_150), tube_centre_z_uni))
 
-    # 7. Dry end cap (flipped, exterior face at the bottom).
+    # 7. Dry end cap — CENTRED ON CANISTER BODY.
     dry_cap = br_end_cap_dry_4xm10().moved(Location((0, 0, 0), (1, 0, 0), 180))
     dry_cap_ext_z = tube_bot_z_uni - CAP_FLANGE_T
     dry_cap_int_z = tube_bot_z_uni + CAP_BOSS_LEN
-    parts.append(_move_bottom_at(dry_cap, dry_cap_ext_z))
+    parts.append(_bottom_at_canister_body(dry_cap, dry_cap_ext_z))
 
-    # 7b. **pod_cap_shroud** covers the dry cap. Its origin is centre of its
-    # gripper-side face; we want that face to sit AT the cap exterior face
-    # (below). The shroud body extends downward (away from the canister)
-    # so the cable exit is visible. Flip it so +Z points down here.
+    # 7b. pod_cap_shroud — CENTRED ON CANISTER BODY.
     pod_shroud = pod_cap_shroud().moved(Location((0, 0, 0), (1, 0, 0), 180))
-    parts.append(_move_bottom_at(pod_shroud, dry_cap_ext_z))
+    parts.append(_bottom_at_canister_body(pod_shroud, dry_cap_ext_z))
 
-    # 8. Single WetLink penetrator + 3 blank M10 plugs (hidden behind the
-    # pod_cap_shroud). The visible cable exits through the shroud's hole.
+    # 8. Single WetLink penetrator + 3 blank M10 plugs — laid out on the
+    # canister-body PCD (centred on canister body, not shaft).
     PCD = 60.0
     pen_pos = [(math.radians(90),  wetlink_penetrator()),
                (math.radians(0),   wetlink_blank_m10()),
                (math.radians(180), wetlink_blank_m10()),
                (math.radians(270), wetlink_blank_m10())]
     for ang, part in pen_pos:
-        cx = SHAFT_X_W + PCD / 2 * math.cos(ang)
-        cy = SHAFT_Y_W + PCD / 2 * math.sin(ang)
+        cx = CANISTER_X_W + PCD / 2 * math.cos(ang)
+        cy = CANISTER_Y_W + PCD / 2 * math.sin(ang)
         part_flipped = part.moved(Location((0, 0, 0), (1, 0, 0), 180))
         parts.append(part_flipped.moved(Location((cx, cy, dry_cap_ext_z))))
 
-    # 9. Servo + horn-adapter + cradle (same as assemble_t2 — anchored to
-    # the shaft bottom).
+    # 8b. **gripper_taper_cover** — tapered printed shroud snap-on around the
+    # gripper enclosure body. Top face (Ø100 circle) mates the flange bottom
+    # face = wrist-plate top face (world z = FLANGE_BOT_Z = -25 pre-flip).
+    # Bottom face (108×42 rounded-rect) sits ABOVE the enclosure body where
+    # the fingers branch out, so fingers emerge uncovered.
+    #
+    # The cover is authored with origin = top circle face at local z=0 and
+    # body extending in -Z (so rect face is at local z=-50). We need the body
+    # to extend in +Z in WORLD frame (toward the gripper / fingers), so we
+    # rotate 180° about X before placing — that flips local -Z to +Z while
+    # the top circle stays at the placement origin.
+    cover = gripper_taper_cover().moved(Location((0, 0, 0), (1, 0, 0), 180))
+    parts.append(cover.moved(
+        Location((CANISTER_X_W, CANISTER_Y_W, FLANGE_BOT_Z))))
+
+    # 9. Servo + horn adapter + cradle — ON SHAFT AXIS (the shaft is the
+    # off-centre drive line; the servo + horn + cradle all live coaxial with
+    # the shaft inside the centred canister).
     servo_part, sw, sl, sh, horn_h, horn_od = _select_servo()
     SHAFT_ENGAGE, HORN_ADAPTER_T = 10.0, 12.0
     horn_adapter_top_z = SHAFT_BOT_Z + SHAFT_ENGAGE
@@ -486,7 +564,6 @@ def assemble_t2_unibody():
     cradle_bot_z = servo_bot_z - 6.0
     cradle_top_z = cradle_bot_z + (sh + horn_h + 6.0)
 
-    # Connectivity assertions.
     assert WET_CAP_INT_FACE_Z - cradle_top_z >= 0.5, (
         f"cradle top {cradle_top_z:.2f} too close to wet cap interior "
         f"{WET_CAP_INT_FACE_Z:.2f}")
@@ -494,14 +571,16 @@ def assemble_t2_unibody():
         f"cradle bottom {cradle_bot_z:.2f} penetrates dry cap interior "
         f"{dry_cap_int_z:.2f}")
 
-    parts.append(_move_bottom_at(
+    parts.append(_bottom_at_shaft(
         servo_cradle(servo_w=sw, servo_l=sl, servo_h=sh, horn_oh=horn_h),
         cradle_bot_z))
-    parts.append(_move_bottom_at(servo_part, servo_bot_z))
-    parts.append(_move_bottom_at(servo_horn_adapter(horn_od=horn_od),
-                                  horn_adapter_bot_z))
+    parts.append(_bottom_at_shaft(servo_part, servo_bot_z))
+    parts.append(_bottom_at_shaft(servo_horn_adapter(horn_od=horn_od),
+                                   horn_adapter_bot_z))
 
     cable_run_mm = cradle_bot_z - dry_cap_int_z
+    print(f"  [unibody]  canister axis       = ({CANISTER_X_W:.0f},{CANISTER_Y_W:.0f})  (centred on gripper enclosure)")
+    print(f"  [unibody]  shaft axis          = ({SHAFT_X_W:.0f},{SHAFT_Y_W:.2f}) (off-centre drive)")
     print(f"  [unibody]  shaft bot z         = {SHAFT_BOT_Z:.2f}")
     print(f"  [unibody]  cradle bot z        = {cradle_bot_z:.2f}")
     print(f"  [unibody]  tube length         = {TUBE_LEN_150:.0f} mm")

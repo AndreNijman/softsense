@@ -259,22 +259,24 @@ def _br_cap_blank_body() -> Compound:
     return cap
 
 
-def br_end_cap_wet_lipseal(label: str = "br_end_cap_wet_lipseal") -> Compound:
-    """Wet-side end cap = BR-100949-999 BLANK + the in-build Ø14 H7 centre-bore
+def br_end_cap_wet_lipseal(label: str = "br_end_cap_wet_lipseal",
+                           bore_offset_x: float = 0.0,
+                           bore_offset_y: float = 0.0) -> Compound:
+    """Wet-side end cap = BR-100949-999 BLANK + the in-build Ø14 H7 bore
     drilled per `motor/ROV_INTEGRATION.md` §2d Option A for the lip seal.
+
+    `bore_offset_x` / `bore_offset_y` move the Ø14 bore off the cap's own
+    centre — used by the UNIBODY assembly to drill the bore at the gripper's
+    off-centre shaft position while keeping the cap itself centred on the
+    canister body. Defaults: bore on cap centre (legacy T2 behaviour).
 
     Source: BR product page (blank cap), modification per repo's
     `motor/ROV_INTEGRATION.md` §2d ("light press-fit, no adhesive").
-
-    The seal seat is a Ø14 H7 hole all the way through; the lip seal is
-    pressed in from the wet (exterior, +Z) face. The flange perimeter
-    carries the BR locking-collar screw bosses (not modelled here —
-    cosmetic at this fidelity).
     """
     cap = _br_cap_blank_body()
-    # Ø14 H7 lip-seal bore, full thickness
+    # Ø14 H7 lip-seal bore, full thickness, at the requested offset
     bore = Cylinder(radius=SEAL_BORE_D / 2, height=CAP_TOTAL_LEN + 2).moved(
-        Location((0, 0, -CAP_TOTAL_LEN / 2)))
+        Location((bore_offset_x, bore_offset_y, -CAP_TOTAL_LEN / 2)))
     cap -= bore
     cap.color = C_ALU
     cap.label = label
