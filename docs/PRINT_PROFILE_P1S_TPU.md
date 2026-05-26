@@ -133,9 +133,9 @@ and **0.6 mm grip teeth** at 2.2 mm pitch — the process is tuned to print ever
 
 | property | eSUN value | used in FEA | note |
 |---|---|---|---|
-| Tensile strength | **35 MPa** (GB/T 1040, injection-molded) | strength **25 MPa** | 3D-printed TPU is ~60–85 % of injection-molded → ≈ 21–30 MPa printed. **The FEA's 25 MPa is a realistic *printed* strength**, not arbitrary. |
-| Young's / flexural modulus | **not published** ("N/A") | E **40 MPa** (estimate) | bracketed below. |
-| Poisson ratio | (not published) | ν **0.42** | typical TPU 0.42–0.48; minor effect. |
+| Tensile strength | **~30 MPa** (GB/T 1040; the eSUN TDS quoted figure) | strength **25 MPa** | The "**35 MPa IM**" figure used in the earlier derivation came from a retailer source that may be mistranslated; eSUN's own TDS quotes ≈30 MPa and on FDM TDS sheets this is normally a printed-specimen number. The "60–85 % FDM derate of an IM number" derivation is therefore shaky and may double-count. **We retain 25 MPa as a conservative lower-bound for the margin basis**, but treat it as an *engineering estimate* rather than a measured ceiling. Bench validation on a printed coupon is part of `motor/BENCH_TEST.md`. |
+| Young's / flexural modulus | **not published** ("N/A") | E **40 MPa** (estimate) | TPU is strongly nonlinear; the 1 %-strain secant modulus can be 2–4× different from the 10 %-strain secant. Our finger's rib bending strains span 3–8 %. **A single linear modulus is a working approximation; the design ranking is preserved across the 30/40/60 MPa sweep below, but the absolute stress magnitudes shift with E.** |
+| Poisson ratio | (not published) | ν **0.42** | typical TPU 0.42–0.48. **ν is relaxed from a TPU-realistic ~0.48 to 0.42 to partially mitigate linear-tet volumetric locking — this is not a cure; locking is geometry-dependent and can differentially shift the truss-vs-flexure ranking, not just absolute force. See `fea/FEA.md` locking-diagnostic for the ν-sweep result on the shipped finger.** |
 | Density | 1.21 g/cm³ | — | — |
 | Elongation at break | ≥800 % | — | hugely ductile; failure is fatigue/tear, not brittle yield. |
 | Hardness | 95 A | — | — |
@@ -151,12 +151,19 @@ grasp:
 | 60 | 7.6–8.1× | 12–15 N | 0.622 |
 
 **Conclusion:** at a fixed grip force the **von-Mises margins are essentially
-modulus-independent (7–8× across the whole bracket)** — linear elasticity says the
-internal stress is set by the *load*, not the stiffness. The modulus only changes how
-far the four-bar must close to reach the grip (an actuator-travel detail). So eSUN's
-unpublished modulus does **not** change the safety margins or any design conclusion;
-the universal-grasp result (0.65) and the scalability band (0.6–1.1×) stand as
-published. With the real printed strength (~25 MPa) the finger sits at a **comfortable
+modulus-independent (7–8× across the E = 30/40/60 MPa bracket)** — linear elasticity
+says the internal stress is set by the *load*, not the stiffness. The modulus only
+changes how far the four-bar must close to reach the grip (an actuator-travel detail).
+**Caveat (not propagated in the original write-up):** "fixed grip force" means
+*force-targeted* reporting (`REPORT_MODE="grip"`); the production code default is
+*closure-targeted* (`REPORT_MODE="closure"` at 8 mm), and at fixed closure the
+grip force itself shifts with modulus, which shifts stress. The "modulus-
+insensitive" claim therefore holds in force-targeted mode and is the relevant
+basis for the published per-shape margins; under the closure-targeted default
+the absolute stress numbers shift with E. The universal-grasp ranking is
+preserved across the bracket either way; the (0.65) score and the
+scalability band (0.6–1.1×) stand as published. With the conservative printed
+strength estimate (~25 MPa) the finger sits at a **comfortable
 7–8× safety margin** at a firm 12 N grip.
 
 Re-run yourself: `eval_finger.py <name> production '{"_E":40,"_strength":25}' screen`
