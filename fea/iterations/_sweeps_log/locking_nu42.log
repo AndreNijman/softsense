@@ -1,1 +1,3 @@
 [_locking_nu42] params={}
+  section: 1434 nodes / 2225 tris
+  clamp nodes=76 (2 bores)  ndof=17208 tets=20025
