@@ -1,0 +1,130 @@
+{
+  "F_operating_N": 0.3,
+  "TPU_STRENGTH_MPa": 25.0,
+  "per_run": [
+    {
+      "name": "_locking_nu40",
+      "n_points": 12,
+      "slope_MPa_per_N": 0.2831,
+      "intercept_MPa": 0.028,
+      "R2": 0.99982,
+      "max_grip_observed_N": 11.764,
+      "max_vM_observed_MPa": 3.331,
+      "lowest_grip_observed_N": 0.398,
+      "lowest_vM_observed_MPa": 0.118,
+      "vM_at_operating_F_MPa_observed": 0.0889,
+      "vM_at_operating_F_MPa_fit": 0.113,
+      "margin_at_operating_F": 281.3
+    },
+    {
+      "name": "_locking_nu42",
+      "n_points": 12,
+      "slope_MPa_per_N": 0.2728,
+      "intercept_MPa": 0.0289,
+      "R2": 0.9998,
+      "max_grip_observed_N": 12.051,
+      "max_vM_observed_MPa": 3.288,
+      "lowest_grip_observed_N": 0.408,
+      "lowest_vM_observed_MPa": 0.1167,
+      "vM_at_operating_F_MPa_observed": 0.0858,
+      "vM_at_operating_F_MPa_fit": 0.1107,
+      "margin_at_operating_F": 291.2
+    },
+    {
+      "name": "_locking_nu45",
+      "n_points": 12,
+      "slope_MPa_per_N": 0.2601,
+      "intercept_MPa": -0.0043,
+      "R2": 0.99973,
+      "max_grip_observed_N": 12.705,
+      "max_vM_observed_MPa": 3.334,
+      "lowest_grip_observed_N": 0.43,
+      "lowest_vM_observed_MPa": 0.1134,
+      "vM_at_operating_F_MPa_observed": 0.0791,
+      "vM_at_operating_F_MPa_fit": 0.0738,
+      "margin_at_operating_F": 315.9
+    },
+    {
+      "name": "_locking_nu48",
+      "n_points": 12,
+      "slope_MPa_per_N": 0.2527,
+      "intercept_MPa": -0.0585,
+      "R2": 0.99945,
+      "max_grip_observed_N": 14.126,
+      "max_vM_observed_MPa": 3.548,
+      "lowest_grip_observed_N": 0.474,
+      "lowest_vM_observed_MPa": 0.1083,
+      "vM_at_operating_F_MPa_observed": 0.0685,
+      "vM_at_operating_F_MPa_fit": 0.0174,
+      "margin_at_operating_F": 364.8
+    },
+    {
+      "name": "_mesh_nl3",
+      "n_points": 12,
+      "slope_MPa_per_N": 0.2728,
+      "intercept_MPa": 0.0289,
+      "R2": 0.9998,
+      "max_grip_observed_N": 12.051,
+      "max_vM_observed_MPa": 3.288,
+      "lowest_grip_observed_N": 0.408,
+      "lowest_vM_observed_MPa": 0.1167,
+      "vM_at_operating_F_MPa_observed": 0.0858,
+      "vM_at_operating_F_MPa_fit": 0.1107,
+      "margin_at_operating_F": 291.2
+    },
+    {
+      "name": "_mesh_nl5",
+      "n_points": 12,
+      "slope_MPa_per_N": 0.2658,
+      "intercept_MPa": 0.0328,
+      "R2": 0.99976,
+      "max_grip_observed_N": 12.196,
+      "max_vM_observed_MPa": 3.246,
+      "lowest_grip_observed_N": 0.412,
+      "lowest_vM_observed_MPa": 0.1157,
+      "vM_at_operating_F_MPa_observed": 0.0842,
+      "vM_at_operating_F_MPa_fit": 0.1126,
+      "margin_at_operating_F": 296.9
+    },
+    {
+      "name": "_mesh_nl8",
+      "n_points": 12,
+      "slope_MPa_per_N": 0.2611,
+      "intercept_MPa": 0.0249,
+      "R2": 0.99986,
+      "max_grip_observed_N": 12.274,
+      "max_vM_observed_MPa": 3.237,
+      "lowest_grip_observed_N": 0.417,
+      "lowest_vM_observed_MPa": 0.1138,
+      "vM_at_operating_F_MPa_observed": 0.0819,
+      "vM_at_operating_F_MPa_fit": 0.1033,
+      "margin_at_operating_F": 305.4
+    }
+  ],
+  "n_runs": 7,
+  "ranking_at_operating_force": [
+    "_locking_nu48",
+    "_locking_nu45",
+    "_mesh_nl8",
+    "_mesh_nl5",
+    "_locking_nu42",
+    "_mesh_nl3",
+    "_locking_nu40"
+  ],
+  "ranking_at_stress_probe": [
+    "_mesh_nl8",
+    "_mesh_nl5",
+    "_locking_nu42",
+    "_mesh_nl3",
+    "_locking_nu40",
+    "_locking_nu45",
+    "_locking_nu48"
+  ],
+  "rank_preserved": false,
+  "interpretation": [
+    "EMPIRICAL CHECK of the small-strain-linear-scaling claim:",
+    "Each run's per-step (grip, peak vM) is fit to a straight line. If R^2 > 0.99, the regime is small-strain elastic enough that peak vM scales linearly with applied grip force.",
+    "The implied peak vM at the operating force F = 0.3 N is extrapolated by that linear fit; the implied margin = 25 MPa / vM_at_op is then the in-service fragility safety factor (instead of the 5.7-8.6x at the 12 N stress probe).",
+    "The RANKING across runs at F = 0.30 N is then compared to the ranking at the maximum observed stress (~10 N stress probe). If `rank_preserved` is True, the design-ranking claim survives the load drop empirically. If False, the rank-preservation claim is wrong and the universal-finger study needs re-running."
+  ]
+}

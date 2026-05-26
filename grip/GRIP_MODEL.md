@@ -95,11 +95,29 @@ gated on this.
 >   edge piercing, hysteresis) *are* doing real work; cited physics alone isn't
 >   enough to reproduce the ordering.
 >
-> A true out-of-sample test would add reference patterns the model has never
-> seen (a recent bio-inspired wet-grip study not used to tune the model) and
-> check whether the model places them correctly. We have not done that — the
-> reference patterns in `baseline_validate.PATTERNS` *are* the patterns whose
-> ordering was used to tune the placeholder coefficients.
+> An **out-of-sample test** (`baseline_validate_oos.py`, this branch) adds 3
+> NEW reference patterns the [PLACEHOLDER] coefficients were NOT tuned on,
+> each probing a specific physical prediction:
+>
+> - `crosshatch_fine` (pitch 1.0 mm vs reference 3.0 mm): expect higher wet
+>   grip (shorter drain path). **PASS** — model predicts mu_hold 1.058 >
+>   anchor's 0.709, consistent with Persson 2007 / tyre-tread engineering.
+> - `hexpad_coarse` (cell 3.0 mm vs reference 1.0 mm): expect lower wet grip
+>   (longer drain path). **PASS** — model predicts 0.886 < anchor's 1.089,
+>   consistent with Federle / Barnes tree-frog scale-dependence findings.
+> - `hexpad_nochannel` (channel collapsed to the 0.05 mm print floor): expect
+>   wet grip to drop toward smooth-control level (no drainage). **FAIL** —
+>   model predicts 1.330 (HIGHER than treefrog with channels). The
+>   `psi_dewet` term treats a 0.05 mm channel as "open enough" for drainage,
+>   but at the capillary scale a sub-100 µm channel will fill and block flow.
+>
+> **OOS gate: 2/3 (67 %) pass.** This is an honest miss: the model is too
+> generous with very-narrow channels, and the "channel must be wider than
+> the capillary scale" physics is not in the surrogate. The fix is either
+> (a) add a capillary-fill check (channel_w < ~2*H0_FILM → ψ collapses) or
+> (b) document this as a known model defect outside the printable envelope
+> we actually ship (the shipped crosshatch is at 0.54 mm channels, far above
+> the capillary regime).
 >
 > **Dispute on the published μ values reproduced by the gate.** The
 > "smooth_wet μ_hold ≈ 0.07" the gate emits is the **dynamic aquaplaning floor**

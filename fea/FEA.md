@@ -140,6 +140,57 @@ A real cure (P2 tets / mixed u-p / B-bar) is out of scope for this overnight
 branch; this sweep at least **bounds the absolute magnitude** of the locking
 effect at ≈20 % in grip and ≈7 % in peak vM for the shipped finger.
 
+## P2 (quadratic) vs P1 (linear) — bounding the locking magnitude on the precursor
+
+The locking-diagnostic ν-sweep above quantifies locking on the **3D production
+solver** (linear tets) but doesn't fix the element formulation. To bound the
+size of the locking error directly, we re-ran the **2D plane-strain precursor**
+(`solve_finger.py`, P1 linear triangles) and a **P2 quadratic-triangle variant**
+(`solve_finger_p2.py`, this branch) on the same mesh, same St-Venant–Kirchhoff
+material, same BCs, same load schedule. The P2/P1 element pair is **stable for
+the near-incompressible problem** (ν = 0.45), so any disagreement is the
+locking error of P1.
+
+| load (N) | P1 peak vM (MPa) | P2 peak vM (MPa) | P2 – P1 |
+|---|---|---|---|
+| 1.80 | 0.786 | 1.001 | **+27 %** |
+| 3.60 | 1.447 | 2.190 | **+51 %** |
+| 4.50 | 1.915 | 2.915 | **+52 %** |
+| 4.95 | 2.223 | 3.388 | **+52 %** |
+| 5.17 | 2.425 | (load-control limit point — P2 fails to converge here) | — |
+| 5.40 | 2.656 | (past P2's snap-instability threshold) | — |
+
+Findings:
+
+- **P2 reports ~50 % higher peak vM than P1 at the same load** above ≈3 N.
+  The headline 2D peak vM of "≈2.7 MPa at 5.4 N" is therefore optimistic — a
+  locking-free P2 solve gives roughly **4 MPa** at the same load (extrapolating
+  the +52 % ratio from the load levels P2 reaches).
+- **The load-control limit point shifts down with P2**: P1 reached 5.4 N
+  (24/24 steps), P2 stalled at step 23 (5.17 N). Locking artificially stiffens
+  the body and hides the true onset of the snap instability.
+- The fragility safety margin at the *stress-probe load* therefore drops from
+  ≈9× (linear-tet 25 MPa / 2.7 MPa) to ≈**6×** (P2 25 MPa / ≈4 MPa) — still
+  well above unity, but the previous headline overstates it by ~50 %.
+- The **rank-preservation claim survives**: under the small-strain elastic
+  regime, peak vM scales linearly with load, so any *ranking* of finger designs
+  at the 12 N stress-probe load is preserved at the actual drivetrain operating
+  force (≈0.2–0.4 N for the 3D crown FEA bound, where peak vM is ~0.2 MPa for
+  any reasonable design — ~120× margin even with the +50 % locking correction).
+
+What this DOESN'T do:
+
+- Doesn't fix the 3D solver (iter_harness.py). The 3D corotational solver
+  still uses linear tets. A P2-tet 3D port is out of scope but on the punch
+  list (B1 follow-up). The ν-sweep above bounds the 3D locking magnitude at
+  ≈7 % in peak vM across the realistic TPU ν range, which is a lower bound on
+  the P2-vs-P1 error there.
+- Doesn't re-derive the truss-vs-flexure ranking under locking-free
+  elements. The P1-vs-P2 comparison is on one geometry. The differential-
+  ranking concern still needs a swarm-scale sweep.
+
+Data: `fea/iterations/_p1_vs_p2.json` (full curves) + `fea/scripts/solve_finger_p2.py`.
+
 ## Mesh-convergence diagnostic — what NLAYERS does to the headline
 
 A second on-branch sweep at fixed ν = 0.42 reruns the shipped finger at
