@@ -124,6 +124,96 @@ def disc_blank(radius: float, thickness: float) -> Part:
 
 
 # ---------------------------------------------------------------------------
+# Unibody pod-cap mating (the canonical mounting for the ROV deployment)
+# ---------------------------------------------------------------------------
+#
+# In the unibody (gripper + canister) configuration the gripper's M4 flange
+# is INTERNAL — captured by the wrist_plate. The actual ROV-side attachment
+# is at the OPPOSITE end of the canister: the BR dry end-cap (BR-100949-004).
+# An adapter for an arm therefore mounts to the dry-cap end and visually
+# continues the unibody's Ø100 cylindrical look (the same OD as the
+# pod_cap_shroud, canister_fairing, and wrist_plate in `printed_adapters.py`).
+#
+# Geometry references:
+# - BR 3" aluminium end cap OD ≈ Ø98 (caught inside our Ø100 printed shrouds).
+# - BR dry cap has 4× M10 penetrator holes on a roughly square pattern,
+#   approximate PCD Ø60–80 (vendor docs don't publish exact PCD; estimate).
+# - Our printed pod adapter mounts via 4× M5 SHCS into M10→M5 PA12-GF
+#   threaded inserts (or by repurposing 3 of the 4 M10 holes for bolts +
+#   leaving 1 for the WetLink cable penetrator).
+
+POD_OD: float = 100.0                # outer Ø of the unibody cylindrical body
+BR_DRY_CAP_OD: float = 98.0          # BR 3" aluminium cap actual OD (informational)
+BR_DRY_CAP_M10_PCD: float = 76.0     # estimate; BR doesn't publish exact PCD
+POD_BOLT_PCD: float = 78.0           # our printed pod's 4× M5 bolt circle
+CABLE_SLOT_W: float = 14.0           # WetLink penetrator pass-through slot width
+
+
+def pod_base(thickness: float = 14.0,
+             bolt_thread: float = 5.0,
+             bolt_pcd: float = POD_BOLT_PCD,
+             n_bolts: int = 4,
+             cable_slot: bool = True,
+             outer_radius: float = POD_OD / 2,
+             edge_break: float = 1.0) -> Part:
+    """The shared unibody-mating base for any pod adapter.
+
+    A Ø100 PA12-GF cylinder, mating face at Z = 0 (sits on the pod_cap_shroud
+    top face), `thickness` tall in +Z. Carries:
+    - n_bolts × M_<bolt_thread> clearance holes on `bolt_pcd` (default Ø78),
+      for SHCS into the BR dry cap. Bolt #0 at +X axis; bolts evenly spaced.
+    - Optional cable exit slot (Ø WetLink penetrator) at the +Y side so the
+      cable can exit without colliding with the bolts.
+    - 1 mm edge-break chamfer on the Ø100 outer perimeter for a clean printed
+      finish (matches `printed_adapters.py` style).
+
+    Convention: adapter local +Z = away from canister (toward arm).
+    Mating face at Z = 0; pod body lives in Z > 0."""
+    from build123d import Axis
+    body = Cylinder(radius=outer_radius, height=thickness).moved(
+        Location((0, 0, thickness / 2)))
+    # bolt holes through the disc
+    bolt_r = m_clearance_radius(bolt_thread)
+    for k in range(n_bolts):
+        ang = math.radians(360.0 / n_bolts * k)
+        cx = (bolt_pcd / 2) * math.cos(ang)
+        cy = (bolt_pcd / 2) * math.sin(ang)
+        h = Cylinder(radius=bolt_r, height=thickness + 1.0).moved(
+            Location((cx, cy, thickness / 2)))
+        body -= h
+    # cable exit slot (WetLink, ~Ø14 effective) on +Y side, between bolts
+    if cable_slot:
+        # Place the slot just inside the bolt PCD so it doesn't clip the
+        # outer rim; centred on +Y axis.
+        slot_cy = bolt_pcd / 2 * 0.55
+        slot = Cylinder(radius=CABLE_SLOT_W / 2, height=thickness + 1.0).moved(
+            Location((0, slot_cy, thickness / 2)))
+        body -= slot
+    # edge break on the outer cylinder top + bottom
+    if edge_break > 0:
+        try:
+            body = fillet(body.edges().filter_by(Axis.Z).group_by(Axis.Z)[-1],
+                          radius=edge_break)
+            body = fillet(body.edges().filter_by(Axis.Z).group_by(Axis.Z)[0],
+                          radius=edge_break)
+        except Exception:
+            pass
+    return body
+
+
+def pod_taper(z_start: float, z_end: float,
+              r_start: float = POD_OD / 2,
+              r_end: float = POD_OD / 2) -> Part:
+    """A frustum (truncated cone) between two Z planes. Use to taper from
+    the Ø100 pod base up to a smaller arm-side mating disc, so the adapter
+    visually continues the unibody cylindrical body before transitioning."""
+    from build123d import Plane, Circle, loft
+    bot = Plane.XY.offset(z_start) * Circle(radius=r_start)
+    top = Plane.XY.offset(z_end) * Circle(radius=r_end)
+    return loft([bot, top])
+
+
+# ---------------------------------------------------------------------------
 # Convenience: standard adapter cleanup that every module ends with
 # ---------------------------------------------------------------------------
 

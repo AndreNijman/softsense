@@ -1,23 +1,19 @@
-"""render_assemblies.py — emit STEPs showing each of the 7 mounting adapters
-ACTUALLY CONNECTED between the FULL unibody (gripper + canister + servo +
-shaft + lip seal + caps + penetrators + cosmetic shrouds) and the arm/
-chassis it's designed for.
+"""render_assemblies.py — emit STEPs showing each of the 7 unibody pod
+adapters ACTUALLY MOUNTED on the gripper-canister unibody, with arm-side
+silhouettes representing where the ROV arm / chassis would attach.
 
-Each assembly:
-- Imports the full unibody from
-  `motor/cad/output/system_assembly_T2_UNIBODY_STS3250.step`. In its
-  "as-mounted" world frame, fingers point world -Z (down) and the BR dry
-  cap is at world Z ≈ +333 (top). Canister axis at world (X=0, Y=-12).
-- Places the adapter on top of the dry cap at world (0, -12, +333). The
-  adapter's +Z direction (away from gripper, toward arm) matches world +Z
-  in this position, so NO flip is applied.
-- Adds 4× representative M5 SHCS going from the adapter face down into
-  the BR dry cap (the arm-to-canister attachment — the BR cap's existing
-  M10 holes can be repurposed, or PA12-GF threaded inserts added; this is
-  the visual intent).
-- Adds an arm-side silhouette above the adapter (the arm wrist that
-  bolts/clamps to the adapter's arm-side face), in a contrasting colour
-  so it reads as "external context, not part of our build."
+Adapters are now Ø100 PA12-GF pieces that visually continue the unibody
+cylindrical body. Each sits on top of the pod_cap_shroud / BR dry cap and
+carries its arm-specific interface (Bravo Ø71 + 6×M6, ISO 9409, BR2 plate
++ Newton holes, or ISO 13628-8 D-handle).
+
+Mating:
+- Unibody as-mounted has BR dry cap at world Z = +333 (top of bbox).
+- Canister axis at world (X=0, Y=-12).
+- Each adapter's local Z=0 face is placed at world Z = +333, no flip.
+- Adapter +Z (away from canister) = world +Z (toward arm).
+- 4× M5 SHCS visible going from the pod base DOWN into the BR dry cap
+  via the existing M10 penetrator holes (or M10→M5 PA12-GF inserts).
 """
 from __future__ import annotations
 
@@ -42,15 +38,25 @@ SYSTEM_STEP = ROOT / "motor" / "cad" / "output" / \
     "system_assembly_T2_UNIBODY_STS3250.step"
 OUTPUT_DIR = ROOT / "motor" / "cad" / "output"
 
-# Unibody world frame (verified by bbox 2026-05-26):
-#   fingers at world Z ≈ -123 (down)
-#   BR dry cap top at world Z ≈ +333 (up — where the ROV arm attaches)
-#   canister axis at world (X=0, Y=-12)
 WORLD_DRY_CAP_Z = 333.0
 WORLD_CANISTER_X = 0.0
 WORLD_CANISTER_Y = -12.0
 
-# Colours
+# Pod-base bolt PCD (per _base.py POD_BOLT_PCD)
+POD_BOLT_PCD = 78.0
+
+# Per-adapter total height (must match each module's TOTAL_H; if changed,
+# update here too).
+ADAPTER_HEIGHTS = {
+    "adapter_bravo7":            28.0,
+    "adapter_iso9409_50_4_M6":   33.0,
+    "adapter_iso9409_80_6_M8":   25.0,
+    "adapter_br2_bottom_newton": 24.0,
+    "adapter_br2_roof_rack":     40.0,
+    "adapter_br2_payload_skid":  24.0,
+    "adapter_iso13628_d_handle": 86.0,
+}
+
 C_STAINLESS = Color(0.85, 0.85, 0.88)
 C_ALU_DARK = Color(0.30, 0.30, 0.32, 0.90)
 C_ALU_BRAVO = Color(0.72, 0.75, 0.80, 0.90)
@@ -61,7 +67,6 @@ C_JAW = Color(0.55, 0.55, 0.58, 0.95)
 
 
 def _shcs(thread_d: float, length: float) -> Part:
-    """Metric socket-head cap screw. Shank along +Z, head at -Z."""
     shank = Cylinder(radius=thread_d / 2, height=length).moved(
         Location((0, 0, length / 2)))
     head_d = thread_d * 1.7
@@ -73,30 +78,24 @@ def _shcs(thread_d: float, length: float) -> Part:
     return p
 
 
-def _dry_cap_bolts() -> list[Part]:
-    """4× M5 SHCS at corners of an 80 mm square pattern around the canister
-    axis on the dry cap (representative — BR cap M10 PCD is approx square
-    pattern; the actual mount uses 4 of those holes or printed inserts)."""
+def _pod_to_drycap_bolts() -> list[Part]:
+    """4× M5 SHCS on Ø78 PCD (matches pod_base) — heads visible on top of
+    the adapter pod base, shanks going DOWN into the BR dry cap."""
     bolts: list[Part] = []
-    pcd = 80.0 / math.sqrt(2)   # corner distance for 80 mm square
     for k in range(4):
-        ang = math.radians(45 + 90 * k)
-        cx = WORLD_CANISTER_X + pcd * math.cos(ang)
-        cy = WORLD_CANISTER_Y + pcd * math.sin(ang)
+        ang = math.radians(360.0 / 4 * k)
+        cx = WORLD_CANISTER_X + (POD_BOLT_PCD / 2) * math.cos(ang)
+        cy = WORLD_CANISTER_Y + (POD_BOLT_PCD / 2) * math.sin(ang)
         b = _shcs(5.0, 22.0)
-        # Shank pointing DOWN into the dry cap (world -Z); default +Z so flip
+        # Default shank +Z; flip 180°X so shank points -Z (down into dry cap)
         b = b.moved(Location((0, 0, 0), (1, 0, 0), 180))
-        # Head visible just above the dry cap (5 mm above dry cap top)
-        b = b.moved(Location((cx, cy, WORLD_DRY_CAP_Z + 5.0)))
+        # Head visible 4.5 mm above the adapter top of pod base (Z=14 in adapter)
+        b = b.moved(Location((cx, cy, WORLD_DRY_CAP_Z + 14.0 + 4.5)))
         bolts.append(b)
     return bolts
 
 
 def _load_adapter_at_dry_cap(name: str) -> Compound:
-    """Load adapter STEP and place it at the dry-cap end of the unibody.
-    Adapter native: Z=0 mating face, +Z away from gripper. At the dry-cap
-    end (top of as-mounted unibody), +Z away from gripper = world +Z, so
-    NO flip is needed. Translate to (0, -12, WORLD_DRY_CAP_Z)."""
     step_path = OUTPUT_DIR / f"{name}.step"
     a = import_step(str(step_path))
     a = a.moved(Location((WORLD_CANISTER_X, WORLD_CANISTER_Y,
@@ -112,54 +111,55 @@ def _load_unibody() -> Compound:
 # Arm-side silhouettes (positioned ABOVE the adapter's arm-side face)
 # ---------------------------------------------------------------------------
 
-def _bravo_wrist(adapter_t: float = 16.0) -> Compound:
-    arm_z = WORLD_DRY_CAP_Z + adapter_t           # adapter arm-side face
+def _bravo_wrist() -> Compound:
+    arm_z = WORLD_DRY_CAP_Z + ADAPTER_HEIGHTS["adapter_bravo7"]
     parts: list[Part] = []
-    # Ø71 Bravo Payload Interface disc
-    disc = Cylinder(radius=71 / 2, height=8).moved(
-        Location((WORLD_CANISTER_X, WORLD_CANISTER_Y, arm_z + 4)))
+    # Bravo mounting disc Ø75 × 6 (slightly bigger than Ø71 to make seating
+    # visible) on top of the adapter
+    disc = Cylinder(radius=75 / 2, height=6).moved(
+        Location((WORLD_CANISTER_X, WORLD_CANISTER_Y, arm_z + 3)))
     disc.color = C_ALU_BRAVO
     parts.append(disc)
-    # Bravo wrist body — Ø60 × 120 mm representing the arm
-    body = Cylinder(radius=60 / 2, height=120).moved(
-        Location((WORLD_CANISTER_X, WORLD_CANISTER_Y, arm_z + 8 + 60)))
+    # Bravo arm — Ø60 × 140 mm cylindrical body
+    body = Cylinder(radius=60 / 2, height=140).moved(
+        Location((WORLD_CANISTER_X, WORLD_CANISTER_Y, arm_z + 6 + 70)))
     body.color = C_ALU_BRAVO
     parts.append(body)
-    # 6× M6 SHCS into the Ø56 PCD, heads visible on the disc top
+    # 6× M6 SHCS on Ø56 PCD
     for k in range(6):
-        ang = math.radians(60 * k + 30)
+        ang = math.radians(60 * k)
         cx = WORLD_CANISTER_X + (56 / 2) * math.cos(ang)
         cy = WORLD_CANISTER_Y + (56 / 2) * math.sin(ang)
         b = _shcs(6.0, 18.0)
-        # head above the Bravo disc (world +Z side), shank into adapter (down)
         b = b.moved(Location((0, 0, 0), (1, 0, 0), 180))
-        b = b.moved(Location((cx, cy, arm_z + 8 + 5.4)))
+        b = b.moved(Location((cx, cy, arm_z + 6 + 5.4)))
         parts.append(b)
-    return Compound(label="bravo_wrist_silhouette", children=parts)
+    return Compound(label="bravo_arm_silhouette", children=parts)
 
 
 def _iso_cobot_wrist(face_d: float, spigot_d: float,
                      bolts_n: int, bolt_pcd: float, bolt_thread: float,
-                     adapter_t: float = 14.0) -> Compound:
-    arm_z = WORLD_DRY_CAP_Z + adapter_t
+                     adapter_h: float) -> Compound:
+    arm_z = WORLD_DRY_CAP_Z + adapter_h
     parts: list[Part] = []
     disc_t = 8.0
-    # cobot wrist mounting disc with the spigot recess opening world -Z
-    disc = Cylinder(radius=face_d / 2, height=disc_t).moved(
-        Location((WORLD_CANISTER_X, WORLD_CANISTER_Y, arm_z + disc_t / 2)))
-    recess = Cylinder(radius=spigot_d / 2 + 0.05, height=5.5).moved(
+    disc = Cylinder(radius=face_d / 2 + 2, height=disc_t).moved(
+        Location((WORLD_CANISTER_X, WORLD_CANISTER_Y,
+                  arm_z + disc_t / 2)))
+    # Recess for the spigot
+    recess = Cylinder(radius=spigot_d / 2 + 0.1, height=5.5).moved(
         Location((WORLD_CANISTER_X, WORLD_CANISTER_Y, arm_z + 2.75)))
     disc -= recess
     disc.color = C_ALU_DARK
     parts.append(disc)
-    # cobot wrist cylinder
-    cyl_d = face_d * 0.8
-    cyl = Cylinder(radius=cyl_d / 2, height=90).moved(
+    # Cobot wrist body
+    cyl_d = face_d * 0.85
+    cyl = Cylinder(radius=cyl_d / 2, height=120).moved(
         Location((WORLD_CANISTER_X, WORLD_CANISTER_Y,
-                  arm_z + disc_t + 45)))
+                  arm_z + disc_t + 60)))
     cyl.color = C_ALU_DARK
     parts.append(cyl)
-    # bolt heads visible on top of the cobot disc
+    # Bolt heads
     head_h = bolt_thread * 0.9
     for k in range(bolts_n):
         ang = math.radians(360 / bolts_n * k + (360 / bolts_n / 2))
@@ -169,16 +169,16 @@ def _iso_cobot_wrist(face_d: float, spigot_d: float,
         b = b.moved(Location((0, 0, 0), (1, 0, 0), 180))
         b = b.moved(Location((cx, cy, arm_z + disc_t + head_h)))
         parts.append(b)
-    return Compound(label="cobot_wrist_silhouette", children=parts)
+    return Compound(label="cobot_arm_silhouette", children=parts)
 
 
-def _br2_chassis(adapter_t: float = 10.0) -> Compound:
-    """BR2 black HDPE chassis panel above the adapter, with 2× Ø5.5 holes
-    on 100 mm pitch / 16° tilt."""
-    arm_z = WORLD_DRY_CAP_Z + adapter_t
+def _br2_chassis(adapter_h: float) -> Compound:
+    """BR2 black HDPE bottom panel above the adapter top plate."""
+    arm_z = WORLD_DRY_CAP_Z + adapter_h
     parts: list[Part] = []
     panel = Box(360, 100, 12.7).moved(
-        Location((WORLD_CANISTER_X, WORLD_CANISTER_Y, arm_z + 12.7 / 2)))
+        Location((WORLD_CANISTER_X, WORLD_CANISTER_Y,
+                  arm_z + 12.7 / 2)))
     tilt = math.radians(16)
     h1 = (50 * math.cos(tilt), 50 * math.sin(tilt))
     h2 = (-50 * math.cos(tilt), -50 * math.sin(tilt))
@@ -198,15 +198,13 @@ def _br2_chassis(adapter_t: float = 10.0) -> Compound:
     return Compound(label="br2_chassis_silhouette", children=parts)
 
 
-def _br2_roof_rack_chassis(adapter_t: float = 10.0) -> Compound:
-    """BR2 Roof Rack aluminium chassis above the adapter."""
-    arm_z = WORLD_DRY_CAP_Z + adapter_t
+def _br2_roof_rack_chassis(adapter_h: float) -> Compound:
+    arm_z = WORLD_DRY_CAP_Z + adapter_h
     parts: list[Part] = []
     rack_t = 1.5
-    rack = Box(140, 100, rack_t).moved(
-        Location((WORLD_CANISTER_X, WORLD_CANISTER_Y, arm_z + rack_t / 2)))
-    # 2× M5 holes on 100 mm Z-pitch (along rack length) — but in this
-    # config (rack above adapter, rack horizontal) put holes along X axis
+    rack = Box(180, 120, rack_t).moved(
+        Location((WORLD_CANISTER_X, WORLD_CANISTER_Y,
+                  arm_z + rack_t / 2)))
     for sign in (-1, +1):
         hole = Cylinder(radius=5.5 / 2, height=rack_t + 1).moved(
             Location((WORLD_CANISTER_X + sign * 50, WORLD_CANISTER_Y,
@@ -214,23 +212,22 @@ def _br2_roof_rack_chassis(adapter_t: float = 10.0) -> Compound:
         rack -= hole
     rack.color = C_ALU_5052
     parts.append(rack)
-    # 2× M5 SHCS heads visible on top of rack
     for sign in (-1, +1):
         b = _shcs(5.0, 18.0)
         b = b.moved(Location((0, 0, 0), (1, 0, 0), 180))
         b = b.moved(Location((WORLD_CANISTER_X + sign * 50,
-                              WORLD_CANISTER_Y, arm_z + rack_t + 4.5)))
+                              WORLD_CANISTER_Y,
+                              arm_z + rack_t + 4.5)))
         parts.append(b)
     return Compound(label="br2_roof_rack_silhouette", children=parts)
 
 
-def _br2_payload_skid_chassis(adapter_t: float = 12.0) -> Compound:
-    """BR2 Payload Skid bottom HDPE panel + 3" cradle clamp ring above
-    the adapter."""
-    arm_z = WORLD_DRY_CAP_Z + adapter_t
+def _br2_payload_skid_chassis(adapter_h: float) -> Compound:
+    arm_z = WORLD_DRY_CAP_Z + adapter_h
     parts: list[Part] = []
     panel = Box(360, 100, 12.7).moved(
-        Location((WORLD_CANISTER_X, WORLD_CANISTER_Y, arm_z + 12.7 / 2)))
+        Location((WORLD_CANISTER_X, WORLD_CANISTER_Y,
+                  arm_z + 12.7 / 2)))
     tilt = math.radians(16)
     h1 = (50 * math.cos(tilt), 50 * math.sin(tilt))
     h2 = (-50 * math.cos(tilt), -50 * math.sin(tilt))
@@ -247,15 +244,15 @@ def _br2_payload_skid_chassis(adapter_t: float = 12.0) -> Compound:
         b = b.moved(Location((WORLD_CANISTER_X + x, WORLD_CANISTER_Y + y,
                               arm_z + 12.7 + 4.5)))
         parts.append(b)
-    # 3" canister cradle clamp ring (decorative, suggests the skid's 3"
-    # enclosure clamp position)
+    # 3" canister cradle clamp ring (decorative)
     cradle_outer = 95
     cradle_inner = 91
     cradle_h = 16
     cradle_z = arm_z + 12.7 + cradle_h / 2 + 4
     ring_outer = Cylinder(radius=cradle_outer / 2, height=cradle_h).moved(
         Location((WORLD_CANISTER_X, WORLD_CANISTER_Y, cradle_z)))
-    ring_inner = Cylinder(radius=cradle_inner / 2, height=cradle_h + 1).moved(
+    ring_inner = Cylinder(radius=cradle_inner / 2,
+                          height=cradle_h + 1).moved(
         Location((WORLD_CANISTER_X, WORLD_CANISTER_Y, cradle_z)))
     ring = ring_outer - ring_inner
     ring.color = C_ACRYLIC
@@ -264,10 +261,11 @@ def _br2_payload_skid_chassis(adapter_t: float = 12.0) -> Compound:
 
 
 def _arm_jaws_for_dhandle() -> Compound:
-    """Two parallel-jaw blocks clamping the D-handle bar. The d-handle
-    adapter, placed at the dry-cap end, has its bar at world Z ≈ +333 +
-    66.5 = +399.5 (bar centre). Bar axis along world Y."""
-    bar_z_world = WORLD_DRY_CAP_Z + 66.5
+    """Two parallel-jaw blocks clamping the D-handle bar. With the new
+    adapter, bar centre is at adapter local Z = Z_BAR_CTR = 76.5 (from
+    `adapter_iso13628_d_handle.py`). Placed at world: bar Z = 333 + 76.5
+    = 409.5, axis along world Y."""
+    bar_z_world = WORLD_DRY_CAP_Z + 76.5
     bar_y_world = WORLD_CANISTER_Y
     bar_od = 19.0
     jaw_w = 50.0       # along bar (world Y)
@@ -283,35 +281,29 @@ def _arm_jaws_for_dhandle() -> Compound:
     return Compound(label="arm_jaws_silhouette", children=parts)
 
 
-# ---------------------------------------------------------------------------
-# Per-adapter assembly
-# ---------------------------------------------------------------------------
-
 ASSEMBLY_FNS = {
-    "adapter_bravo7":            lambda: _bravo_wrist(adapter_t=16.0),
+    "adapter_bravo7":            lambda: _bravo_wrist(),
     "adapter_iso9409_50_4_M6":   lambda: _iso_cobot_wrist(
         face_d=63, spigot_d=31.5, bolts_n=4, bolt_pcd=50, bolt_thread=6.0,
-        adapter_t=14.0),
+        adapter_h=ADAPTER_HEIGHTS["adapter_iso9409_50_4_M6"]),
     "adapter_iso9409_80_6_M8":   lambda: _iso_cobot_wrist(
         face_d=100, spigot_d=50, bolts_n=6, bolt_pcd=80, bolt_thread=8.0,
-        adapter_t=14.0),
-    "adapter_br2_bottom_newton": lambda: _br2_chassis(adapter_t=10.0),
-    "adapter_br2_roof_rack":     lambda: _br2_roof_rack_chassis(adapter_t=10.0),
-    "adapter_br2_payload_skid":  lambda: _br2_payload_skid_chassis(adapter_t=12.0),
+        adapter_h=ADAPTER_HEIGHTS["adapter_iso9409_80_6_M8"]),
+    "adapter_br2_bottom_newton": lambda: _br2_chassis(
+        adapter_h=ADAPTER_HEIGHTS["adapter_br2_bottom_newton"]),
+    "adapter_br2_roof_rack":     lambda: _br2_roof_rack_chassis(
+        adapter_h=ADAPTER_HEIGHTS["adapter_br2_roof_rack"]),
+    "adapter_br2_payload_skid":  lambda: _br2_payload_skid_chassis(
+        adapter_h=ADAPTER_HEIGHTS["adapter_br2_payload_skid"]),
     "adapter_iso13628_d_handle": lambda: _arm_jaws_for_dhandle(),
 }
 
 
 def build_assembly(name: str) -> Compound:
     children: list = []
-    # The full unibody — gripper + canister + servo + shaft + lip seal + caps
-    # + penetrators + cosmetic shrouds
     children.append(_load_unibody())
-    # Adapter on top of the dry cap
     children.append(_load_adapter_at_dry_cap(name))
-    # 4× M5 SHCS on the dry-cap-to-adapter interface
-    children.extend(_dry_cap_bolts())
-    # Arm-side silhouette + arm-to-adapter fasteners
+    children.extend(_pod_to_drycap_bolts())
     children.append(ASSEMBLY_FNS[name]())
     return Compound(label=f"{name}_assembled", children=children)
 
