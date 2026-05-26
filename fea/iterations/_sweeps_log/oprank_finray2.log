@@ -1,0 +1,7 @@
+[_oprank_finray2_lowF] params={'_gen': 'finray2'}
+  section: 1118 nodes / 1802 tris
+  clamp nodes=76 (2 bores)  ndof=13416 tets=16218
+  step  1/8 press= 1.25 it=9 grip=  2.40N vmmax=0.37
+  step  2/8 press= 2.50 it=8 grip=  6.45N vmmax=1.01
+  step  3/8 press= 3.75 it=10 grip= 10.73N vmmax=1.68
+  step  4/8 press= 5.00 it=9 grip= 15.18N vmmax=2.37

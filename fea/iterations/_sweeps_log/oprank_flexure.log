@@ -1,0 +1,5 @@
+[_oprank_flexure_lowF] params={'_gen': 'flexure'}
+  section: 1183 nodes / 2068 tris
+  clamp nodes=72 (2 bores)  ndof=14196 tets=18612
+  step  1/8 press= 1.25 it=16 grip= 50.26N vmmax=1.69
+  step  2/8 press= 2.50 it=10 grip=  0.08N vmmax=0.37

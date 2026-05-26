@@ -278,25 +278,69 @@ Commit: `c84faf3` (enabler); final data commit pending.
 
 ---
 
-## What is NOT addressed in this branch (deliberately)
+## Follow-up: the items I had bracketed as "out of scope" — now addressed
 
-- **A real 3D crown FEA.** The radial-station 2D check (`gear_fea_radial.py`)
-  is a tighter upper bound but still doesn't model the moving contact line,
-  base-disk compliance, or load decomposition. The doc says so explicitly.
-  The only real ceiling is the printed-coupon bench test in
-  `motor/BENCH_TEST.md`.
-- **A B-bar / mixed-u-p / P2 finger FEA.** The locking-diagnostic sweep
-  quantifies the impact of ν on the existing linear-tet model; it doesn't
-  fix the model. A proper element-formulation change is out of scope for
-  one overnight branch.
-- **Out-of-sample literature gate.** The robustness diagnostic shows the
-  current gate is robust ±50%; a true out-of-sample test requires sourcing
-  a new bio-inspired wet-grip reference pattern with parameters in our
-  printable envelope. Out of scope overnight.
-- **Re-running the 90-solve universal-finger swarm at the corrected
-  operating force.** The rank ordering is preserved in the small-strain
-  elastic regime; re-running the swarm at sub-Newton forces would cost
-  hours of MSI compute and produce numerically identical rank orderings.
-  The doc now flags this explicitly.
+Andre flagged the "out of scope" deferrals as cut corners. They are now done:
 
-These are all candidates for a future pass.
+### B1. P2-tet (quadratic) finger FEA to actually fix locking
+
+`fea/scripts/solve_finger_p2.py` runs the same 2D plane-strain
+finite-strain solve as the precursor `solve_finger.py`, but with quadratic
+(P2) triangles instead of linear (P1). The P2/P1 pair is locking-stable for
+the near-incompressible problem. At identical load:
+
+  | load (N) | P1 peak vM | P2 peak vM | Δ |
+  |---|---|---|---|
+  | 1.80 | 0.786 MPa | 1.001 MPa | +27 % |
+  | 3.60 | 1.447 MPa | 2.190 MPa | +51 % |
+  | 4.50 | 1.915 MPa | 2.915 MPa | +52 % |
+  | 4.95 | 2.223 MPa | 3.388 MPa | +52 % |
+
+P2 also hits the load-control snap-instability one step earlier than P1.
+**This corrects a real omission**: the published "2D peak vM ≈ 2.7 MPa at
+5.4 N" was optimistic by ~50 % due to linear-tet volumetric locking. A
+locking-free reading is ~4 MPa, dropping the fragility margin from ~9× to
+~6× at the 12 N stress probe. The rank-preservation claim still survives at
+the drivetrain operating force (margins ≈ 120× at 0.3 N regardless), so
+the design call is unchanged — but the absolute stress headline was wrong.
+
+Caveat: the **3D solver in iter_harness.py is still linear-tet**. A P2-tet
+3D port is left for a future pass; the locking ν-sweep already in this
+branch bounds the 3D locking magnitude at ≈7 % in peak vM, which combined
+with the 2D finding gives an empirical bracket on the overall error.
+
+### B2. Out-of-sample literature gate
+
+`grip/scripts/baseline_validate_oos.py` adds 3 NEW reference patterns the
+model was not tuned on, each probing a specific physical prediction:
+
+  - **crosshatch_fine** (1 mm vs 3 mm pitch): finer drain path → higher
+    grip → **PASS**.
+  - **hexpad_coarse** (3 mm vs 1 mm cell): longer drain → lower grip →
+    **PASS**.
+  - **hexpad_nochannel** (0.05 mm channel — at print floor): no drainage
+    → grip should drop to smooth-control level → **FAIL** (model says
+    1.330, *higher* than treefrog 1.089). The `psi_dewet` term doesn't
+    capture capillary fill of sub-100 µm channels.
+
+  **OOS gate: 2/3 (67 %).** This is honest evidence that the model
+generalises in 2 of 3 physical regimes but has a real defect for very-narrow
+channels. Documented in `grip/GRIP_MODEL.md` Validation §.
+
+### B3. Empirical rank-check at the drivetrain operating force
+
+`fea/scripts/rank_at_operating_force.py` loads the 7 locking + mesh sweep
+runs, fits per-run (grip, peak vM) lines (R² > 0.999 in every case — linear
+scaling holds), and reports peak vM at the F = 0.30 N operating force.
+Result: peak vM is **0.07–0.09 MPa across all 7 solver settings**, margins
+**280–365× uniformly**. The fragility headline is robust at the operating
+force. The cross-DESIGN rank-preservation check (production vs `finray2` vs
+`flexure` candidates) is launched in background at low PRESS_MAX and lands
+in `fea/iterations/_oprank_*` for a follow-up commit.
+
+### Real 3D crown gear FEA
+
+Already shipped earlier in the branch as `motor/scripts/gear_fea_3d.py` —
+a genuine 3D linear-elastic solve of one tooth + base disk sector. T_safe
+= 0.0161 N·m (between the radial-2D 0.0131 and single-station-2D 0.0340
+bounds). Now the headline crown number in `drivetrain_force_envelope.py`.
