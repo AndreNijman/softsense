@@ -43,10 +43,18 @@
   Selected: smart serial servo (DYNAMIXEL XW540-T260) primary, magnetic-coupling
   dry-pod fallback. The drivetrain (gear teeth) in `gripper.py` is **unlocked**;
   finger/texture/print-profile are locked.
-- `motor/interfaces/` — mounting-interface dossiers (research only, no CAD yet):
+- `motor/interfaces/` — mounting-interface dossiers (research):
   Reach Bravo 7 / Alpha 5, ISO 9409-1 cobot flange, Schilling/Kraft work-class
   wrist, fixed BlueROV2-chassis mount. Top-level comparison in `motor/INTERFACES.md`.
-  Three adapters P0-ready; Alpha 5 + Schilling-bolt-on blocked on NDA dims.
+  Alpha 5 + Schilling-bolt-on blocked on NDA dims (every other family modelled).
+- `motor/cad/adapters/` — all 7 mounting adapters as parametric build123d
+  modules. Shared gripper-side mating in `_base.py` (4×M4 at (±38, ±8, 0),
+  shaft clearance Ø16 at X=-12). STEPs in `motor/cad/output/adapter_*.step`,
+  PNG snapshots in `renders/adapters/`.
+- `motor/POWER_SUPPLY.md` — per-interface power chain (regulator + fuse +
+  TVS + connector + RS-485 master). **Critical:** BR2 4S Li-ion is 16.8 V
+  full-charge, ABOVE XW540's 14.8 V max — buck is MANDATORY on BR2, not
+  optional. BOM-delta proposal at §8.
 - `docs/PRINT_PROFILE_P1S_TPU.md` + `profiles/` — print the fingers in **eSUN eTPU-95A on a
   Bambu P1S, 0.4 mm hardened nozzle** (importable Bambu Studio filament+process).
 - `regen.sh` — rebuild all derived artifacts (poses, parts, plates, heroes, GIF).
