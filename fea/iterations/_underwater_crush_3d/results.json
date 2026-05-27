@@ -1,0 +1,78 @@
+{
+  "mesh": {
+    "n_nodes_2d": 1434,
+    "n_tris": 2225,
+    "n_nodes_3d": 11472,
+    "n_tets": 46725,
+    "n_layers": 7,
+    "ndof": 34416
+  },
+  "material": {
+    "E_TPU": 40.0,
+    "nu": 0.45,
+    "yield": 25.0
+  },
+  "load_case": "TRAPPED AIR \u2014 outer skin (perimeter + \u00b1Z TPU silhouette) wetted at P_depth; inner cell walls traction-free",
+  "runs": [
+    {
+      "depth_m": 0.0,
+      "P_MPa": 0.0,
+      "peak_vM_MPa": 0.0,
+      "median_vM_MPa": 0.0,
+      "peak_disp_um": 0.0,
+      "contact_wall_disp_um": 0.0,
+      "margin_to_yield": 25000000000.0,
+      "survives": true
+    },
+    {
+      "depth_m": 10.0,
+      "P_MPa": 0.1005525,
+      "peak_vM_MPa": 1.2693941195734912,
+      "median_vM_MPa": 0.22962015081543008,
+      "peak_disp_um": 1758.3400647383774,
+      "contact_wall_disp_um": 1607.0369957576956,
+      "margin_to_yield": 19.69443501786494,
+      "survives": true
+    },
+    {
+      "depth_m": 30.0,
+      "P_MPa": 0.3016575,
+      "peak_vM_MPa": 3.8081823587205106,
+      "median_vM_MPa": 0.688860452446468,
+      "peak_disp_um": 5275.020194215108,
+      "contact_wall_disp_um": 4821.110987273057,
+      "margin_to_yield": 6.564811672621583,
+      "survives": true
+    },
+    {
+      "depth_m": 100.0,
+      "P_MPa": 1.005525,
+      "peak_vM_MPa": 12.693941195734771,
+      "median_vM_MPa": 2.296201508155078,
+      "peak_disp_um": 17583.400647383685,
+      "contact_wall_disp_um": 16070.369957576837,
+      "margin_to_yield": 1.969443501786516,
+      "survives": true
+    },
+    {
+      "depth_m": 200.0,
+      "P_MPa": 2.01105,
+      "peak_vM_MPa": 25.387882391469542,
+      "median_vM_MPa": 4.592403016310156,
+      "peak_disp_um": 35166.80129476737,
+      "contact_wall_disp_um": 32140.739915153674,
+      "margin_to_yield": 0.984721750893258,
+      "survives": false
+    },
+    {
+      "depth_m": 300.0,
+      "P_MPa": 3.016575,
+      "peak_vM_MPa": 38.08182358720505,
+      "median_vM_MPa": 6.888604524464298,
+      "peak_disp_um": 52750.20194215122,
+      "contact_wall_disp_um": 48211.10987273073,
+      "margin_to_yield": 0.6564811672621592,
+      "survives": false
+    }
+  ]
+}
