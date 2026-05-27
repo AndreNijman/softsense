@@ -36,20 +36,22 @@ because it is gear-limited, not finger-limited.
 
 | Effect | At 30 m | At 100 m | At 300 m | Verdict |
 |---|---|---|---|---|
-| FLOODED finger — peak vM (plane-strain UB, ν=0.45) | 0.03 MPa | 0.10 MPa | 0.31 MPa | **negligible** — 800× / 240× / 80× margin to 25 MPa TPU yield |
-| TRAPPED-AIR finger — peak vM (worst case, ν=0.45) | **0.41 MPa** | **1.35 MPa** | (linearity broken — see §3) | At 30 m: 62× yield margin, 0.6 mm contact-wall sag, geometry intact. At 100 m: 18.5× margin, 2.1 mm sag (degraded). At 300 m+ linear FEA over-predicts — real response is self-contact / gas-pressure limited |
+| FLOODED finger — peak vM (3D, ν=0.45) | ≈0 (bulk hydrostatic) | ≈0 | ≈0 | **negligible by physics** — vM = 0 in the free bulk because σ = −P·I. 3D FEA sanity-check confirms (peak vM 0.3 MPa is clamp boundary only) |
+| TRAPPED-AIR finger — peak vM (3D worst case, ν=0.45) | **3.8 MPa** | **12.6 MPa** | linearity broken (>finger-thickness sag) | 30 m: 6.6× yield margin, **4.8 mm contact-face sag (half finger thickness)** → geometrically crushed. 100 m: 2.0× margin, 16 mm sag (gas/self-contact limited in reality). 200 m+: material yields |
+| **2D plane-strain UNDER-estimate** (trapped-air, the original figure I quoted) | 0.41 MPa, 0.6 mm sag | 1.35 MPa, 2.1 mm | — | **2D was wrong** — εz = 0 hides the dominant foam-collapse mode; 3D is the correct number |
 | Bulk linear contraction (ν=0.45, flooded) | −0.075% | −0.25% | −0.75% | 68 / 226 / 678 μm on the 90 mm blade. Sub-PRINT_CLEAR until ~100 m |
 | Pin-bore radial contraction (ν=0.45, flooded) | −1.7 μm | −5.8 μm | −17 μm | Trivial vs 300 μm PRINT_CLEAR — pin stays running clearance |
 | 20% modulus drop (typical wet TPU) at 8 mm closure | grip force ~−20% | (depth-independent) | (depth-independent) | gripper softer, T_safe unchanged |
 | 50% modulus drop (worst-case sat.) | grip force ~−50% | (depth-independent) | (depth-independent) | still wraps; less force margin |
 
-**Operating verdict (≤30 m, the primary actuator-rated envelope): no
-material yield in any case; no functional degradation if cells flood as
-designed; ~0.6 mm contact-wall sag if cells trap air, which the standard
-pre-dive cycle clears.** Deeper than 100 m, ensuring the cells flood
-(pre-soak, fingers-down submersion, or a brief actuation cycle while
-underwater) is **load-critical**, not just a "nice to have" from
-`UNDERWATER.md §3`.
+**Updated operating verdict: in the FLOODED design state the finger is
+fine at any practical depth. In the TRAPPED-AIR state — even at very
+shallow depths (10 m: 1.6 mm contact-face sag) — the finger is
+geometrically crushed and the wrap is wrecked. So pre-dive cell flooding
+is LOAD-CRITICAL from depth ZERO, not just for deep dives.** The
+mitigation procedure in `docs/UNDERWATER.md` (submerge fingers-down,
+soak ~30 s, cycle open↔close once underwater) is mandatory for any
+underwater operation, not an optional best-practice.
 
 ---
 
@@ -160,71 +162,109 @@ The 2D section mesh comes back with **12 boundary loops** total:
   outer skin:      253 facets, |signed area| 1379 mm²  → external water
   Fin Ray cells:    11 inner loops, 286 facets total, area 470 mm²  → air
 
-### Result (ν = 0.45)
+### 2D plane-strain result (under-estimates the true load case)
 
-| depth | P (MPa) | peak vM (MPa) | contact wall deflection (μm) | margin to 25 MPa | survives? |
+| depth | P (MPa) | peak vM (MPa) | contact wall sag (μm) | margin |
+|---|---|---|---|---|
+| 30 m | 0.30 | 0.41 | 637 | 62× |
+| 100 m | 1.01 | 1.35 | 2122 | 18.5× |
+| 300 m | 3.02 | 4.05 | 6366 | 6.2× |
+
+The first version of this analysis used 2D plane-strain because it was
+fast and reused the existing 2D mesh. **It is wrong.** Plane-strain
+forces εz = 0 — the finger cannot deform in its thickness direction.
+The Fin Ray cells, however, can collapse globally in 3D because the
+ribs are thin walls that bend; this mode requires Z-direction freedom,
+which plane-strain forbids. The user's pushback ("what about crushing
+vertically?") was exactly right.
+
+### 3D linear-elastic result (the correct worst case)
+
+`underwater_crush_3d.py` runs the 3D solve. The mesh is the same 2D
+section extruded N_LAYERS = 5 times in Z (33,375 linear tets, 25,812
+DOF). The prism-to-tet split is **face-conforming** (sorted indices
+a<b<c, split into (a,b,c,c'), (a,b,c',b'), (a,b',c',a') — adjacent
+prisms see matching diagonals on shared quad faces, no spurious
+hanging-node mechanisms). Outward-of-solid normals are computed by
+the **local-triangle topology test** (the third vertex of the adjacent
+2D triangle is on the solid side; outward points away from it), which
+correctly orients both outer-skin and inner-cavity face normals.
+
+**Sanity check (flooded, 100 m, ν=0.45):**
+
+  f_net = 1e-13     (numerical zero — equilibrium satisfied)
+  mean σ_xx = -0.986 MPa   vs analytical -P = -1.006 (2% mesh)
+  peak |u| = 227 μm   vs analytical P/(3K) · L = 226 μm
+  peak vM = 0.31 MPa   (mostly clamp boundary; bulk ≈ 0 as required)
+
+Reproduces σ = -P·I in the free bulk → FEA is trustworthy.
+
+**Trapped-air result (ν = 0.45):**
+
+| depth | P (MPa) | peak vM (MPa) | contact-wall sag (μm) | margin | verdict |
 |---|---|---|---|---|---|
-| 0 m | 0.00 | 0.00 | 0 | ∞ | yes |
-| 10 m | 0.10 | 0.135 | 212 | 185× | yes |
-| 30 m | 0.30 | 0.405 | 637 | **62×** | yes |
-| 100 m | 1.01 | 1.35 | 2122 (2.1 mm) | 18.5× | yes (geometry degraded) |
-| 300 m‡ | 3.02 | 4.05 | 6366 (6.4 mm) | 6.2× | LINEAR FEA past validity — see note |
-| 600 m‡ | 6.03 | 8.10 | 12731 (12.7 mm) | 3.1× | LINEAR FEA past validity — see note |
+| 0 m | 0.00 | 0.00 | 0 | ∞ | trivial |
+| 10 m | 0.10 | **1.27** | **1605** (1.6 mm) | 20× | material OK, **geometry degraded** |
+| 30 m | 0.30 | **3.77** | **4816** (4.8 mm) | 6.6× | material OK, **GEOMETRICALLY CRUSHED** (half finger thickness) |
+| 100 m | 1.01 | 12.58 | 16054 (>finger thickness) | 2.0× | linear FEA past validity; gas/contact dominates |
+| 200 m | 2.01 | 25.16 | 32108 | 1.0× | **MATERIAL YIELDS** |
+| 300 m | 3.02 | 37.74 | 48162 | 0.7× | **MATERIAL YIELDS** |
 
-> ‡ **Domain-of-validity note.** The Fin Ray cells are ~10 mm tall and
-> ~2 mm wide. A 6.4 mm or 12.7 mm wall sag is a large fraction of (or
-> greater than) the available cell depth, so in reality the contact wall
-> would **self-contact** the spine wall or adjacent ribs long before
-> reaching those linear-FEA deflections. Linear elasticity has no
-> notion of self-contact — it just keeps deflecting. Additionally,
-> adiabatic gas compression bites hard at this scale: at 100 m the
-> cell volume shrinks ~21% so the trapped air rises to ~1.27 atm,
-> reducing the external/internal differential by ~10%; at 300 m the
-> compression would be 50%+, reducing the differential by half. So
-> the 300/600 m rows are **upper bounds twice over** (no self-contact
-> + rigid air) — the real response would be self-contact-limited
-> and gas-pressure-limited, not material-yield-limited. Treat the
-> 300 m and 600 m rows as "linearity broken; real response is
-> self-contact / gas-pressure dominated, not modeled here." The
-> 30 m and 100 m rows remain in-validity.
+**3D is ~10× worse than 2D plane-strain at every depth.** At 30 m the
+contact face sags 4.8 mm — half the finger Z-thickness. The blade is
+unrecognizably distorted; the wrap geometry is wrecked.
 
-So the user's intuition that "pressure will crush the finger" is
-**half-right**:
+### Why 3D is so much worse — foam collapse
 
-- At ≤30 m (primary actuator-rated depth): even worst-case crush mode
-  keeps a 60× yield margin and only deflects the contact face 0.6 mm.
-  The finger does **not** crush in any operationally meaningful sense.
-- At 100 m+: the contact wall starts deflecting by mm (2.1 mm at 100 m,
-  6.4 mm at 300 m). The TPU does not yield until you go past ~600 m,
-  but the finger geometry collapses well before that, ruining wrap.
-- The **kink** in the response is between 30 m and 100 m. Inside the
-  actuator's primary envelope the finger is safe even in the worst case;
-  outside it (tier-3 magnetic-coupling territory) the flooding becomes
-  load-critical.
+The trapped-air finger blade behaves as a **closed-cell foam** in
+compression. Cell wall thickness t ≈ 1.4 mm; cell size b ≈ 6 mm. The
+effective foam modulus for bending-dominated cell collapse is:
 
-### Conservatism in this estimate
+  E_foam ≈ E_TPU · (t/b)³ ≈ 40 · 0.013 = 0.5 MPa
 
-The plane-strain trapped-air FEA is an **upper bound** on the real
-stress, for two reasons:
+Two orders of magnitude below the parent E_TPU. Under any pressure
+differential, both the contact face and the spine face move INWARD
+together, and the slanted ribs bend like trusses with no internal
+support. This is a *global* deformation mode, not local plate-bending
+between adjacent ribs.
 
-1. **Plane-strain over-constrains Z.** The real finger can shrink in Z
-   under the same load case (the front/back faces of the blade are also
-   wetted symmetrically). A 3D solve would give lower deviatoric stress
-   for the same external pressure.
-2. **Trapped air is not perfectly rigid.** As the cells compress, the
-   trapped air's pressure rises adiabatically (PV^γ = const, γ=1.4 for
-   air). Approximate volume change ≈ deflection / cell depth (~10 mm):
-   - 30 m: ~6% compression → ~1.08 atm internal, **2% correction** on
-     a 300 kPa differential. Operating-depth analysis essentially
-     unaffected.
-   - 100 m: ~21% compression → ~1.27 atm internal, **3% correction**
-     on a 1.0 MPa differential. Still small.
-   - 300 m: ~64% compression → ~3.2 atm internal, **~10% correction**
-     on a 3.0 MPa differential (and self-contact dominates anyway).
-   So the gas-backpressure correction is **negligible at the operating
-   depths where the analysis is in-validity**, and the deep-depth rows
-   are bounded by self-contact before gas backpressure becomes the
-   leading limiter.
+The 2D plane-strain analysis **artificially prevented** this mode by
+forcing εz = 0 — the cells couldn't collapse in the Z direction, so
+the only available mode was in-plane bowing of the contact wall.
+
+### Convergence + domain of validity
+
+NLAYERS=5 → 7 gives identical answers within 1% (verified). The
+linear-elastic FEA does NOT model:
+
+1. **Adiabatic gas compression in cells.** At 30 m, predicted sag is
+   4.8 mm in a ~6 mm-deep cell — 80% volume reduction would push
+   internal gas pressure to ~9 atm via PV^γ = const (γ=1.4). External
+   water pressure at 30 m is only ~4 atm. So the real cell would
+   re-expand — gas backpressure CAPS the deflection. The actual
+   trapped-air sag at 30 m is **bounded but still meaningful** —
+   probably 1–2 mm rather than 4.8 mm.
+2. **Self-contact between contact wall and spine/ribs.** At 4.8 mm sag
+   on a ~6 mm cell, the contact wall self-contacts and halts further
+   motion (force is then taken by direct compression of the rib stack).
+3. **Material nonlinearity.** 22% strain in a ~22 mm blade dimension
+   is past TPU's linear-elastic limit; real response stiffens at large
+   compressive strain.
+
+So the linear 3D numbers **overstate actual deflection at 30 m+ depths
+where cells nearly close**. But this works in the favor of the
+engineering verdict: even ACCOUNTING for gas backpressure, contact-face
+sag at 30 m would be **~1–2 mm — visible distortion, wrap geometry
+wrecked**. At 10 m the linear sag is 1.6 mm; gas backpressure correction
+is <5%, so 1.6 mm is essentially the real answer.
+
+**Bottom line: a finger with cells trapping air is geometrically crushed
+at any operating depth ≥10 m. There is no depth shallow enough to
+tolerate trapped air. Pre-dive cell flooding is mandatory from dive
+plan zero, not an optional best-practice.**
+
+Figure: `fea/pictures/underwater_crush.png` (3D in red, 2D in orange
+for the under-estimate comparison).
 
 The real 3D-with-gas-compression answer is therefore strictly safer than
 the plane-strain rigid-air-pocket numbers above. The "survives" verdicts
