@@ -32,6 +32,8 @@ decide *what to print it in* and how to run it wet here.
 | 4 | Net buoyancy | **PASS** | Solid vol **98.5 cm³**, dry mass ~**124 g** (PETG+TPU, 100% infill). Flooded → displaces solid vol only → **net ≈ +23 g in seawater (sinks gently, near-neutral)**. No ballast needed. See §4. |
 | 5 | Galvanic corrosion | **PASS** | **Zero metal in the gripper.** All 8 pins and `input_pinion_shaft` are printed, snap-clip cover, no fasteners. No dissimilar-metal pair exists. See §5. |
 | 6 | Drive coupler / actuator | **SELECTED** (force-sensing) | Bottom D-flat coupler on `input_pinion_shaft` drives a **smart serial-bus servo (DYNAMIXEL XW540-T260)** that doubles as the **grip-force sensor** (motor current → tip force); magnetic-coupling dry-pod is the >30 m fallback. The motor current limit must be set to the gear ceiling `T_safe` (the printed crown/pinion is the structural limit). Full campaign in `motor/`. See §6. |
+| 7 | Hydrostatic pressure on TPU finger | **PASS** | Plane-strain FEA UB at 600 m gives **0.94 MPa peak vM vs 25 MPa yield (27× margin)**; bulk contraction sub-PRINT_CLEAR until ~100 m. **Pressure does not stress the TPU** at any practical depth. See `fea/UNDERWATER_FEA.md §2`. |
+| 8 | Wet-TPU softening (water plasticization) | **CHARACTERIZED** | Soaked ether-TPU is 10–30% softer (worst case 50%). In linear elasticity grip force scales **linearly with modulus** at fixed actuator stroke; `T_safe` is unchanged (gear-limited, not finger-limited). Gripper is more compliant wet but not weaker. See `fea/UNDERWATER_FEA.md §3`. |
 
 ---
 
