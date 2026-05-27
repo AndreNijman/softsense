@@ -44,10 +44,10 @@ E_TPU = 40.0
 NU = 0.45
 TPU_YIELD = 25.0
 
-# ----- depths to render -----
-DEPTHS_2D_FLOOD = [30.0, 100.0, 300.0]
-DEPTHS_2D_CRUSH = [10.0, 30.0, 100.0]
-DEPTHS_3D_CRUSH = [10.0, 30.0, 100.0]
+# ----- depths to render (common across both sheets so each panel
+#       has a flooded-vs-trapped-air comparison at the same depth) -----
+DEPTHS_PRESSURE = [30.0, 100.0, 300.0]   # 2D plane-strain sheet
+DEPTHS_CRUSH    = [30.0, 100.0, 300.0]   # 3D sheet
 
 RHO_G = 1025.0 * 9.81e-6
 
@@ -205,8 +205,14 @@ def plot_2d_panel(ax, mesh, ux, uy, vm, mag, title, vmin, vmax,
 
 
 # =============== 3D solve infrastructure (reuse underwater_crush_3d) ===============
-def run_3d_field(P_depth):
-    """Run the 3D crush solve and return (nodes, tets, u_disp, vm_per_tet, N2)."""
+_3D_CACHE = {}
+
+
+def build_3d_once():
+    """Build the 3D mesh and stiffness ONCE — both flooded and trapped-air
+    cases reuse the same K. Reduces 6-run wallclock from ~12 min to ~4 min."""
+    if "K" in _3D_CACHE:
+        return _3D_CACHE
     import underwater_crush_3d as uc
     workdir = os.path.join(os.path.dirname(HERE), "iterations", "_underwater_crush_3d")
     os.makedirs(workdir, exist_ok=True)
@@ -224,11 +230,23 @@ def run_3d_field(P_depth):
     faces_tagged = uc.enumerate_boundary_faces_with_normals(
         p2d, tris, outer_e, inner_e, edge_n2, N2)
     clamp_d, _ = uc.clamp_dofs(nodes, lm, N2)
-    f_load, _ = uc.pressure_load_vector(nodes, faces_tagged, p2d, outer_e,
-                                         N2, P_depth, lm, flooded=False)
-    u = uc.solve_linear(K, f_load, clamp_d, nodes.shape[0] * 3)
-    vm_tet, _ = uc.von_mises_per_tet(B, V, u, edof)
-    return nodes, tets, u, vm_tet, N2, p2d, tris
+    _3D_CACHE.update(dict(uc=uc, p2d=p2d, tris=tris, lm=lm, outer_e=outer_e,
+                          nodes=nodes, tets=tets, N2=N2, K=K, B=B, V=V,
+                          edof=edof, faces_tagged=faces_tagged,
+                          clamp_d=clamp_d))
+    return _3D_CACHE
+
+
+def run_3d_field(P_depth, flooded=False):
+    """Run the 3D solve for one depth + load case, return (u, vm_tet)."""
+    c = build_3d_once()
+    f_load, _ = c["uc"].pressure_load_vector(
+        c["nodes"], c["faces_tagged"], c["p2d"], c["outer_e"],
+        c["N2"], P_depth, c["lm"], flooded=flooded)
+    u = c["uc"].solve_linear(c["K"], f_load, c["clamp_d"],
+                              c["nodes"].shape[0] * 3)
+    vm_tet, _ = c["uc"].von_mises_per_tet(c["B"], c["V"], u, c["edof"])
+    return u, vm_tet
 
 
 def plot_3d_midz_slice(ax, p2d, tris, nodes, u, vm_tet, N2, mag,
@@ -273,68 +291,106 @@ def plot_3d_midz_slice(ax, p2d, tris, nodes, u, vm_tet, N2, mag,
 
 # =============== render sheets ===============
 def render_pressure_sheet():
-    """FLOODED case — show the rest mesh and deformed at 3 depths.
+    """2D plane-strain — both load cases at common depths for direct comparison.
 
-    Honest visualization: gray rest mesh outline OVERLAID on every panel
-    so the viewer sees how small the real deformation is. Per-panel
-    magnification is picked so each panel shows ~5 mm of visible
-    deformation (roughly 1/20 of the 90 mm blade) — comparable across
-    depths without faking the physics.
+      Row 0: FLOODED      (rest, 30 m, 100 m, 300 m)
+      Row 1: TRAPPED AIR  (rest, 30 m, 100 m, 300 m)
+
+    Same color scale across both rows so vM is directly comparable.
     """
+    LINEAR_VALID_LIMIT_UM = 300.0   # ~20% of 1.6 mm rib wall
+
     mesh, lm, clamp = load_mesh_2d()
     outer_f, inner_f = classify_2d_loops(mesh)
-    print(f"flooded sheet: mesh {mesh.p.shape[1]} nodes")
-    cases = []
-    for depth in DEPTHS_2D_FLOOD:
-        P = RHO_G * depth
-        ux, uy, vm = solve_2d(P, "flooded", mesh, clamp, outer_f, inner_f)
-        disp = np.hypot(ux, uy)
-        cases.append(dict(depth=depth, P=P, ux=ux, uy=uy, vm=vm,
-                          max_disp_um=float(disp.max() * 1000),
-                          max_vm=float(vm.max())))
-        print(f"  flooded {depth:5.0f} m: max |u| = {disp.max()*1000:.1f} μm, "
-              f"max vM = {vm.max():.4f} MPa")
-    vmax = max(c["max_vm"] for c in cases)
-    # pick magnification so max visible deformation = TARGET_VISIBLE mm
-    TARGET_VISIBLE_MM = 5.0
-    for c in cases:
-        c["mag"] = max(1, int(round(TARGET_VISIBLE_MM * 1000 / c["max_disp_um"])))
+    print(f"pressure sheet (2D plane-strain): mesh {mesh.p.shape[1]} nodes")
 
-    fig, axs = plt.subplots(1, 4, figsize=(16, 5))
+    def solve_case(mode):
+        out = []
+        # past-validity stamp only meaningful for trapped_air (rib bending);
+        # flooded is uniform bulk shrinkage with no nonlinear concerns
+        check_validity = (mode == "trapped_air")
+        for depth in DEPTHS_PRESSURE:
+            P = RHO_G * depth
+            ux, uy, vm = solve_2d(P, mode, mesh, clamp, outer_f, inner_f)
+            max_disp = float(np.hypot(ux, uy).max() * 1000)
+            pv = check_validity and (max_disp > LINEAR_VALID_LIMIT_UM)
+            out.append(dict(depth=depth, P=P, ux=ux, uy=uy, vm=vm,
+                            max_disp_um=max_disp,
+                            max_vm=float(vm.max()),
+                            past_validity=pv))
+            print(f"  {mode:11s} @ {depth:4.0f} m: |u|={max_disp:7.1f} μm  "
+                  f"vM={vm.max():.3f} MPa "
+                  f"{'(past validity)' if pv else ''}")
+        return out
+
+    cases_fl = solve_case("flooded")
+    cases_ta = solve_case("trapped_air")
+
+    vmax = max(max(c["max_vm"] for c in cases_fl),
+                max(c["max_vm"] for c in cases_ta if not c["past_validity"]
+                    or True))  # include past-validity in colour cap
+    TARGET_VISIBLE_MM = 5.0
+    for c in cases_fl + cases_ta:
+        c["mag"] = max(1, int(round(TARGET_VISIBLE_MM * 1000 / max(c["max_disp_um"], 1))))
+
+    fig, axs = plt.subplots(2, 4, figsize=(16, 9))
     p = mesh.p; t = mesh.t
-    # axis limits = rest bbox + margin
-    x_pad = 5; y_pad = 5
+    x_pad, y_pad = 5, 5
     xlim = (p[0].min() - x_pad, p[0].max() + x_pad)
     ylim = (p[1].min() - y_pad, p[1].max() + y_pad)
 
-    tri0 = Triangulation(p[0], p[1], t.T)
-    axs[0].tripcolor(tri0, facecolors=np.zeros(t.shape[1]),
+    def rest_panel(ax, label):
+        tri0 = Triangulation(p[0], p[1], t.T)
+        ax.tripcolor(tri0, facecolors=np.zeros(t.shape[1]),
                       cmap="inferno", vmin=0, vmax=vmax, edgecolors="none")
-    axs[0].triplot(tri0, color="black", lw=0.2, alpha=0.5)
-    axs[0].set_aspect("equal"); axs[0].set_xticks([]); axs[0].set_yticks([])
-    axs[0].set_xlim(xlim); axs[0].set_ylim(ylim)
-    axs[0].set_title("rest (P = 0)\nundeformed", fontsize=9)
+        ax.triplot(tri0, color="black", lw=0.2, alpha=0.5)
+        ax.set_aspect("equal")
+        ax.set_xticks([]); ax.set_yticks([])
+        ax.set_xlim(xlim); ax.set_ylim(ylim)
+        ax.set_title("rest (P = 0)\nundeformed", fontsize=9)
 
-    for i, c in enumerate(cases, start=1):
+    rest_panel(axs[0, 0], "flooded")
+    axs[0, 0].set_ylabel(
+        "FLOODED\n(water inside cells AND outside)\n"
+        "design intent — σ = −P·I",
+        fontsize=9, color="#1f77b4")
+    for i, c in enumerate(cases_fl, start=1):
         title = (f"flooded @ {c['depth']:.0f} m  (P = {c['P']:.2f} MPa)\n"
                  f"REAL max |u| = {c['max_disp_um']:.0f} μm  "
-                 f"({100 * c['max_disp_um']/1000/90:.2f} % of blade length)\n"
                  f"max vM = {c['max_vm']:.3f} MPa  "
-                 f"({TPU_YIELD/c['max_vm']:.0f}× yield margin)\n"
-                 f"deformation drawn ×{c['mag']}; gray = undeformed")
-        pc = plot_2d_panel(axs[i], mesh, c["ux"], c["uy"], c["vm"], c["mag"],
-                            title, vmin=0, vmax=vmax)
-        axs[i].set_xlim(xlim); axs[i].set_ylim(ylim)
+                 f"({TPU_YIELD/max(c['max_vm'], 1e-9):.0f}× yield)\n"
+                 f"drawn ×{c['mag']}; gray = undeformed")
+        pc = plot_2d_panel(axs[0, i], mesh, c["ux"], c["uy"], c["vm"],
+                            c["mag"], title, vmin=0, vmax=vmax,
+                            past_validity=c["past_validity"])
+        axs[0, i].set_xlim(xlim); axs[0, i].set_ylim(ylim)
+
+    rest_panel(axs[1, 0], "trapped")
+    axs[1, 0].set_ylabel(
+        "TRAPPED AIR\n(cells contain 1 atm air;\n"
+        "water only on outer skin)",
+        fontsize=9, color="#d62728")
+    for i, c in enumerate(cases_ta, start=1):
+        title = (f"trapped @ {c['depth']:.0f} m  (P = {c['P']:.2f} MPa)\n"
+                 f"REAL max |u| = {c['max_disp_um']:.0f} μm  "
+                 f"max vM = {c['max_vm']:.3f} MPa  "
+                 f"({TPU_YIELD/max(c['max_vm'], 1e-9):.0f}× yield)\n"
+                 f"drawn ×{c['mag']}; gray = undeformed")
+        pc = plot_2d_panel(axs[1, i], mesh, c["ux"], c["uy"], c["vm"],
+                            c["mag"], title, vmin=0, vmax=vmax,
+                            past_validity=c["past_validity"])
+        axs[1, i].set_xlim(xlim); axs[1, i].set_ylim(ylim)
+
     cbar = fig.colorbar(pc, ax=axs.ravel().tolist(), fraction=0.02,
                          label="von Mises (MPa)")
-    fig.suptitle("Underwater pressure FEA — FLOODED case "
-                 "(water inside Fin Ray cells AND outside skin at the same pressure)\n"
-                 "Bulk hydrostatic state σ = −P·I → vM ≈ 0; finger uniformly shrinks. "
-                 "Stress concentration shown is at the clamp pin-bore (where TPU "
-                 "is prevented from shrinking by the rigid pin).",
-                 fontsize=10.5)
-    fig.subplots_adjust(top=0.84, bottom=0.04, left=0.02, right=0.92,
-                        wspace=0.05)
+    fig.suptitle("Underwater pressure FEA — 2D plane-strain  "
+                 "(flooded design vs trapped-air worst case, same color scale)\n"
+                 "Flooded: bulk hydrostatic state, vM essentially zero. "
+                 "Trapped-air: cell walls bend; 2D plane-strain UNDER-predicts "
+                 "(εz=0 over-constraint hides the 3D foam-collapse mode — see crush sheet).",
+                 fontsize=10)
+    fig.subplots_adjust(top=0.88, bottom=0.04, left=0.04, right=0.92,
+                        wspace=0.05, hspace=0.18)
     fp = os.path.join(PICS, "underwater_pressure_FEA.png")
     fig.savefig(fp, dpi=120)
     print(f"wrote {fp}")
@@ -342,131 +398,106 @@ def render_pressure_sheet():
 
 
 def render_crush_sheet():
-    """TRAPPED-AIR case — show 2D plane-strain (under-estimate) + 3D
-    mid-Z slice (correct) at each depth side-by-side.
+    """3D solid — both load cases at common depths for direct comparison.
 
-    Honest visualization rules:
-      - undeformed rest mesh always overlaid in gray
-      - per-row magnification picked so visible deformation is comparable
-      - panels where linear FEA is past its validity envelope (max
-        displacement > ~20% of smallest feature thickness, ~0.3 mm for
-        a 1.6 mm rib) are stamped "LINEAR FEA PAST VALIDITY"
-      - axis limits = rest bbox (deformation that exits the box is a
-        visual cue that the linear-elastic prediction is unphysical)
+      Row 0: FLOODED 3D      (rest, 30 m, 100 m, 300 m)
+      Row 1: TRAPPED AIR 3D  (rest, 30 m, 100 m, 300 m)
+
+    Mesh built once; both load cases reuse the same K (cached).
     """
-    LINEAR_VALID_LIMIT_UM = 300.0   # ~20% of 1.6 mm rib wall
+    LINEAR_VALID_LIMIT_UM = 300.0
 
-    mesh, lm, clamp = load_mesh_2d()
-    outer_f, inner_f = classify_2d_loops(mesh)
-    print(f"crush sheet: mesh {mesh.p.shape[1]} nodes")
-    # ---- 2D trapped-air ----
-    cases_2d = []
-    for depth in DEPTHS_2D_CRUSH:
-        P = RHO_G * depth
-        ux, uy, vm = solve_2d(P, "trapped_air", mesh, clamp, outer_f, inner_f)
-        max_disp = float(np.hypot(ux, uy).max() * 1000)
-        cases_2d.append(dict(depth=depth, P=P, ux=ux, uy=uy, vm=vm,
-                             max_disp_um=max_disp,
-                             max_vm=float(vm.max()),
-                             past_validity=max_disp > LINEAR_VALID_LIMIT_UM))
-        print(f"  2D crush @ {depth:5.0f} m: max |u| = {max_disp:.1f} μm, "
-              f"vM = {vm.max():.3f} MPa "
-              f"{'(past validity)' if max_disp > LINEAR_VALID_LIMIT_UM else ''}")
-    # ---- 3D trapped-air ----
-    cases_3d = []
-    for depth in DEPTHS_3D_CRUSH:
-        P = RHO_G * depth
-        nodes, tets, u, vm_tet, N2, p2d_3d, tris_3d = run_3d_field(P)
-        disp = np.linalg.norm(u.reshape(-1, 3), axis=1)
-        max_disp = float(disp.max() * 1000)
-        cases_3d.append(dict(depth=depth, P=P, nodes=nodes, tets=tets,
-                              u=u, vm_tet=vm_tet, N2=N2,
-                              p2d=p2d_3d, tris=tris_3d,
-                              max_disp_um=max_disp,
-                              max_vm=float(vm_tet.max()),
-                              past_validity=max_disp > LINEAR_VALID_LIMIT_UM))
-        print(f"  3D crush @ {depth:5.0f} m: max |u| = {max_disp:.1f} μm, "
-              f"vM = {vm_tet.max():.3f} MPa "
-              f"{'(past validity)' if max_disp > LINEAR_VALID_LIMIT_UM else ''}")
+    # build once
+    c3d = build_3d_once()
+    p2d_3d = c3d["p2d"]; tris_3d = c3d["tris"]
+    nodes = c3d["nodes"]; tets = c3d["tets"]; N2 = c3d["N2"]
+    print(f"crush sheet (3D): nodes={nodes.shape[0]}, tets={tets.shape[0]}")
 
-    # color scales — use the SMALLEST-depth max so colors are comparable
-    # within the in-validity range; clip beyond
-    vmax_2d = max(c["max_vm"] for c in cases_2d if not c["past_validity"]) \
-        if any(not c["past_validity"] for c in cases_2d) else max(c["max_vm"] for c in cases_2d)
-    vmax_3d = max(c["max_vm"] for c in cases_3d if not c["past_validity"]) \
-        if any(not c["past_validity"] for c in cases_3d) else max(c["max_vm"] for c in cases_3d)
-    vmax_shared = max(vmax_2d, vmax_3d)
+    def run_case(mode):
+        out = []
+        flooded = (mode == "flooded")
+        check_validity = (not flooded)   # flooded = uniform bulk, no nonlinear concerns
+        for depth in DEPTHS_CRUSH:
+            P = RHO_G * depth
+            u, vm_tet = run_3d_field(P, flooded=flooded)
+            disp = np.linalg.norm(u.reshape(-1, 3), axis=1)
+            max_disp = float(disp.max() * 1000)
+            pv = check_validity and (max_disp > LINEAR_VALID_LIMIT_UM)
+            out.append(dict(depth=depth, P=P, u=u, vm_tet=vm_tet,
+                            max_disp_um=max_disp,
+                            max_vm=float(vm_tet.max()),
+                            past_validity=pv))
+            print(f"  3D {mode:11s} @ {depth:4.0f} m: |u|={max_disp:8.1f} μm "
+                  f"vM={vm_tet.max():.3f} MPa "
+                  f"{'(past validity)' if pv else ''}")
+        return out
 
-    # picks magnification to give TARGET_VISIBLE_MM of visible deformation
+    cases_fl = run_case("flooded")
+    cases_ta = run_case("trapped_air")
+
+    vmax = max(max(c["max_vm"] for c in cases_fl),
+                max(c["max_vm"] for c in cases_ta))
     TARGET_VISIBLE_MM = 6.0
-    for c in cases_2d + cases_3d:
-        if c["max_disp_um"] > 1e-9:
-            c["mag"] = max(1, int(round(TARGET_VISIBLE_MM * 1000 / c["max_disp_um"])))
-        else:
-            c["mag"] = 1
+    for c in cases_fl + cases_ta:
+        c["mag"] = max(1, int(round(TARGET_VISIBLE_MM * 1000 / max(c["max_disp_um"], 1))))
 
     fig, axs = plt.subplots(2, 4, figsize=(16, 9))
-    p = mesh.p; t = mesh.t
-    p2d_3d = cases_3d[0]["p2d"]; tris_3d = cases_3d[0]["tris"]
-    # axis limits = rest bbox + margin (same for both rows, since same outline)
-    x_pad = 6; y_pad = 6
-    xlim = (p[0].min() - x_pad, p[0].max() + x_pad)
-    ylim = (p[1].min() - y_pad, p[1].max() + y_pad)
+    x_pad, y_pad = 6, 6
+    xlim = (p2d_3d[:, 0].min() - x_pad, p2d_3d[:, 0].max() + x_pad)
+    ylim = (p2d_3d[:, 1].min() - y_pad, p2d_3d[:, 1].max() + y_pad)
 
-    # row 0: 2D plane-strain
-    tri0 = Triangulation(p[0], p[1], t.T)
-    axs[0, 0].tripcolor(tri0, facecolors=np.zeros(t.shape[1]),
-                        cmap="inferno", vmin=0, vmax=vmax_shared, edgecolors="none")
-    axs[0, 0].triplot(tri0, color="black", lw=0.2, alpha=0.5)
-    axs[0, 0].set_aspect("equal")
-    axs[0, 0].set_xticks([]); axs[0, 0].set_yticks([])
-    axs[0, 0].set_xlim(xlim); axs[0, 0].set_ylim(ylim)
-    axs[0, 0].set_title("rest (P = 0)\nundeformed", fontsize=9)
-    axs[0, 0].set_ylabel("2D plane-strain\nεz = 0  (UNDER-estimates)",
-                          fontsize=9, color="#ff7f0e")
-    for i, c in enumerate(cases_2d, start=1):
-        title = (f"2D trapped-air @ {c['depth']:.0f} m  (P = {c['P']:.2f} MPa)\n"
-                 f"REAL max sag = {c['max_disp_um']:.0f} μm  "
-                 f"max vM = {c['max_vm']:.2f} MPa  "
+    def rest_panel(ax):
+        tri0 = Triangulation(p2d_3d[:, 0], p2d_3d[:, 1], tris_3d)
+        ax.tripcolor(tri0, facecolors=np.zeros(tris_3d.shape[0]),
+                      cmap="inferno", vmin=0, vmax=vmax, edgecolors="none")
+        ax.triplot(tri0, color="black", lw=0.2, alpha=0.5)
+        ax.set_aspect("equal")
+        ax.set_xticks([]); ax.set_yticks([])
+        ax.set_xlim(xlim); ax.set_ylim(ylim)
+        ax.set_title("rest (P = 0)\nundeformed (mid-Z slice)", fontsize=9)
+
+    rest_panel(axs[0, 0])
+    axs[0, 0].set_ylabel(
+        "FLOODED 3D\n(water inside cells AND outside)\n"
+        "design intent — finger fine",
+        fontsize=9, color="#1f77b4")
+    for i, c in enumerate(cases_fl, start=1):
+        title = (f"flooded 3D @ {c['depth']:.0f} m  (P = {c['P']:.2f} MPa)\n"
+                 f"REAL max |u| = {c['max_disp_um']:.0f} μm  "
+                 f"max vM = {c['max_vm']:.3f} MPa  "
                  f"({TPU_YIELD/max(c['max_vm'], 1e-9):.0f}× yield)\n"
                  f"drawn ×{c['mag']}; gray = undeformed")
-        pc = plot_2d_panel(axs[0, i], mesh, c["ux"], c["uy"], c["vm"],
-                            c["mag"], title, vmin=0, vmax=vmax_shared,
-                            past_validity=c["past_validity"])
+        pc = plot_3d_midz_slice(axs[0, i], p2d_3d, tris_3d, nodes,
+                                 c["u"], c["vm_tet"], N2, c["mag"],
+                                 title, vmin=0, vmax=vmax,
+                                 past_validity=c["past_validity"])
         axs[0, i].set_xlim(xlim); axs[0, i].set_ylim(ylim)
 
-    # row 1: 3D mid-Z slice
-    tri30 = Triangulation(p2d_3d[:, 0], p2d_3d[:, 1], tris_3d)
-    axs[1, 0].tripcolor(tri30, facecolors=np.zeros(tris_3d.shape[0]),
-                        cmap="inferno", vmin=0, vmax=vmax_shared, edgecolors="none")
-    axs[1, 0].triplot(tri30, color="black", lw=0.2, alpha=0.5)
-    axs[1, 0].set_aspect("equal")
-    axs[1, 0].set_xticks([]); axs[1, 0].set_yticks([])
-    axs[1, 0].set_xlim(xlim); axs[1, 0].set_ylim(ylim)
-    axs[1, 0].set_title("rest (P = 0)\nundeformed", fontsize=9)
-    axs[1, 0].set_ylabel("3D solid (CORRECT)\nfoam-collapse mode",
-                          fontsize=9, color="#d62728")
-    for i, c in enumerate(cases_3d, start=1):
-        title = (f"3D trapped-air @ {c['depth']:.0f} m  (P = {c['P']:.2f} MPa)\n"
+    rest_panel(axs[1, 0])
+    axs[1, 0].set_ylabel(
+        "TRAPPED AIR 3D\n(cells contain 1 atm air;\n"
+        "water only on outer skin)\nFOAM-COLLAPSE mode",
+        fontsize=9, color="#d62728")
+    for i, c in enumerate(cases_ta, start=1):
+        title = (f"trapped 3D @ {c['depth']:.0f} m  (P = {c['P']:.2f} MPa)\n"
                  f"REAL max sag = {c['max_disp_um']:.0f} μm  "
                  f"max vM = {c['max_vm']:.2f} MPa  "
                  f"({TPU_YIELD/max(c['max_vm'], 1e-9):.0f}× yield)\n"
                  f"drawn ×{c['mag']}; gray = undeformed")
-        pc3 = plot_3d_midz_slice(axs[1, i], c["p2d"], c["tris"], c["nodes"],
-                                  c["u"], c["vm_tet"], c["N2"], c["mag"],
-                                  title, vmin=0, vmax=vmax_shared,
-                                  past_validity=c["past_validity"])
+        pc = plot_3d_midz_slice(axs[1, i], p2d_3d, tris_3d, nodes,
+                                 c["u"], c["vm_tet"], N2, c["mag"],
+                                 title, vmin=0, vmax=vmax,
+                                 past_validity=c["past_validity"])
         axs[1, i].set_xlim(xlim); axs[1, i].set_ylim(ylim)
 
-    cbar = fig.colorbar(pc3, ax=axs.ravel().tolist(), fraction=0.02,
+    cbar = fig.colorbar(pc, ax=axs.ravel().tolist(), fraction=0.02,
                          label="von Mises (MPa)")
-    fig.suptitle("Underwater pressure FEA — TRAPPED-AIR worst case "
-                 "(external water at P_depth, cells contain 1 atm air)\n"
-                 "Top: 2D plane-strain — εz=0 over-constraint misses the "
-                 "foam-collapse mode. Bottom: 3D — correct physics, shows "
-                 "cells curling. Panels stamped PAST VALIDITY have "
-                 "displacement > 20% of rib thickness; linear FEA's the "
-                 "wrong tool past that (no self-contact, no gas backpressure).",
+    fig.suptitle("Underwater pressure FEA — 3D solid  "
+                 "(flooded design vs trapped-air worst case, same color scale)\n"
+                 "Flooded: bulk hydrostatic state σ = −P·I, vM ≈ 0, finger "
+                 "essentially unchanged at any depth. Trapped-air: foam-collapse "
+                 "mode, cells curl. PAST-VALIDITY stamp marks panels where "
+                 "linear FEA breaks down (no self-contact, no gas backpressure).",
                  fontsize=10)
     fig.subplots_adjust(top=0.88, bottom=0.04, left=0.04, right=0.92,
                         wspace=0.05, hspace=0.18)
