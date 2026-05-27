@@ -1,0 +1,28 @@
+Copyright (c) 2026 Andre Nijman. All Rights Reserved.
+
+This repository and all of its contents — including but not limited to the
+parametric CAD source (gripper.py, motor/cad/*, the printed parts, the
+mounting adapters), the FEA solvers and scripts (fea/, grip/, motor/scripts/),
+the simulation results, derived artifacts (STEPs, STLs, GLBs, renders, PNGs,
+GIFs, MP4s), documentation (every .md file), print profiles, and engineering
+analyses — are the sole property of Andre Nijman and are protected by
+copyright law.
+
+No license, express or implied, is granted to any other person or entity to
+use, copy, modify, merge, publish, distribute, sublicense, sell, manufacture,
+fabricate, 3D-print, or create derivative works of any part of this
+repository without the prior written permission of Andre Nijman.
+
+Viewing this repository or its public mirror does not grant any rights to
+its contents. Forking on a hosting service (e.g. GitHub) for the sole
+mechanical purpose enabled by that service is not deemed permission to use
+the contents.
+
+THE REPOSITORY AND ITS CONTENTS ARE PROVIDED "AS IS", WITHOUT WARRANTY OF
+ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
+IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER
+LIABILITY ARISING FROM, OUT OF, OR IN CONNECTION WITH THE REPOSITORY OR ITS
+CONTENTS.
+
+For licensing inquiries, contact Andre Nijman.
