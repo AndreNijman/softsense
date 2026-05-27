@@ -84,6 +84,7 @@ guidance is in `UNDERWATER.md`.
 | `fea/DECISION_LOG.md` | **Full decision log** — every approach tried, dead end, and number behind the finger redesign (~90 FEA runs, 2 families, agent swarm). |
 | `fea/SCALABILITY.md` | **Scalability study** — the finger across `FINGER_SCALE` 0.6–2.5: usable band ≈ 0.6–1.1× (down-scaling safe; up-scaling limited by fixed walls). |
 | `fea/FEA.md`, `fea/ITERATIONS.md` | FEA solver/method notes and the (earlier, single-object) iteration log. |
+| **`fea/UNDERWATER_FEA.md`** | **How the gripper actually performs wet** — pressure-induced TPU stress (negligible: 27× yield margin at 600 m) and water plasticization (10–30% modulus drop → proportional grip-force drop; `T_safe` unchanged because it's gear-limited). |
 | `grip/GRIP_TEXTURE.md` | **The grip-texture study** — how the contact-face crosshatch was chosen by a wet-grip physics model + agent swarm across object surfaces (smooth/rough/ridged/slimy/soft), with the honest concentric-override and sensitivity analysis. |
 | `grip/DECISION_LOG.md`, `grip/GRIP_MODEL.md` | Full grip-texture decision log (every family + number) and the grip model + citations + validation (literature gate, Tier-2 FEA, ±50% coefficient sensitivity). |
 | **`motor/MOTOR_STUDY.md`** | **The actuator & sensing study** — how the drive was chosen and turned into the gripper's own grip-force sensor (motor current → tip force). Headline finding: the printed crown/pinion, not the actuator, is the structural limit. Start here for the motor campaign. |

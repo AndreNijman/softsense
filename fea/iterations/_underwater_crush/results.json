@@ -1,0 +1,211 @@
+{
+  "preface": "WORST-CASE pressure-crush check: external water at P_depth, internal Fin Ray cells TRAPPED AIR at 1 atm (gauge 0). External skin only is loaded; inner cavity walls are traction-free in gauge-pressure convention.",
+  "boundary_topology": {
+    "outer_facet_count": 253,
+    "inner_facet_count": 286
+  },
+  "material": {
+    "E_TPU_MPa": 40.0,
+    "tpu_yield_MPa_estimate": 25.0
+  },
+  "runs": [
+    {
+      "nu": 0.42,
+      "P_MPa": 0.0,
+      "peak_vM_MPa": 0.0,
+      "median_vM_MPa": 0.0,
+      "peak_disp_um": 0.0,
+      "contact_wall_disp_um": 0.0,
+      "margin_to_yield": 25000000000.0,
+      "survives": true,
+      "depth_m": 0.0
+    },
+    {
+      "nu": 0.42,
+      "P_MPa": 0.1005525,
+      "peak_vM_MPa": 0.1394565159589114,
+      "median_vM_MPa": 0.045970597392589026,
+      "peak_disp_um": 259.43578320926343,
+      "contact_wall_disp_um": 234.498061786114,
+      "margin_to_yield": 179.26734959710197,
+      "survives": true,
+      "depth_m": 10.0
+    },
+    {
+      "nu": 0.42,
+      "P_MPa": 0.3016575,
+      "peak_vM_MPa": 0.41836954787673225,
+      "median_vM_MPa": 0.13791179217776678,
+      "peak_disp_um": 778.3073496277771,
+      "contact_wall_disp_um": 703.4941853583317,
+      "margin_to_yield": 59.75578319903427,
+      "survives": true,
+      "depth_m": 30.0
+    },
+    {
+      "nu": 0.42,
+      "P_MPa": 1.005525,
+      "peak_vM_MPa": 1.394565159589116,
+      "median_vM_MPa": 0.4597059739258906,
+      "peak_disp_um": 2594.357832092662,
+      "contact_wall_disp_um": 2344.980617861163,
+      "margin_to_yield": 17.92673495971017,
+      "survives": true,
+      "depth_m": 100.0
+    },
+    {
+      "nu": 0.42,
+      "P_MPa": 3.016575,
+      "peak_vM_MPa": 4.183695478767362,
+      "median_vM_MPa": 1.3791179217776686,
+      "peak_disp_um": 7783.073496278009,
+      "contact_wall_disp_um": 7034.9418535835275,
+      "margin_to_yield": 5.975578319903371,
+      "survives": true,
+      "depth_m": 300.0
+    },
+    {
+      "nu": 0.42,
+      "P_MPa": 6.03315,
+      "peak_vM_MPa": 8.367390957534724,
+      "median_vM_MPa": 2.758235843555337,
+      "peak_disp_um": 15566.146992556018,
+      "contact_wall_disp_um": 14069.883707167055,
+      "margin_to_yield": 2.9877891599516855,
+      "survives": true,
+      "depth_m": 600.0
+    },
+    {
+      "nu": 0.45,
+      "P_MPa": 0.0,
+      "peak_vM_MPa": 0.0,
+      "median_vM_MPa": 0.0,
+      "peak_disp_um": 0.0,
+      "contact_wall_disp_um": 0.0,
+      "margin_to_yield": 25000000000.0,
+      "survives": true,
+      "depth_m": 0.0
+    },
+    {
+      "nu": 0.45,
+      "P_MPa": 0.1005525,
+      "peak_vM_MPa": 0.1350379030215031,
+      "median_vM_MPa": 0.044434041529399566,
+      "peak_disp_um": 233.74325117906523,
+      "contact_wall_disp_um": 212.18871863662113,
+      "margin_to_yield": 185.13320660806664,
+      "survives": true,
+      "depth_m": 10.0
+    },
+    {
+      "nu": 0.45,
+      "P_MPa": 0.3016575,
+      "peak_vM_MPa": 0.4051137090645074,
+      "median_vM_MPa": 0.1333021245881994,
+      "peak_disp_um": 701.2297535371823,
+      "contact_wall_disp_um": 636.5661559098494,
+      "margin_to_yield": 61.71106886935584,
+      "survives": true,
+      "depth_m": 30.0
+    },
+    {
+      "nu": 0.45,
+      "P_MPa": 1.005525,
+      "peak_vM_MPa": 1.350379030215026,
+      "median_vM_MPa": 0.4443404152940028,
+      "peak_disp_um": 2337.432511790601,
+      "contact_wall_disp_um": 2121.88718636616,
+      "margin_to_yield": 18.513320660806734,
+      "survives": true,
+      "depth_m": 100.0
+    },
+    {
+      "nu": 0.45,
+      "P_MPa": 3.016575,
+      "peak_vM_MPa": 4.051137090645081,
+      "median_vM_MPa": 1.3330212458820148,
+      "peak_disp_um": 7012.29753537183,
+      "contact_wall_disp_um": 6365.661559098502,
+      "margin_to_yield": 6.171106886935572,
+      "survives": true,
+      "depth_m": 300.0
+    },
+    {
+      "nu": 0.45,
+      "P_MPa": 6.03315,
+      "peak_vM_MPa": 8.102274181290163,
+      "median_vM_MPa": 2.6660424917640295,
+      "peak_disp_um": 14024.59507074366,
+      "contact_wall_disp_um": 12731.323118197004,
+      "margin_to_yield": 3.085553443467786,
+      "survives": true,
+      "depth_m": 600.0
+    },
+    {
+      "nu": 0.48,
+      "P_MPa": 0.0,
+      "peak_vM_MPa": 0.0,
+      "median_vM_MPa": 0.0,
+      "peak_disp_um": 0.0,
+      "contact_wall_disp_um": 0.0,
+      "margin_to_yield": 25000000000.0,
+      "survives": true,
+      "depth_m": 0.0
+    },
+    {
+      "nu": 0.48,
+      "P_MPa": 0.1005525,
+      "peak_vM_MPa": 0.12690858007118958,
+      "median_vM_MPa": 0.04090955035105699,
+      "peak_disp_um": 201.45689208493502,
+      "contact_wall_disp_um": 184.51192126631622,
+      "margin_to_yield": 196.99219694977447,
+      "survives": true,
+      "depth_m": 10.0
+    },
+    {
+      "nu": 0.48,
+      "P_MPa": 0.3016575,
+      "peak_vM_MPa": 0.3807257402135685,
+      "median_vM_MPa": 0.1227286510531716,
+      "peak_disp_um": 604.3706762547985,
+      "contact_wall_disp_um": 553.5357637989423,
+      "margin_to_yield": 65.66406564992486,
+      "survives": true,
+      "depth_m": 30.0
+    },
+    {
+      "nu": 0.48,
+      "P_MPa": 1.005525,
+      "peak_vM_MPa": 1.2690858007118915,
+      "median_vM_MPa": 0.4090955035105704,
+      "peak_disp_um": 2014.5689208492993,
+      "contact_wall_disp_um": 1845.119212663112,
+      "margin_to_yield": 19.699219694977515,
+      "survives": true,
+      "depth_m": 100.0
+    },
+    {
+      "nu": 0.48,
+      "P_MPa": 3.016575,
+      "peak_vM_MPa": 3.8072574021357215,
+      "median_vM_MPa": 1.227286510531708,
+      "peak_disp_um": 6043.706762548249,
+      "contact_wall_disp_um": 5535.357637989694,
+      "margin_to_yield": 6.566406564992423,
+      "survives": true,
+      "depth_m": 300.0
+    },
+    {
+      "nu": 0.48,
+      "P_MPa": 6.03315,
+      "peak_vM_MPa": 7.614514804271443,
+      "median_vM_MPa": 2.454573021063416,
+      "peak_disp_um": 12087.413525096497,
+      "contact_wall_disp_um": 11070.715275979388,
+      "margin_to_yield": 3.2832032824962116,
+      "survives": true,
+      "depth_m": 600.0
+    }
+  ]
+}
