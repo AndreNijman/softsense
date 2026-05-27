@@ -37,7 +37,7 @@ because it is gear-limited, not finger-limited.
 | Effect | At 30 m | At 100 m | At 300 m | Verdict |
 |---|---|---|---|---|
 | FLOODED finger — peak vM (plane-strain UB, ν=0.45) | 0.03 MPa | 0.10 MPa | 0.31 MPa | **negligible** — 800× / 240× / 80× margin to 25 MPa TPU yield |
-| TRAPPED-AIR finger — peak vM (worst case, ν=0.45) | **0.41 MPa** | **1.35 MPa** | **4.05 MPa** | **survives** at all three (62× / 18.5× / 6.2× margin), but contact-wall deflects 0.6 / 2.1 / 6.4 mm. Geometry intact at 30 m; degraded by 100 m; crushed by 300 m |
+| TRAPPED-AIR finger — peak vM (worst case, ν=0.45) | **0.41 MPa** | **1.35 MPa** | (linearity broken — see §3) | At 30 m: 62× yield margin, 0.6 mm contact-wall sag, geometry intact. At 100 m: 18.5× margin, 2.1 mm sag (degraded). At 300 m+ linear FEA over-predicts — real response is self-contact / gas-pressure limited |
 | Bulk linear contraction (ν=0.45, flooded) | −0.075% | −0.25% | −0.75% | 68 / 226 / 678 μm on the 90 mm blade. Sub-PRINT_CLEAR until ~100 m |
 | Pin-bore radial contraction (ν=0.45, flooded) | −1.7 μm | −5.8 μm | −17 μm | Trivial vs 300 μm PRINT_CLEAR — pin stays running clearance |
 | 20% modulus drop (typical wet TPU) at 8 mm closure | grip force ~−20% | (depth-independent) | (depth-independent) | gripper softer, T_safe unchanged |
@@ -168,8 +168,25 @@ The 2D section mesh comes back with **12 boundary loops** total:
 | 10 m | 0.10 | 0.135 | 212 | 185× | yes |
 | 30 m | 0.30 | 0.405 | 637 | **62×** | yes |
 | 100 m | 1.01 | 1.35 | 2122 (2.1 mm) | 18.5× | yes (geometry degraded) |
-| 300 m | 3.02 | 4.05 | 6366 (6.4 mm) | 6.2× | yes (geometry crushed) |
-| 600 m | 6.03 | 8.10 | 12731 (12.7 mm) | 3.1× | yes (geometry obliterated) |
+| 300 m‡ | 3.02 | 4.05 | 6366 (6.4 mm) | 6.2× | LINEAR FEA past validity — see note |
+| 600 m‡ | 6.03 | 8.10 | 12731 (12.7 mm) | 3.1× | LINEAR FEA past validity — see note |
+
+> ‡ **Domain-of-validity note.** The Fin Ray cells are ~10 mm tall and
+> ~2 mm wide. A 6.4 mm or 12.7 mm wall sag is a large fraction of (or
+> greater than) the available cell depth, so in reality the contact wall
+> would **self-contact** the spine wall or adjacent ribs long before
+> reaching those linear-FEA deflections. Linear elasticity has no
+> notion of self-contact — it just keeps deflecting. Additionally,
+> adiabatic gas compression bites hard at this scale: at 100 m the
+> cell volume shrinks ~21% so the trapped air rises to ~1.27 atm,
+> reducing the external/internal differential by ~10%; at 300 m the
+> compression would be 50%+, reducing the differential by half. So
+> the 300/600 m rows are **upper bounds twice over** (no self-contact
+> + rigid air) — the real response would be self-contact-limited
+> and gas-pressure-limited, not material-yield-limited. Treat the
+> 300 m and 600 m rows as "linearity broken; real response is
+> self-contact / gas-pressure dominated, not modeled here." The
+> 30 m and 100 m rows remain in-validity.
 
 So the user's intuition that "pressure will crush the finger" is
 **half-right**:
@@ -195,10 +212,19 @@ stress, for two reasons:
    wetted symmetrically). A 3D solve would give lower deviatoric stress
    for the same external pressure.
 2. **Trapped air is not perfectly rigid.** As the cells compress, the
-   trapped air's pressure rises adiabatically (PV^γ = const). At 100 m
-   with the contact wall pushed in 2 mm, the cell volume is reduced by
-   roughly 10–20% — the internal air pressure rises to ~1.1–1.3 atm,
-   reducing the external/internal differential and the load.
+   trapped air's pressure rises adiabatically (PV^γ = const, γ=1.4 for
+   air). Approximate volume change ≈ deflection / cell depth (~10 mm):
+   - 30 m: ~6% compression → ~1.08 atm internal, **2% correction** on
+     a 300 kPa differential. Operating-depth analysis essentially
+     unaffected.
+   - 100 m: ~21% compression → ~1.27 atm internal, **3% correction**
+     on a 1.0 MPa differential. Still small.
+   - 300 m: ~64% compression → ~3.2 atm internal, **~10% correction**
+     on a 3.0 MPa differential (and self-contact dominates anyway).
+   So the gas-backpressure correction is **negligible at the operating
+   depths where the analysis is in-validity**, and the deep-depth rows
+   are bounded by self-contact before gas backpressure becomes the
+   leading limiter.
 
 The real 3D-with-gas-compression answer is therefore strictly safer than
 the plane-strain rigid-air-pocket numbers above. The "survives" verdicts
