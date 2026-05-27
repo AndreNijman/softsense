@@ -6,17 +6,29 @@ study answers a different question:
 
 > Once you put the as-designed gripper in the water, does it still work?
 
-Two effects are in play, and they're routinely confused:
+Three effects are in play, and they're routinely confused:
 
-1. **Hydrostatic compression** — water at depth squeezes the TPU.
-2. **Water plasticization** — soaked TPU softens (modulus drops).
+1. **Hydrostatic compression of the flooded finger** — water at depth
+   squeezes the TPU, but pressure acts on every wetted surface equally
+   (inside the Fin Ray cells AND outside the skin), so the bulk stress
+   state is pure hydrostatic → von Mises ≈ 0. See §2.
+2. **Pressure-crush of the trapped-air finger** — the same depth pressure
+   becomes a real, large mechanical load if the Fin Ray cells **fail to
+   flood** (trapped air at 1 atm inside, external water at P_depth). This
+   is the load case the user was worried about. See §3.
+3. **Water plasticization of the soaked TPU** — wet TPU is softer than
+   dry TPU; grip force and peak vM at the same actuator stroke both
+   drop linearly with modulus. See §4.
 
-The result of this study, in one line: **(1) is mechanically negligible at
-any practical depth; (2) makes the gripper more compliant wet — peak vM
-drops, grip force at the same actuator stroke drops linearly, wrap quality
-improves slightly.** Operating envelope holds; gear ceiling `T_safe`
-(`motor/DRIVETRAIN.md`) is unchanged because it is gear-limited, not
-finger-limited.
+The headline result, in one line:
+
+> **At the primary operating depth (≤30 m), the finger survives both the
+> nominal flooded case AND the worst-case trapped-air case. The finger
+> can be crushed at depths >~200 m IF its cells fail to flood — so
+> ensuring the cells flood is a pre-dive procedure, not a finger redesign.**
+
+Gear ceiling `T_safe` (`motor/DRIVETRAIN.md`) is unchanged in any case
+because it is gear-limited, not finger-limited.
 
 ---
 
@@ -24,11 +36,20 @@ finger-limited.
 
 | Effect | At 30 m | At 100 m | At 300 m | Verdict |
 |---|---|---|---|---|
-| Pressure-induced peak vM (plane-strain UB, ν=0.45) | 0.031 MPa | 0.103 MPa | 0.309 MPa | **negligible** — 800× / 240× / 80× margin to 25 MPa TPU yield |
-| Bulk linear contraction (ν=0.45) | −0.075% | −0.25% | −0.75% | 68 / 226 / 678 μm on the 90 mm blade. Sub-PRINT_CLEAR until ~100 m |
-| Pin-bore radial contraction (ν=0.45) | −1.7 μm | −5.8 μm | −17 μm | Trivial vs 300 μm PRINT_CLEAR — pin stays running clearance |
+| FLOODED finger — peak vM (plane-strain UB, ν=0.45) | 0.03 MPa | 0.10 MPa | 0.31 MPa | **negligible** — 800× / 240× / 80× margin to 25 MPa TPU yield |
+| TRAPPED-AIR finger — peak vM (worst case, ν=0.45) | **0.41 MPa** | **1.35 MPa** | **4.05 MPa** | **survives** at all three (62× / 18.5× / 6.2× margin), but contact-wall deflects 0.6 / 2.1 / 6.4 mm. Geometry intact at 30 m; degraded by 100 m; crushed by 300 m |
+| Bulk linear contraction (ν=0.45, flooded) | −0.075% | −0.25% | −0.75% | 68 / 226 / 678 μm on the 90 mm blade. Sub-PRINT_CLEAR until ~100 m |
+| Pin-bore radial contraction (ν=0.45, flooded) | −1.7 μm | −5.8 μm | −17 μm | Trivial vs 300 μm PRINT_CLEAR — pin stays running clearance |
 | 20% modulus drop (typical wet TPU) at 8 mm closure | grip force ~−20% | (depth-independent) | (depth-independent) | gripper softer, T_safe unchanged |
 | 50% modulus drop (worst-case sat.) | grip force ~−50% | (depth-independent) | (depth-independent) | still wraps; less force margin |
+
+**Operating verdict (≤30 m, the primary actuator-rated envelope): no
+material yield in any case; no functional degradation if cells flood as
+designed; ~0.6 mm contact-wall sag if cells trap air, which the standard
+pre-dive cycle clears.** Deeper than 100 m, ensuring the cells flood
+(pre-soak, fingers-down submersion, or a brief actuation cycle while
+underwater) is **load-critical**, not just a "nice to have" from
+`UNDERWATER.md §3`.
 
 ---
 
@@ -116,7 +137,91 @@ Figure: `fea/pictures/underwater_pressure.png`.
 
 ---
 
-## 3. The bigger effect — water plasticization
+## 3. The pressure-CRUSH case — what if the cells don't flood?
+
+The §2 result depends entirely on the cells actually flooding. If they
+trap air (transient before equilibration; or if some cell vents end up
+blocked by infill, print artefacts, or particulates), the TPU sees a
+**real pressure differential** across the contact wall and every rib:
+
+  external skin:    water at P_depth.
+  inside the cells: air at ~1 atm (gauge 0).
+
+`underwater_pressure_crush.py` runs the 2D plane-strain solve with
+boundary loops classified by topology (signed-area ranking of connected
+boundary-edge loops): the LARGEST loop is the outer skin → loaded with
+−P_depth · n; the smaller loops are Fin Ray cells → traction-free
+(equivalent to 1 atm air inside, in gauge convention).
+
+### Geometry classification
+
+The 2D section mesh comes back with **12 boundary loops** total:
+
+  outer skin:      253 facets, |signed area| 1379 mm²  → external water
+  Fin Ray cells:    11 inner loops, 286 facets total, area 470 mm²  → air
+
+### Result (ν = 0.45)
+
+| depth | P (MPa) | peak vM (MPa) | contact wall deflection (μm) | margin to 25 MPa | survives? |
+|---|---|---|---|---|---|
+| 0 m | 0.00 | 0.00 | 0 | ∞ | yes |
+| 10 m | 0.10 | 0.135 | 212 | 185× | yes |
+| 30 m | 0.30 | 0.405 | 637 | **62×** | yes |
+| 100 m | 1.01 | 1.35 | 2122 (2.1 mm) | 18.5× | yes (geometry degraded) |
+| 300 m | 3.02 | 4.05 | 6366 (6.4 mm) | 6.2× | yes (geometry crushed) |
+| 600 m | 6.03 | 8.10 | 12731 (12.7 mm) | 3.1× | yes (geometry obliterated) |
+
+So the user's intuition that "pressure will crush the finger" is
+**half-right**:
+
+- At ≤30 m (primary actuator-rated depth): even worst-case crush mode
+  keeps a 60× yield margin and only deflects the contact face 0.6 mm.
+  The finger does **not** crush in any operationally meaningful sense.
+- At 100 m+: the contact wall starts deflecting by mm (2.1 mm at 100 m,
+  6.4 mm at 300 m). The TPU does not yield until you go past ~600 m,
+  but the finger geometry collapses well before that, ruining wrap.
+- The **kink** in the response is between 30 m and 100 m. Inside the
+  actuator's primary envelope the finger is safe even in the worst case;
+  outside it (tier-3 magnetic-coupling territory) the flooding becomes
+  load-critical.
+
+### Conservatism in this estimate
+
+The plane-strain trapped-air FEA is an **upper bound** on the real
+stress, for two reasons:
+
+1. **Plane-strain over-constrains Z.** The real finger can shrink in Z
+   under the same load case (the front/back faces of the blade are also
+   wetted symmetrically). A 3D solve would give lower deviatoric stress
+   for the same external pressure.
+2. **Trapped air is not perfectly rigid.** As the cells compress, the
+   trapped air's pressure rises adiabatically (PV^γ = const). At 100 m
+   with the contact wall pushed in 2 mm, the cell volume is reduced by
+   roughly 10–20% — the internal air pressure rises to ~1.1–1.3 atm,
+   reducing the external/internal differential and the load.
+
+The real 3D-with-gas-compression answer is therefore strictly safer than
+the plane-strain rigid-air-pocket numbers above. The "survives" verdicts
+at 30 / 100 / 300 m are robust.
+
+### Mitigation (already in `UNDERWATER.md §3` pre-dive checklist)
+
+> "Confirm all drains/slots/windows/journal bores are clear; confirm
+> cavity floods (submerge, watch bubbles fully clear in your dive
+> orientation; add the cover vent if you dive front-up)."
+
+For deep dives (>30 m), this becomes a **load-critical procedure**, not
+optional. Add a pre-dive **soak + cycle** step: submerge the gripper
+slowly (cells vent from the +Z and −Z openings), let air bubbles escape
+for ~30 s, then cycle the fingers open→close once underwater to flush
+any residual air pockets. After this, the §2 flooded analysis applies
+(vM ≈ 0) and there is no pressure-crush risk at any practical depth.
+
+Figure: `fea/pictures/underwater_crush.png`.
+
+---
+
+## 4. The bigger effect — water plasticization
 
 `UNDERWATER.md §1` already notes that ether-TPU "absorbs a little water
 and softens slightly." For ether-based 95A TPU, manufacturer data and
@@ -128,24 +233,32 @@ is essentially free — and it's the question the user is actually asking
 
 ### Sweep (`iter_harness.py`, `GRIPPER_E_TPU` env, REPORT_MODE = closure, R=22 mm cylinder, ν = 0.42, NLAYERS = 3)
 
-| run name | E_TPU (MPa) | scenario | peak vM (MPa) | grip @ 8 mm (N) | tip inward (mm) | arc (°) | margin to 25 MPa yield |
+| run name | E_TPU (MPa) | scenario | peak vM (MPa) | grip @ 8 mm (N) | tip inward (mm) | arc (°) | margin vs 25 MPa† |
 |---|---|---|---|---|---|---|---|
 | under_E40_dry | 40.0 | dry baseline | 3.30 | 9.31 | −6.13 | 13.6 | 7.6× |
 | under_E32_wet20 | 32.0 | 20% softening (typical wet) | 2.64 | 7.45 | −6.13 | 13.6 | 9.5× |
 | under_E28_wet30 | 28.0 | 30% softening | 2.31 | 6.52 | −6.13 | 13.6 | 10.8× |
 | under_E20_wet50 | 20.0 | 50% softening (warm long soak) | 1.65 | 4.66 | −6.13 | 13.6 | 15.1× |
 
-The sweep numerically **confirms** the linear-elastic prediction:
+> † Margin computed against the **dry-print** 25 MPa estimate
+> (`iter_harness.py` L124, `docs/MATERIALS.md`). **Wet TPU strength
+> also drops on soak** — typically less than modulus does, but by a
+> non-zero amount. The honest reading of the right column is: stress
+> drops by the full modulus ratio, strength drops more slowly, so the
+> gripper does **not become stress-limited** as the finger softens.
+> The wet-vs-dry safer-ness comparison would require a measured
+> wet-strength datum on this specific filament (eSUN eTPU-95A) which
+> the project does not have.
+
+The sweep reproduces the linear-elastic prediction (Hooke's law guarantee,
+not an emergent finding):
 
   peak_vM / E = 0.0826   (constant across all 4 cases)
   grip_at_8mm / E = 0.233 N/MPa   (constant across all 4 cases)
   tip_inward, contact_arc → identical (kinematic state unchanged)
 
 So softening produces **proportional reductions** in both stress and grip
-force at the same actuator stroke, with no change in wrap geometry. The
-yield margin *improves* with softening (because vM drops faster than the
-strength changes — wet TPU strength drops modestly with soak, but the
-stress drops by the full modulus ratio).
+force at the same actuator stroke, with no change in wrap geometry.
 
 Figure: `fea/pictures/underwater_wet_modulus.png`. Side-by-side wrap
 stages at constant vM color scale: `fea/pictures/underwater_wrap_compare.png`.
@@ -180,7 +293,7 @@ closure — the same as for a harder object.
 
 ---
 
-## 4. Operating-envelope implications
+## 5. Operating-envelope implications
 
 `motor/scripts/drivetrain_force_envelope.py` reports the per-finger
 operating-force band as 0.17–0.35 N (radial 2D bound) up to 0.35–0.73 N
@@ -207,7 +320,7 @@ vs E_TPU, (c) wrap quality (contact arc, tip inward) vs E_TPU.
 
 ---
 
-## 5. Limits of this analysis
+## 6. Limits of this analysis
 
 - **Material model is linear elastic.** TPU 95A has known viscoelastic
   response (stress relaxation under sustained grip). The on-land FEA

@@ -32,7 +32,8 @@ decide *what to print it in* and how to run it wet here.
 | 4 | Net buoyancy | **PASS** | Solid vol **98.5 cm³**, dry mass ~**124 g** (PETG+TPU, 100% infill). Flooded → displaces solid vol only → **net ≈ +23 g in seawater (sinks gently, near-neutral)**. No ballast needed. See §4. |
 | 5 | Galvanic corrosion | **PASS** | **Zero metal in the gripper.** All 8 pins and `input_pinion_shaft` are printed, snap-clip cover, no fasteners. No dissimilar-metal pair exists. See §5. |
 | 6 | Drive coupler / actuator | **SELECTED** (force-sensing) | Bottom D-flat coupler on `input_pinion_shaft` drives a **smart serial-bus servo (DYNAMIXEL XW540-T260)** that doubles as the **grip-force sensor** (motor current → tip force); magnetic-coupling dry-pod is the >30 m fallback. The motor current limit must be set to the gear ceiling `T_safe` (the printed crown/pinion is the structural limit). Full campaign in `motor/`. See §6. |
-| 7 | Hydrostatic pressure on TPU finger | **PASS** | Plane-strain FEA UB at 600 m gives **0.94 MPa peak vM vs 25 MPa yield (27× margin)**; bulk contraction sub-PRINT_CLEAR until ~100 m. **Pressure does not stress the TPU** at any practical depth. See `fea/UNDERWATER_FEA.md §2`. |
+| 7 | Hydrostatic pressure on TPU finger (FLOODED — design intent) | **PASS** | Flooded body sees σ = −P I → vM ≈ 0. Plane-strain UB confirms: 0.03 MPa at 30 m, 0.94 MPa at 600 m (27× yield margin even at 600 m). Bulk contraction sub-PRINT_CLEAR until ~100 m. See `fea/UNDERWATER_FEA.md §2`. |
+| 7b | Pressure-CRUSH on TPU finger (trapped-air, worst case) | **PASS to 30 m**, degraded ≥100 m | If Fin Ray cells fail to flood (1 atm air inside, water outside), the differential ΔP loads the contact wall + ribs directly. Worst-case 2D plane-strain FEA: 0.41 MPa vM @ 30 m (62× margin, 0.6 mm wall sag) → 1.35 MPa @ 100 m (2.1 mm sag, geometry degraded) → 4.05 MPa @ 300 m (6.4 mm sag, geometry crushed). **No material yield at any depth ≤600 m**, but geometric collapse past ~100 m if cells don't flood. **Mitigation: pre-dive soak + actuation cycle** (load-critical, not optional, for dives >30 m). See `fea/UNDERWATER_FEA.md §3`. |
 | 8 | Wet-TPU softening (water plasticization) | **CHARACTERIZED** | Soaked ether-TPU is 10–30% softer (worst case 50%). In linear elasticity grip force scales **linearly with modulus** at fixed actuator stroke; `T_safe` is unchanged (gear-limited, not finger-limited). Gripper is more compliant wet but not weaker. See `fea/UNDERWATER_FEA.md §3`. |
 
 ---
@@ -271,6 +272,13 @@ pod), not the gripper, sets the system depth limit.**
 - Confirm all drains/slots/windows/journal bores are clear; confirm cavity floods
   (submerge, watch bubbles fully clear in your dive orientation; add the cover vent
   if you dive front-up).
+- **Flood the Fin Ray finger cells** (load-critical for dives >30 m, see
+  `fea/UNDERWATER_FEA.md §3`): submerge slowly so air vents through the +Z
+  and −Z cell openings, soak ~30 s, then cycle open↔close ONCE underwater
+  to flush residual air. If cells trap air, the contact wall sags inward
+  by depth-dependent amounts (0.6 mm @ 30 m, 2.1 mm @ 100 m); inside the
+  primary ≤30 m envelope this is recoverable but visible, beyond ~100 m
+  the finger no longer wraps correctly.
 - Cycle open↔close in air; check smooth mesh, full travel, cover stays latched.
 - Confirm the actuator is sealed and rated for depth.
 - Verify buoyancy trim with the gripper + actuator fitted.

@@ -27,6 +27,68 @@ PICS = os.path.join(ROOT, "fea", "pictures")
 TPU_YIELD = 25.0   # MPa, conservative
 
 
+def crush_panel():
+    """Worst-case trapped-air vs flooded — peak vM and contact-wall deflection."""
+    src_fl = os.path.join(ITER, "_underwater_pressure", "results.json")
+    src_cr = os.path.join(ITER, "_underwater_crush", "results.json")
+    if not (os.path.exists(src_fl) and os.path.exists(src_cr)):
+        print("missing flooded or crush results"); return False
+    fl = json.load(open(src_fl))["runs"]
+    cr = json.load(open(src_cr))["runs"]
+    by_nu_fl, by_nu_cr = {}, {}
+    for r in fl: by_nu_fl.setdefault(r["nu"], []).append(r)
+    for r in cr: by_nu_cr.setdefault(r["nu"], []).append(r)
+    nu_target = 0.45
+    fl_rs = sorted(by_nu_fl[nu_target], key=lambda x: x["depth_m"])
+    cr_rs = sorted(by_nu_cr[nu_target], key=lambda x: x["depth_m"])
+    fig, axs = plt.subplots(1, 3, figsize=(15, 4.6))
+    d = [r["depth_m"] for r in fl_rs]
+    # (a) peak vM vs depth: flooded vs trapped-air, with yield
+    axs[0].plot(d, [r["peak_vM_MPa"] for r in fl_rs], "o-",
+                color="#1f77b4", lw=2, label="FLOODED (design intent)")
+    axs[0].plot(d, [r["peak_vM_MPa"] for r in cr_rs], "s-",
+                color="#d62728", lw=2, label="TRAPPED AIR (worst case)")
+    axs[0].axhline(TPU_YIELD, ls="--", c="k", lw=1, alpha=0.6)
+    axs[0].text(5, TPU_YIELD * 1.1, f"TPU yield ≈ {TPU_YIELD} MPa",
+                fontsize=8, alpha=0.7)
+    axs[0].set_yscale("log")
+    axs[0].set_xlabel("depth (m)")
+    axs[0].set_ylabel("peak von Mises (MPa)")
+    axs[0].set_title("Pressure-induced stress: flooded vs trapped-air\n"
+                     f"(ν = {nu_target}, plane-strain 2D)")
+    axs[0].grid(alpha=0.3, which="both"); axs[0].legend(fontsize=9)
+    # (b) contact-wall deflection vs depth (trapped-air only)
+    cw = [r["contact_wall_disp_um"] for r in cr_rs]
+    axs[1].plot(d, cw, "s-", color="#d62728", lw=2)
+    axs[1].axhline(300.0, ls="--", c="grey", lw=1, alpha=0.6)
+    axs[1].text(5, 350, "PRINT_CLEAR = 300 μm", fontsize=8, alpha=0.7)
+    axs[1].axhline(2000.0, ls=":", c="darkorange", lw=1, alpha=0.6)
+    axs[1].text(5, 2200, "rib spacing ~2 mm", fontsize=8, alpha=0.7)
+    axs[1].set_xlabel("depth (m)")
+    axs[1].set_ylabel("contact-wall inward deflection (μm)")
+    axs[1].set_title("Trapped-air contact-wall collapse\n(0 in flooded case)")
+    axs[1].grid(alpha=0.3)
+    # (c) survival margin vs depth (trapped-air only) on log
+    mg = [r["margin_to_yield"] for r in cr_rs[1:]]   # drop d=0 inf
+    axs[2].plot(d[1:], mg, "s-", color="#d62728", lw=2, label="trapped-air margin")
+    axs[2].axhline(1.0, ls="--", c="k", lw=1, alpha=0.6)
+    axs[2].text(5, 1.2, "yield (margin = 1)", fontsize=8, alpha=0.7)
+    axs[2].axhline(3.0, ls=":", c="grey", lw=1, alpha=0.5)
+    axs[2].text(5, 3.3, "common design margin (3×)", fontsize=8, alpha=0.5)
+    axs[2].set_yscale("log")
+    axs[2].set_xlabel("depth (m)")
+    axs[2].set_ylabel("margin = TPU_yield / peak vM  (×)")
+    axs[2].set_title("Trapped-air yield margin vs depth")
+    axs[2].grid(alpha=0.3, which="both"); axs[2].legend(fontsize=9)
+    fig.suptitle("Underwater pressure-crush check — Fin Ray cells flooded "
+                 "(design) vs trapped air (worst case)", fontsize=11)
+    fig.tight_layout()
+    fp = os.path.join(PICS, "underwater_crush.png")
+    fig.savefig(fp, dpi=120)
+    print(f"wrote {fp}")
+    return True
+
+
 def pressure_panel():
     src = os.path.join(ITER, "_underwater_pressure", "results.json")
     if not os.path.exists(src):
@@ -150,6 +212,7 @@ def wet_modulus_panel():
 
 def main():
     pressure_panel()
+    crush_panel()
     wet_modulus_panel()
 
 
