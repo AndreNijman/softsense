@@ -143,7 +143,7 @@ and **0.6 mm grip teeth** at 2.2 mm pitch — the process is tuned to print ever
 | `initial_layer_line_width` / `sparse_infill_line_width` | 0.50 / 0.45 | Wider first layer for adhesion; wider infill is fine (interior). |
 | `top/bottom_shell_layers` | **4 / 4** | Dense skins on the base floor/cap. |
 | `sparse_infill_density` | **100 %** | Matches the FEA assumption (fully-dense walls) and keeps the solid base/bracket and grip-ridge insets dense. The finger is small (~30 g), so 100 % is cheap. |
-| `sparse_infill_pattern` | rectilinear | Moot at 100 %. |
+| `sparse_infill_pattern` | **`zig-zag`** | Bambu's serialized value for the UI's "Rectilinear" pattern (plain `"rectilinear"` is **not** a valid enum value — Studio silently falls back to `cubic`, which then conflicts with 100 % density). `zig-zag` supports 100 %. Moot at 100 % anyway (solid), but must be a 100 %-capable pattern to avoid the import-time "Cubic doesn't support 100 %" dialog. |
 | `outer_wall_speed` | **30 mm/s** | Slow walls = clean grip face. Raised modestly from 20 (HF tolerates it) but kept slow for surface quality. |
 | `inner_wall_speed` | 60 mm/s | HF throughput. |
 | `sparse_infill_speed` | 90 mm/s | HF — bulk interior; volumetric cap (12) governs. |
