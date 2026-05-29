@@ -41,7 +41,7 @@ import scipy.sparse as sp
 import scipy.sparse.linalg as spla
 sys.path.insert(0, os.path.dirname(__file__))
 
-E_TPU, NU = 40.0, 0.42
+E_TPU, NU = 9.8, 0.42   # Bambu TPU 95A HF, ISO 527 in-plane (X-Y) printed-specimen modulus
 ITER = os.path.join(os.path.dirname(__file__), "..", "iterations")
 
 

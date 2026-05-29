@@ -55,11 +55,18 @@
   TVS + connector + RS-485 master). **Critical:** BR2 4S Li-ion is 16.8 V
   full-charge, ABOVE XW540's 14.8 V max — buck is MANDATORY on BR2, not
   optional. BOM-delta proposal at §8.
-- `docs/PRINT_PROFILE_P1S_TPU.md` + `profiles/` — print the fingers in **eSUN eTPU-95A on a
-  Bambu P1S, 0.4 mm hardened nozzle** (importable Bambu Studio filament+process).
+- `docs/PRINT_PROFILE_P1S_TPU.md` + `profiles/` — print the fingers in **Bambu TPU 95A HF on a
+  Bambu P1S, 0.4 mm hardened nozzle** (importable Bambu Studio filament+process). HF = high-flow
+  (~3× throughput; external-spool only — Bambu rates 95A HF too soft for the AMS);
+  Bambu publishes measured ISO 527 data — see below.
 - `regen.sh` — rebuild all derived artifacts (poses, parts, plates, heroes, GIF).
 
 ## Conventions
 - Conventional Commits; no AI attribution in commit messages.
 - The finger FEA assumes **100 %-dense walls** (the print spec); material is
-  eSUN eTPU-95A (~25 MPa printed strength, E≈40 MPa estimate, ν=0.42).
+  Bambu TPU 95A HF — MEASURED ISO 527 printed-specimen data (anisotropic): in-plane
+  (X-Y) E = 9.8 MPa, strength 27.3 MPa (used for grip); through-Z E = 7.4 MPa,
+  strength 22.3 MPa (used for the underwater crush); ν = 0.42 (literature; Bambu
+  lists none). This replaced the old eSUN E≈40 MPa / 25 MPa *guess*. Force-targeted
+  grip margins are modulus-insensitive → unchanged; absolute grip-at-fixed-closure
+  scales ~×0.245 (the repo posture is rank/size, not certified absolute newtons).

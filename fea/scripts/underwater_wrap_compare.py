@@ -19,10 +19,10 @@ ITER = os.path.join(ROOT, "fea", "iterations")
 PICS = os.path.join(ROOT, "fea", "pictures")
 
 CASES = [
-    ("under_E40_dry", 40.0, "dry  (E = 40 MPa)"),
-    ("under_E32_wet20", 32.0, "wet ~20%  (E = 32 MPa)"),
-    ("under_E28_wet30", 28.0, "wet ~30%  (E = 28 MPa)"),
-    ("under_E20_wet50", 20.0, "wet ~50%  (E = 20 MPa)"),
+    ("under_E98_dry", 9.8, "dry  (E = 9.8 MPa)"),
+    ("under_E78_wet20", 7.8, "wet ~20%  (E = 7.8 MPa)"),
+    ("under_E69_wet30", 6.9, "wet ~30%  (E = 6.9 MPa)"),
+    ("under_E49_wet50", 4.9, "wet ~50%  (E = 4.9 MPa)"),
 ]
 
 

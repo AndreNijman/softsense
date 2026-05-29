@@ -8,7 +8,7 @@ swarm, and lots of sims, with every iteration, decision and number documented.
 
 The constraint that shaped everything: this gripper runs **underwater**, and it must
 grip **every kind of object surface** — smooth, rough, ridged, slimy, soft —
-not one. And the fingers print in **eSUN eTPU-95A**, whose as-printed surface is
+not one. And the fingers print in **Bambu TPU 95A HF**, whose as-printed surface is
 **slick** (glossy FDM skin, low friction); the texture has to overcome that too.
 
 > **Long form:** [`DECISION_LOG.md`](DECISION_LOG.md) (every approach + number).

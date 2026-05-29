@@ -6,8 +6,8 @@ design. Companion to the summary in `fea/UNIVERSAL_FINGER.md`; this file is the 
 form with the reasoning and numbers for every fork.
 
 All FEA uses the 3D corotational linear-tet contact solver clamped at the two pin
-bores C, D (the real coupler mount), TPU E=40 MPa / ν=0.42, conservative yield
-25 MPa. Harness: `fea/scripts/iter_harness.py`. Scorer: `fea/scripts/eval_finger.py`.
+bores C, D (the real coupler mount), TPU E=9.8 MPa (Bambu TPU 95A HF, in-plane ISO 527) / ν=0.42, strength
+27.3 MPa. Harness: `fea/scripts/iter_harness.py`. Scorer: `fea/scripts/eval_finger.py`.
 Every named run below has a directory under `fea/iterations/<name>/` with its
 `eval.json`/`metrics.json` and (for renders) `wrap_render.png` + `wrap_anim.gif`.
 

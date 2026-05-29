@@ -54,9 +54,17 @@ Run on the MSI (Blender-render machine, RTX 3070) — see `scripts/fea3d_finger.
   its true grasp position; pressed 9 mm into the toothed face. The Fin Ray truss
   converts the push into the **emergent inward wrap around the neck** — the correct
   curl direction falls out of the contact solve, not imposed.
-- **Material:** TPU ~95A, E = 40 MPa, ν = 0.42.
-- **Result (grasp working point):** grip reaction **18.25 N**, tip wrap **12.05 mm**,
-  **peak von Mises 2.704 MPa → ~9.2× margin** vs 25–40 MPa TPU strength.
+- **Material:** Bambu TPU 95A HF — measured ISO 527 in-plane E = **9.8 MPa**, ν = 0.42.
+  > **Material-update note (2026):** the absolute grip/von-Mises figures in this
+  > section were computed at the *old* E = 40 MPa eSUN estimate (the legacy
+  > `fea3d` MSI-bundle solve). It is press-controlled, so at the measured 9.8 MPa
+  > modulus the absolute grip and stress scale ~×0.245 (grip ~4.5 N, peak vM
+  > ~0.66 MPa); margins are reported against the measured **27.3 MPa** in-plane
+  > strength, and the rank-preservation / locking conclusions (ratios, swings) are
+  > modulus-independent and stand. A re-run on the MSI is the clean follow-up.
+- **Result (grasp working point, at the legacy E = 40 MPa basis):** grip reaction
+  **18.25 N**, tip wrap **12.05 mm**, **peak von Mises 2.704 MPa → ~10× margin**
+  vs the measured 27.3 MPa strength (≈40× at the rescaled 9.8 MPa modulus).
 
 Files: `fea3d/fea3d_solution.npz` (per-step 3D field + von Mises), `wrap_stages.png`,
 `wrap_3d.png`, `cross_section.png`, `force_curves.png`, `fea3d_wrap.mp4` (+ `frames/`),
@@ -119,11 +127,11 @@ spread between common TPU literature values 0.42–0.48):
   shift is small in absolute terms (≈2 N) and the shipped finger never
   approaches a locked-rigid response.
 - **Peak vM shift is bounded** — 3.477 → 3.735 MPa, ≈7 % swing edge-to-edge.
-  The fragility headline (peak vM in the ~3.5 MPa band, ≈7× margin vs the
-  25 MPa printed-strength estimate) is **robust to ν across the realistic
-  TPU range** for this geometry. The largest ν (0.48, closest to the
+  The fragility headline (peak vM in the ~3.5 MPa band at the legacy E=40 basis,
+  ≈8× margin vs the measured 27.3 MPa strength) is **robust to ν across the
+  realistic TPU range** for this geometry. The largest ν (0.48, closest to the
   incompressible limit) is the one where locking actually starts to bite
-  (peak vM jumps; margin drops from 7.19 to 6.69×), exactly as the locking
+  (peak vM jumps; margin drops from 7.85 to 7.31×), exactly as the locking
   theory predicts.
 - **All 48 steps across the 4 sweep points converge** under the 16-iter
   Newton cap (max 10 iters used per step, mean ~9.6). Persisted in
@@ -175,8 +183,9 @@ Findings:
   (24/24 steps), P2 stalled at step 23 (5.17 N). Locking artificially stiffens
   the body and hides the true onset of the snap instability.
 - The fragility safety margin at the *stress-probe load* therefore drops from
-  ≈9× (linear-tet 25 MPa / 2.7 MPa) to ≈**6×** (P2 25 MPa / ≈4 MPa) — still
-  well above unity, but the previous headline overstates it by ~50 %.
+  ≈10× (linear-tet 27.3 MPa / 2.7 MPa) to ≈**7×** (P2 27.3 MPa / ≈4 MPa) — still
+  well above unity, but the previous headline overstates it by ~50 %. (vM here
+  is at the legacy E=40 basis; modulus-independent at the force-targeted load.)
 - The **rank-preservation claim survives**: under the small-strain elastic
   regime, peak vM scales linearly with load, so any *ranking* of finger designs
   at the 12 N stress-probe load is preserved at the actual drivetrain operating
@@ -275,8 +284,11 @@ inside the locking-uncertainty band reported above.
 
 ## Honesty (carried from both solves)
 
-- **TPU 95A coefficients (E = 40 MPa, ν) are assumed literature values, not measured**
-  on the print. They shift absolute forces, not the qualitative wrap.
+- **Material is now Bambu TPU 95A HF with MEASURED ISO 527 printed-specimen data**
+  (E = 9.8 MPa in-plane / 7.4 MPa through-Z; strength 27.3 / 22.3 MPa). The old
+  E = 40 MPa was an eSUN *guess*; absolute forces in the legacy solves above were
+  computed at that guess and scale ~×0.245 at the measured modulus, but the wrap
+  and ranking are unchanged. ν is still a literature estimate (Bambu lists none).
 - **ν relaxed to 0.42–0.45** to limit linear-element volumetric locking of
   near-incompressible TPU. This is a **partial mitigation, not a cure** — locking
   is *geometry-dependent*, so it can differentially shift the ranking across

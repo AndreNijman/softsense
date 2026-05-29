@@ -36,7 +36,7 @@ Not the bundled 2D field, and not an artistic bend. Solved fresh in `scripts/fea
   pressed in by the gripper's over-close; the Fin Ray truss converts the push into the
   emergent conforming wrap (tip curls **inward, around the neck** — the physically correct
   direction comes out of the contact solve for free).
-- **Result at the grasp working point:** peak **von Mises ≈ 2.70 MPa** vs ~25–40 MPa TPU
+- **Result at the grasp working point:** peak **von Mises ≈ 2.70 MPa** vs 27.3 MPa Bambu TPU 95A HF (in-plane)
   strength → **~9–15× margin → a gentle, fragile-safe grip**; tip wrap ≈ 12 mm; grip reaction
   ≈ 18 N (displacement-controlled).
 - The 3D displacement field is mapped (inverse-distance) onto the Blender finger meshes as a
@@ -47,7 +47,7 @@ Not the bundled 2D field, and not an artistic bend. Solved fresh in `scripts/fea
   `stats_finray_3d.json`, `STATS_3D.md`).
 
 **Honesty on the FEA:**
-- TPU 95A coefficients (E=40 MPa, ν) are **assumed, not measured** (same as the bundle).
+- Bambu TPU 95A HF: E=9.8 MPa (in-plane) is **MEASURED** (ISO 527); ν is a literature estimate. (Legacy bundle figures here predate the switch — at the old E=40.)
 - **ν relaxed 0.45→0.42** to limit linear-tetrahedron volumetric locking of near-incompressible
   TPU (the bundle's 2D solve made the same compromise). The von Mises field (the fragility
   metric) is reliable; the absolute grip **reaction force is an upper bound** because (a) residual

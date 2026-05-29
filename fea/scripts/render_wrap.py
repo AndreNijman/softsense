@@ -17,7 +17,7 @@ from matplotlib.animation import FuncAnimation, PillowWriter
 
 R_NECK, YC, GAP = 22.0, 80.0, 0.5
 OBJ_COLOR = "#5a7d99"
-MATERIAL = "Material: eSUN eTPU-95A (ether ~95A)   FEA E≈40 MPa, σ_print≈25 MPa, ν=0.42"
+MATERIAL = "Material: Bambu TPU 95A HF   FEA E≈9.8 MPa (X-Y), σ≈27.3 MPa, ν=0.42"
 PRESS_AT = 8.0
 GRIP_TARGET = 12.0   # render the grasp at EQUAL grip force (fair across stiff/soft
                      # fingers) -- a soft finger needs more closure to reach it.

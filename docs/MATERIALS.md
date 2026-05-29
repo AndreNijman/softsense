@@ -44,15 +44,15 @@ PA12-GF/PAHT-GF grades; generic PETG; generic ether-TPU 95A) plus the standard
 snap-fit design literature (Bayer/Covestro *Snap-Fit Joints for Plastics*; BASF
 and DuPont equivalent guides). Cite-on-coupon: confirm against your actual spool.
 
-| Property (FFF print) | **PA12-GF** (final) | **PETG-HF** (test) | **ether-TPU 95A** (fingers) |
+| Property (FFF print) | **PA12-GF** (final) | **PETG-HF** (test) | **Bambu TPU 95A HF** (fingers) |
 |---|---|---|---|
-| Tensile modulus E | **3.5–5.5 GPa** (glass-stiffened) | ~1.7–2.1 GPa | ~0.02–0.06 GPa (soft) |
-| Flexural modulus | **4–6 GPa** | ~1.9–2.3 GPa | low (compliant) |
-| Tensile / yield strength | **40–70 MPa** (filled, often no yield plateau — fails near-brittle) | ~40–50 MPa | ~25–40 MPa @100 % |
-| **Elongation at break** | **~3–8 %** (printed GF nylon; brittle) | ~6–12 % | **300–500 %** (elastomer) |
+| Tensile modulus E | **3.5–5.5 GPa** (glass-stiffened) | ~1.7–2.1 GPa | **9.8 MPa (X-Y) / 7.4 MPa (Z)** — MEASURED, ISO 527 printed, anisotropic |
+| Flexural modulus | **4–6 GPa** | ~1.9–2.3 GPa | N/A (Bambu TDS; compliant) |
+| Tensile / yield strength | **40–70 MPa** (filled, often no yield plateau — fails near-brittle) | ~40–50 MPa | **27.3 MPa (X-Y) / 22.3 MPa (Z)** (ISO 527 printed; elastomer, not a brittle yield) |
+| **Elongation at break** | **~3–8 %** (printed GF nylon; brittle) | ~6–12 % | **>650 % (X-Y) / >480 % (Z)** (elastomer) |
 | **Allowable design strain, one-time snap** (~0.5–0.7× ε_break for filled) | **~1.5–2.0 %** | **~2.5–3.5 %** | n/a (elastic, not snap) |
-| Water absorption (saturated immersion) | **~0.7–1.2 %** (PA12 is the lowest-uptake nylon; glass fill lowers it further) | ~0.1–0.3 % (low) | ~0.5–1.5 % |
-| Density ρ | **~1.20–1.30 g/cc** | ~1.27 g/cc | ~1.10–1.22 g/cc |
+| Water absorption (saturated immersion) | **~0.7–1.2 %** (PA12 is the lowest-uptake nylon; glass fill lowers it further) | ~0.1–0.3 % (low) | **1.08 %** (ISO, 25 °C/55 % RH) |
+| Density ρ | **~1.20–1.30 g/cc** | ~1.27 g/cc | **1.22 g/cc** (ISO 1183) |
 | Creep | low–moderate (glass fill greatly improves over unfilled nylon) | moderate | **high (creeps)** — never structural |
 
 Key facts that drive this review:
@@ -198,7 +198,7 @@ All issues resolved. No open items. Verdicts below reflect applied fixes.
 | `follower_R/L` | 2 | **PA12-GF** | PETG-HF | **PASS** — link bars + rigid D-eye counterbore. Counterbore floor-gap fix confirmed (0.30 mm floor gap; 1.05 mm shoulder capture). |
 | `snap_pin_axle` (pin_A_R, pin_A_L, pin_B_R, pin_B_L) | 4 | **PA12-GF** | PETG-HF | **PASS** — plain rigid dowels, **no flexure**, geometric sandwich capture. PA12-GF fine (low creep is a bonus). |
 | `snap_pin_finger` (pin_C_R/L, pin_D_R/L) | 4 | **PETG-HF** (FINAL — not PA12-GF) | PETG-HF | **PASS** — 2.78 % insertion strain inside PETG-HF's ~2.5–3.5 % allowable. PA12-GF excluded: its ~1.5–2.0 % brittle allowable would crack the barb on insertion. Pull-out load is carried by the rigid PA12-GF counterbore shoulder — the pin material is irrelevant for retention. |
-| `finger_L/R` | 2 | **eSUN eTPU-95A** (ether/polyether ~95A) | TPU | **PASS** — compliance is the grip mechanism. Ether-TPU (never ester — hydrolyzes). Selected: eSUN eTPU-95A (ρ 1.21); polyether per eSUN's hydrolysis-resistance marketing — confirm/soak-test for critical immersion. Print: `PRINT_PROFILE_P1S_TPU.md`. **Strength provenance (honest):** eSUN's published TDS quotes a tensile strength of **~30 MPa**, which on FDM TDS sheets is typically a printed-specimen number, not injection-moulded. A separate retailer source quotes 35 MPa (possibly mistranslated as IM); the "35 MPa IM → 25 MPa printed via typical FDM derate" derivation in this repo is shaky and may double-count the derate. **We use STRENGTH = 25 MPa as a conservative lower-bound for the margin basis** in the finger and grip FEA campaigns; treat it as an engineering estimate, not a measured ceiling. Bench validation on a printed coupon is in `motor/BENCH_TEST.md`. |
+| `finger_L/R` | 2 | **Bambu TPU 95A HF** | TPU | **PASS** — compliance is the grip mechanism. Selected: Bambu TPU 95A HF (high-flow), ρ 1.22. **Material provenance (now MEASURED, not assumed):** Bambu's TDS (V1.0) publishes ISO 527 **printed-specimen** properties — a real upgrade over the old eSUN spool, whose modulus was never published (the repo used a 40 MPa *guess*). Bambu measures an **anisotropic modulus 9.8 MPa in-plane (X-Y) / 7.4 MPa through-Z**, tensile strength **27.3 MPa (X-Y) / 22.3 MPa (Z)**, elongation >650 %/>480 %, density 1.22 g/cm³. The finger prints flat (cells in the build plane), so its in-plane bending — the grip mechanism — uses the X-Y values (E 9.8, strength 27.3); the through-Z values (E 7.4, strength 22.3) feed the underwater through-thickness crush. **Caveat:** 9.8 MPa is the ISO 527 initial-tangent modulus; a Fin-Ray at finite wrap strain is hyperelastic, so absolute grip forces are order-of-magnitude — but the repo's grip ranking/margins are force-targeted and so modulus-insensitive (unchanged by the switch). **Immersion caution:** Bambu's TDS lists TPU (insoluble in water, 1.08 % saturated uptake) but does **not** state polyether vs polyester chemistry — keep the ether-vs-ester rule: confirm polyether grade with Bambu or soak-test before sustained/critical immersion. Print: `PRINT_PROFILE_P1S_TPU.md`. Bench validation on a printed coupon: `motor/BENCH_TEST.md`. |
 
 ---
 

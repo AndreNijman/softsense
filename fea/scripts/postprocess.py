@@ -97,8 +97,9 @@ print("wrote", morph)
 # ---------- stats ----------
 stats = dict(
     model="Fin Ray finger, plane-strain, St.-Venant-Kirchhoff, total Lagrangian",
-    material=dict(name="TPU ~95A (ASSUMED)", E_MPa=E, nu=nu,
-                  note="literature-typical 95A, not measured on the print"),
+    material=dict(name="Bambu TPU 95A HF", E_MPa=E, nu=nu,
+                  note="E = ISO 527 in-plane (X-Y) printed-specimen modulus 9.8 MPa "
+                       "(Bambu TDS); nu literature estimate (Bambu publishes none)"),
     mesh=dict(nodes=int(p0.shape[1]), tris=int(tris.shape[0])),
     load_steps=int(F - 1),
     grip_load_N=dict(max=float(curve[:, 0].max()),

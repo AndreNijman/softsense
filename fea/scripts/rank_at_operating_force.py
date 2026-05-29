@@ -114,7 +114,7 @@ def run():
         vm_at_op_observed = vm0 * (F_OPERATING_N / g0) if g0 > 0 else 0.0
         # SECONDARY measurement: full-range linear-fit extrapolation
         vm_at_op_fit = k * F_OPERATING_N + c
-        margin_at_op = 25.0 / max(vm_at_op_observed, 1e-9)
+        margin_at_op = 27.3 / max(vm_at_op_observed, 1e-9)   # Bambu TPU 95A HF in-plane
 
         per_run.append(dict(
             name=r["name"],
@@ -148,7 +148,7 @@ def run():
 
     return dict(
         F_operating_N=F_OPERATING_N,
-        TPU_STRENGTH_MPa=25.0,
+        TPU_STRENGTH_MPa=27.3,
         per_run=per_run,
         n_runs=len(per_run),
         ranking_at_operating_force=[r["name"] for r in ranking_at_op],

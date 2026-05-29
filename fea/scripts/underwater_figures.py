@@ -3,12 +3,12 @@
 Two panels:
   1. fea/pictures/underwater_pressure.png — analytical/FEA hydrostatic
      compression vs depth (ε_lin, peak vM, peak displacement) for ν=0.42/0.45/0.48
-     against the TPU 25 MPa yield reference. Reads
+     against the Bambu TPU 95A HF 27.3 MPa (in-plane) strength reference. Reads
      fea/iterations/_underwater_pressure/results.json.
 
   2. fea/pictures/underwater_wet_modulus.png — wet-modulus sweep:
-     peak vM and grip force at closure vs E_TPU (dry → saturated).
-     Reads fea/iterations/under_E{40,32,28,20}*/metrics.json.
+     peak vM and grip force at closure vs E_TPU (dry 9.8 → saturated).
+     Reads fea/iterations/under_E{98,78,69,49}*/metrics.json.
 
 Run:  python fea/scripts/underwater_figures.py
 """
@@ -24,7 +24,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(os.path.dirname(HERE))
 ITER = os.path.join(ROOT, "fea", "iterations")
 PICS = os.path.join(ROOT, "fea", "pictures")
-TPU_YIELD = 25.0   # MPa, conservative
+TPU_YIELD = 27.3   # MPa -- Bambu TPU 95A HF in-plane (X-Y) tensile strength, ISO 527
 
 
 def crush_panel():
@@ -161,10 +161,10 @@ def pressure_panel():
 
 
 def wet_modulus_panel():
-    cases = [("under_E40_dry", 40.0, "dry"),
-             ("under_E32_wet20", 32.0, "wet 20%"),
-             ("under_E28_wet30", 28.0, "wet 30%"),
-             ("under_E20_wet50", 20.0, "wet 50%")]
+    cases = [("under_E98_dry", 9.8, "dry"),
+             ("under_E78_wet20", 7.8, "wet 20%"),
+             ("under_E69_wet30", 6.9, "wet 30%"),
+             ("under_E49_wet50", 4.9, "wet 50%")]
     data = []
     for name, E, label in cases:
         fp = os.path.join(ITER, name, "metrics.json")

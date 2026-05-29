@@ -39,10 +39,13 @@ sys.path.insert(0, HERE)
 ROOT = os.path.dirname(os.path.dirname(HERE))
 PICS = os.path.join(ROOT, "fea", "pictures")
 
-# ----- material -----
-E_TPU = 40.0
+# ----- material: Bambu TPU 95A HF -----
+# 2D pressure sheet is the IN-PLANE (X-Y) section: E=9.8, strength=27.3 (ISO 527).
+# The 3D crush sheet imports underwater_crush_3d, which carries the THROUGH-Z values
+# (E_Z=7.4, strength_Z=22.3) -- its titles reference uc.TPU_YIELD, not this one.
+E_TPU = 9.8
 NU = 0.45
-TPU_YIELD = 25.0
+TPU_YIELD = 27.3
 
 # ----- depths to render (common across both sheets so each panel
 #       has a flooded-vs-trapped-air comparison at the same depth) -----
@@ -411,7 +414,9 @@ def render_crush_sheet():
     c3d = build_3d_once()
     p2d_3d = c3d["p2d"]; tris_3d = c3d["tris"]
     nodes = c3d["nodes"]; tets = c3d["tets"]; N2 = c3d["N2"]
-    print(f"crush sheet (3D): nodes={nodes.shape[0]}, tets={tets.shape[0]}")
+    Y3D = c3d["uc"].TPU_YIELD   # through-Z strength (22.3 MPa) — the crush direction
+    print(f"crush sheet (3D): nodes={nodes.shape[0]}, tets={tets.shape[0]}, "
+          f"E_Z={c3d['uc'].E_TPU} MPa, strength_Z={Y3D} MPa")
 
     def run_case(mode):
         out = []
@@ -465,7 +470,7 @@ def render_crush_sheet():
         title = (f"flooded 3D @ {c['depth']:.0f} m  (P = {c['P']:.2f} MPa)\n"
                  f"REAL max |u| = {c['max_disp_um']:.0f} μm  "
                  f"max vM = {c['max_vm']:.3f} MPa  "
-                 f"({TPU_YIELD/max(c['max_vm'], 1e-9):.0f}× yield)\n"
+                 f"({Y3D/max(c['max_vm'], 1e-9):.0f}× yield)\n"
                  f"drawn ×{c['mag']}; gray = undeformed")
         pc = plot_3d_midz_slice(axs[0, i], p2d_3d, tris_3d, nodes,
                                  c["u"], c["vm_tet"], N2, c["mag"],
@@ -482,7 +487,7 @@ def render_crush_sheet():
         title = (f"trapped 3D @ {c['depth']:.0f} m  (P = {c['P']:.2f} MPa)\n"
                  f"REAL max sag = {c['max_disp_um']:.0f} μm  "
                  f"max vM = {c['max_vm']:.2f} MPa  "
-                 f"({TPU_YIELD/max(c['max_vm'], 1e-9):.0f}× yield)\n"
+                 f"({Y3D/max(c['max_vm'], 1e-9):.0f}× yield)\n"
                  f"drawn ×{c['mag']}; gray = undeformed")
         pc = plot_3d_midz_slice(axs[1, i], p2d_3d, tris_3d, nodes,
                                  c["u"], c["vm_tet"], N2, c["mag"],

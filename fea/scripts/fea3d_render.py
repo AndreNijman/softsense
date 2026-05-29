@@ -109,14 +109,14 @@ nf=len(frames)
 # grasp frame = where von Mises ~ gentle (closest to 2.7 MPa) OR final
 vmaxes=np.array([v.max() for v in vms])
 grasp_i=int(np.argmin(np.abs(vmaxes-2.7)))
-TPU_strength=(25.0,40.0)
+TPU_strength=(22.3,27.3)   # Bambu TPU 95A HF: through-Z .. in-plane tensile (ISO 527)
 ndof=int(rest.shape[0]*3)
 stats={
  "title":"Custom full-3D FEA — Fin Ray finger wrapping the amphora neck",
  "method":"3D corotational (polar-decomposition warped-stiffness) finite-element, "
           "linear tetrahedra, Newton-Raphson with displacement (press) load stepping",
  "constitutive":"corotational linear elasticity (large-rotation, small-strain) — valid here: TPU strains are small, deformation is rotation/bending dominated",
- "material":{"name":"TPU ~95A (assumed, per bundle)","E_MPa":float(sol['E']),
+ "material":{"name":"Bambu TPU 95A HF","E_MPa":float(sol['E']),
              "nu_used":float(sol['nu']),
              "nu_note":"nu relaxed from 0.45 to limit linear-tet volumetric locking (the bundle's 2D solve made the same compromise)"},
  "contact":{"type":"penalty, frictionless","rigid_body":"amphora neck = analytic cylinder",

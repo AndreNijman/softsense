@@ -454,12 +454,12 @@ Stacked from chassis up:
 | Layer | Element | Function |
 |---|---|---|
 | 1 (under bracket head) | M5 nylon flat washer, 1 mm | Galvanic isolation + small compliance |
-| 2 (bracket-to-rack interface) | **3 mm laser-cut TPU 95A compliance pad** (printed in-house from the same eTPU-95A reel as the Fin-Ray fingers) | Vibration absorber + impact damper |
+| 2 (bracket-to-rack interface) | **3 mm laser-cut TPU 95A compliance pad** (printed in-house from the same Bambu TPU 95A HF reel as the Fin-Ray fingers) | Vibration absorber + impact damper |
 | 3 (rack-to-frame interface) | Rubber grommet sleeve isolator in each M5 hole *(McMaster 90131A132 family or eq.)* | Decouples high-frequency thruster vibration |
 | 4 (M5 fastener) | A4-316 SS M5×20 with Loctite 243 *(not 271; medium-strength only)* | Per `../ROV_INTEGRATION.md §1c` |
 
 The **TPU compliance pad** is the key idea. It is the same material we already
-print the fingers in (eSUN eTPU-95A), so no new BOM line. Sized to the
+print the fingers in (Bambu TPU 95A HF), so no new BOM line. Sized to the
 bracket's 2× M5 footprint plus 5 mm border, it transmits the static
 clamp load (1.5 N·m × 1 mm thread pitch ⇒ ~9.4 kN per bolt; nylon-on-TPU is
 fine) while absorbing ≥3 mm of impact travel.
@@ -503,7 +503,7 @@ adapter drops into the existing Newton position with no chassis modification.
 | Top-face hole offset to adapter centreline | 16 mm and 31 mm (or symmetric per measured rack) | matches template; **measure Roof Rack before drilling final** |
 | Top-face tilt (built into adapter) | 16° | matches Newton template canted axis |
 | Top-face material | PA12-GF printed *(production)*; PETG-HF *(prototype)* | repo material policy `../docs/MATERIALS.md` |
-| Compliance pad | 3 mm eTPU-95A, footprint = top face + 5 mm border | §8b |
+| Compliance pad | 3 mm Bambu TPU 95A HF, footprint = top face + 5 mm border | §8b |
 | Top-face fasteners | 2× A4-316 M5×20 button-head + Loctite 243 | longer than Newton's M5×16 to account for 3 mm pad |
 
 **Bottom face (gripper-side):** 4× M4 on the existing 40–50 mm bolt circle of
@@ -671,7 +671,7 @@ gripper exists. (Out of scope for v1 ship — note as future.)
 - `../ELECTRICAL.md` — RS-485 + 12 V termination inside the BR2 electronics enclosure.
 - `../FAILURE_MODES.md` — failure mode catalogue; this file adds **HDPE bore wallowing** (§8c) and **bow-impact cantilever** (§8c).
 - `../docs/UNDERWATER.md` §5 — galvanic isolation policy (re-used at §9a fastener stack).
-- `../docs/MATERIALS.md` — printed-material selection; PA12-GF for production adapter, eTPU-95A for the compliance pad.
+- `../docs/MATERIALS.md` — printed-material selection; PA12-GF for production adapter, Bambu TPU 95A HF for the compliance pad.
 
 ---
 

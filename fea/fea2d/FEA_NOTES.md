@@ -19,7 +19,7 @@ nonlinear FEA, not an artistic bend:
 - **Plane strain is the correct model**, not a simplification: the Fin Ray finger
   is a Z-constant 2.5-D extrusion (UNDERWATER §3), so the cross-section carries the
   mechanics; 3D adds nothing physical.
-- **Assumed inputs (NOT measured on the print):** TPU ~95A as E = 40 MPa, ν = 0.45
+- **Assumed inputs (NOT measured on the print):** Bambu TPU 95A HF E = 9.8 MPa (in-plane, ISO 527; legacy run used the old E=40 estimate), ν = 0.45
   (near-incompressible; 0.45 chosen to limit P1 volumetric locking). These are
   literature-typical 95A values; a real coupon would shift the absolute force, not
   the qualitative wrap.
@@ -28,7 +28,7 @@ nonlinear FEA, not an artistic bend:
   limit point (~5.7 N snap-through). This produces the emergent Fin Ray wrap
   (tip curls ~23 mm inward) without a full contact-search solve. The applied
   patch load IS the grip force.
-- **Result:** max von Mises ~2.7 MPa vs ~25–40 MPa TPU strength → ~10× margin →
+- **Result:** max von Mises ~2.7 MPa vs 27.3 MPa Bambu in-plane strength → ~10× margin →
   a *gentle* grip, appropriate for a fragile artifact.
 
 ## 3. Snap-clip = linear FEA corroboration

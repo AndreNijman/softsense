@@ -44,7 +44,7 @@ ax.axvline(0.75, color="grey", ls="--", lw=0.8, alpha=0.7)
 ax.set_yticks(y); ax.set_yticklabels(names)
 ax.set_xlim(0, 1.0); ax.set_xlabel("Universal grip score (weighted, 7-condition battery, 0-1)")
 ax.set_title("Grip-texture families: champion (solid) vs honest/conservative variant (hatched)\n"
-             "underwater soft gripper - eSUN eTPU-95A, Bambu P1S 0.4mm")
+             "underwater soft gripper - Bambu TPU 95A HF, Bambu P1S 0.4mm")
 from matplotlib.patches import Patch
 ax.legend(handles=[Patch(facecolor="#999", label="champion (model optimum)"),
                    Patch(facecolor="#999", alpha=0.45, hatch="//",
