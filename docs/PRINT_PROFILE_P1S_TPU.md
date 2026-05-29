@@ -69,10 +69,21 @@ preset so every value not overridden resolves to Bambu's tested defaults.
 
 **Import:** Bambu Studio → File → Import → *Import Configs…* → pick both `.json`. They
 appear under **User Presets** in the filament and process dropdowns when a P1S 0.4 is
-selected. If the filament import ever warns that the parent preset is missing, your
-Studio's TPU-95A-HF system preset name differs — re-point `"inherits"` to the exact
-name shown in your filament dropdown (or just duplicate Bambu's preset in Studio and
-paste the two `filament_notes`/start-g-code reminders in).
+selected.
+
+> **Version must match your installed profiles.** Bambu Studio silently drops configs
+> whose `version` is incompatible with the loaded BBL vendor profile ("There are 0
+> configs imported. Only non-system and compatible configs"). These files are set to
+> **`"version": "2.6.0.5"`** to match BBL profile **02.06.00.05** (Bambu Studio 2.6).
+> If your Studio is a different release, set both files' `version` to your installed
+> BBL major.minor (Help → About → version, or check `BambuStudio.conf`). The files use
+> the exact user-preset shape Studio writes (`from: User`, `inherits`, `*_settings_id`,
+> extruder-variant arrays — no `type`/`instantiation`/`setting_id`).
+
+If the filament import ever warns the *parent* preset is missing, your Studio's
+TPU-95A-HF system preset name differs — re-point `"inherits"` to the exact name in your
+filament dropdown (or duplicate Bambu's preset in Studio and paste the two
+`filament_notes`/start-g-code reminders in).
 
 ---
 

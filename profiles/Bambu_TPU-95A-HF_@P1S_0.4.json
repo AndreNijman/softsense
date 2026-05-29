@@ -1,14 +1,19 @@
 {
-    "type": "filament",
     "name": "Bambu TPU 95A HF @P1S 0.4 (gripper fingers)",
     "from": "User",
-    "instantiation": "true",
     "inherits": "Bambu TPU 95A HF @BBL P1S",
-    "setting_id": "GFSU_GRIPPER01",
-    "version": "01.00.00.00",
-    "filament_start_gcode": ["; Bambu TPU 95A HF (gripper Fin Ray fingers). EXTERNAL SPOOL — NOT the AMS (Bambu rates 95A HF too soft for the AMS). PLATE: textured PEI, NO glue (glue over-adheres TPU on textured PEI); bed 30-35 C. Dry 70 C 8 h first. 0.4 mm hardened nozzle."],
-    "filament_notes": ["Gripper Fin Ray fingers, printed in Bambu TPU 95A HF. This preset INHERITS the Bambu system 'Bambu TPU 95A HF @BBL P1S', so the tested values come straight from Bambu: nozzle 230 C, flow ratio 1.0, max volumetric speed 12 mm3/s (HF = ~3x standard-TPU throughput), retraction 0.8 mm @ 10 mm/s, density 1.22. Only the gripper-specific reminders are overridden here.\nSPOOL: external spool, NOT the AMS — Bambu's own profile states 95A HF is 'too soft and not compatible with the AMS'. Feed straight to the toolhead.\nPLATE: Textured PEI, NO glue. Bambu Wiki: the textured PEI keys TPU mechanically; applying glue causes EXCESSIVE adhesion. Keep bed 30-35 C (low) so the large flat 28x96 finger footprint stays removable; release by cooling, lifting a corner, squirting IPA into the gap, then peeling slowly (don't pry a hot part - chips the PEI). A SMOOTH plate (Cool/Engineering/High-Temp) would instead NEED glue as a release barrier.\nDRYING: 70 C 8 h (oven) or X1 bed 80-90 C 12 h; store <20% RH (HF is humidity-sensitive).\nNOZZLE: 0.4 mm hardened/abrasion-tolerant. Pair with the 'Gripper finger TPU 0.16mm @P1S 0.4' process profile."],
-    "compatible_printers": [
-        "Bambu Lab P1S 0.4 nozzle"
+    "version": "2.6.0.5",
+    "filament_settings_id": [
+        "Bambu TPU 95A HF @P1S 0.4 (gripper fingers)"
+    ],
+    "filament_extruder_variant": [
+        "Direct Drive Standard",
+        "Direct Drive High Flow"
+    ],
+    "filament_start_gcode": [
+        "; Bambu TPU 95A HF (gripper Fin Ray fingers). EXTERNAL SPOOL — NOT the AMS (Bambu rates 95A HF too soft for the AMS). PLATE: textured PEI, NO glue (glue over-adheres TPU on textured PEI); bed 30-35 C. Dry 70 C 8 h first. 0.4 mm hardened nozzle."
+    ],
+    "filament_notes": [
+        "Gripper Fin Ray fingers, printed in Bambu TPU 95A HF. INHERITS the Bambu system 'Bambu TPU 95A HF @BBL P1S', so the tested values come straight from Bambu: nozzle 230 C, flow ratio 1.0, max volumetric speed 12 mm3/s (HF = ~3x standard-TPU throughput), retraction 0.8 mm @ 10 mm/s, density 1.22. Only gripper-specific reminders are overridden here. SPOOL: external spool, NOT the AMS — Bambu's own profile states 95A HF is 'too soft and not compatible with the AMS'. PLATE: Textured PEI, NO glue (Bambu Wiki: glue over-adheres TPU on textured PEI); keep bed 30-35 C so the large flat 28x96 finger footprint stays removable; release by cooling, lifting a corner, IPA into the gap, peel slowly. A SMOOTH plate (Cool/Engineering/High-Temp) would instead NEED glue as a release barrier. DRYING: 70 C 8 h; store <20% RH. NOZZLE: 0.4 mm hardened. Pair with 'Gripper finger TPU 0.16mm @P1S 0.4' process."
     ]
 }
