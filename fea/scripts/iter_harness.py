@@ -10,7 +10,7 @@ For one parameter set (FR_* overrides on gripper.py):
 
 FROZEN scenario (identical every iteration for fair comparison):
   R_neck=22 mm, neck centre y=80 mm, press 10 mm over 24 steps, kpen=2000,
-  3 z-layers, gmsh size 0.5-1.3 mm, TPU E=40 MPa nu=0.42.
+  3 z-layers, gmsh size 0.5-1.3 mm, TPU E=9.8 MPa nu=0.42 (Bambu TPU 95A HF, X-Y).
 
 Usage:  python iter_harness.py <iter_name> '<params_json>'
         params_json = {"FR_WALL": 2.0, ...}  (FR_* overrides; {} = baseline)
@@ -112,24 +112,27 @@ KPEN = 2000.0
 NLAYERS = 3
 Z0, Z1 = 13.0, 23.0
 MESH_MIN, MESH_MAX = 0.5, 1.3
-# Material = eSUN eTPU-95A (the selected filament). eSUN TDS: tensile strength 35 MPa
-# (injection-molded) -> ~25 MPa printed (typical FDM derate); modulus NOT published by
-# eSUN, so E=40 MPa is an estimate (margins are modulus-insensitive at force-targeted
-# reporting -- see PRINT_PROFILE_P1S_TPU.md / fea sensitivity E=30/40/60). nu~0.42 (TPU).
-E_TPU, NU = 40.0, 0.42
+# Material = Bambu TPU 95A HF (the selected filament). Bambu's published TDS
+# (ISO 527, PRINTED specimens -- not injection-moulded) gives an ANISOTROPIC
+# Young's modulus: 9.8 +/- 0.7 MPa in-plane (X-Y) and 7.4 +/- 0.6 MPa through-Z.
+# The finger prints FLAT (28x96 face on the bed; cells in the build plane), so its
+# in-plane bending -- the grip mechanism -- is governed by the X-Y modulus 9.8 MPa.
+# This REPLACES the old eSUN E=40 MPa GUESS with a measured, printed-specimen value.
+# Caveat: 9.8 MPa is the ISO 527 initial-tangent modulus; a real Fin-Ray at finite
+# wrap strain is hyperelastic, so absolute forces here are order-of-magnitude. The
+# repo posture is rank/force-targeted (margins are modulus-insensitive at force-
+# targeted reporting -- see PRINT_PROFILE_P1S_TPU.md / fea sensitivity E=7/9.8/12).
+# nu~0.42 (TPU; Bambu publishes no Poisson value -- literature estimate, unchanged).
+E_TPU, NU = 9.8, 0.42
 # environment overrides (so locking/mesh sweeps don't have to monkey-patch globals):
 E_TPU = float(os.environ.get("GRIPPER_E_TPU", E_TPU))
 NU    = float(os.environ.get("GRIPPER_NU", NU))
 NLAYERS = int(os.environ.get("GRIPPER_NLAYERS", NLAYERS))
-TPU_STRENGTH = 25.0   # MPa -- eSUN eTPU-95A printed strength.
-# Provenance disclosure: eSUN's published eTPU-95A TDS quotes a tensile strength
-# of ~30 MPa (one retailer source quotes 35 MPa, possibly mistranslated). On FDM
-# TDS sheets the 30 MPa value is typically a printed-specimen number, not IM.
-# The "35 MPa IM -> 25 MPa printed via typical FDM derate" derivation that
-# previously lived in this comment is shaky and may double-count the derate
-# (the published number is already printed); 25 MPa is retained as a
-# conservative lower bound for the margin basis, but should be treated as
-# an engineering estimate, not a measured ceiling. See docs/MATERIALS.md.
+TPU_STRENGTH = 27.3   # MPa -- Bambu TPU 95A HF in-plane (X-Y) tensile strength,
+# ISO 527 printed specimen (the direction the finger is loaded in bending). The
+# weak through-Z direction is 22.3 MPa (used for the underwater through-thickness
+# crush). For a Shore-95A elastomer at >650% elongation this "strength" is a
+# deformation/stress-ceiling proxy, not a brittle yield. See docs/MATERIALS.md.
 GAP = 0.5
 OBJ_SHAPE = "circle"  # "circle" (R=R_NECK) or "box" (square, half-size=R_NECK).
                       # A UNIVERSAL gripper must conform to non-round shapes too,

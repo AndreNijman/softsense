@@ -27,7 +27,7 @@ Allowable: PA12-GF (drive arms + pinion shaft, per BOM). Polymaker Fiberon
 PA6-GF25 tensile = 84.5 MPa (ISO 527); PA12-GF base is weaker than PA6, and FDM
 100%-infill knocks bulk down ~30-40% (layer adhesion), so bulk ~50-65 MPa. With a
 wet/creep/cyclic safety factor we use a conservative ROOT-BENDING ALLOWABLE of
-30 MPa (cf. grip campaign STRENGTH=25 for eTPU-95A).
+30 MPa (cf. grip campaign STRENGTH=27.3 for Bambu TPU 95A HF).
 """
 import math
 import os

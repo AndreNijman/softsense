@@ -491,8 +491,8 @@ def fig_tier2_fea():
                           color="#E57C23", alpha=0.75, zorder=3)
 
     # Strength line
-    strength = 25.0
-    ax_b.axhline(strength, color="#333", lw=1.3, ls="--", zorder=4, label=f"eTPU-95A strength {strength} MPa")
+    strength = 27.3
+    ax_b.axhline(strength, color="#333", lw=1.3, ls="--", zorder=4, label=f"Bambu TPU 95A HF strength {strength} MPa")
 
     # Margin annotations
     for i, (xi, vm, mg) in enumerate(zip(x, fea_vm, margins)):

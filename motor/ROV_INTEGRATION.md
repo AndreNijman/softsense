@@ -281,7 +281,7 @@ which is negligible at T2). **Pressure compensation hardware is N/A for the grip
 ### 5a. Gripper alone (measured from `../docs/UNDERWATER.md §4`)
 
 - Solid material volume: **98.5 cm³**
-- Dry mass: **~124 g** (PETG + eSUN eTPU-95A, 100 % infill)
+- Dry mass: **~124 g** (PETG + Bambu TPU 95A HF, 100 % infill)
 - Net buoyancy in seawater (ρ = 1.025 g/cm³): **+23 g** (sinks gently, near-neutral)
 
 The gripper alone is correctly trimmed — no ballast required. It is slightly

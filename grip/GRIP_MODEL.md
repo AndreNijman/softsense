@@ -18,7 +18,7 @@ coefficient:
    (§Validation), so C_FLAT is immaterial.*
 2. **Elastomer friction** — Briscoe & Tabor: interfacial `τ = τ₀ + α·p`. The adhesion
    part `τ₀·φ_eff/p_nom` scales with **real contact area**; the load part `α` does not.
-3. **As-printed TPU slickness** — eSUN eTPU-95A prints a glossy, low-friction skin. A
+3. **As-printed TPU slickness** — Bambu TPU 95A HF prints a glossy, low-friction skin. A
    flat land keeps only `SKIN_SLICK` of ideal adhesion; **edges/channel walls deglaze
    it** back toward ideal (`deglaze = edge_density / EDGE_DEGLAZE`). This is why
    texture is needed even before drainage.
@@ -39,7 +39,7 @@ coefficient:
 6. **Directional coverage** — 1-D ridges resist only cross-slip (mean |sinθ|≈0.64,
    worst≈0); 2-D/iso patterns approach 1 in every direction. Blended
    `W_PRIMARY·M_primary + (1-W_PRIMARY)·M_worst`.
-7. **Durability** — root bending `σ_root = 6·τ·AR`; margin vs 25 MPa printed strength.
+7. **Durability** — root bending `σ_root = 6·τ·AR`; margin vs 27.3 MPa printed strength (Bambu, ISO 527).
 8. **Micro-suction** — dimple/sucker cavity bonus, **flagged speculative**, wet+smooth
    only.
 

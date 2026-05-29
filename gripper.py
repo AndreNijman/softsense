@@ -277,7 +277,7 @@ MOUNT_HOLE_R = PIN_R + PRINT_CLEAR   # finger pin bore (FDM clearance)
 # grip texture: CROSSHATCH micro-posts on the contact face (so objects don't slip).
 # Optimised by a dedicated grip-texture FEA/swarm campaign (see grip/GRIP_TEXTURE.md):
 # a square-post array out-drains and out-grips the old single-axis ridges on WET
-# objects (the gripper runs underwater and as-printed eTPU is slick), grips in two
+# objects (the gripper runs underwater and as-printed TPU is slick), grips in two
 # directions (M_worst 0.72 vs a ridge's 0.18), and tiles the blade perfectly. The
 # crossing 0.54 mm channels squeeze the water film out (tyre-tread / tree-frog
 # mechanism) and the post edges break the glossy printed-TPU skin. Conservative
@@ -793,7 +793,7 @@ def finray_finger_closed(C0, D0, inner_dir, z0, thickness):
     # that run along Y and repeat across Z, CHOPPING the ridges into a grid of
     # square posts -- the crosshatch winner from the grip-texture campaign. The two
     # channel families (0.54 mm wide) drain the water film in both directions; the
-    # post edges grip in both directions and break the slick printed-eTPU skin.
+    # post edges grip in both directions and break the slick printed-TPU skin.
     # Roots sit FR_GRIP_ROOT_IN inside the spar so the posts fuse cleanly; tips stay
     # clear of the centreline at the closed pose (right finger: contact_x=+1.0,
     # tips at +1.0-0.6 = +0.4 -> 0.8 mm finger-finger gap).

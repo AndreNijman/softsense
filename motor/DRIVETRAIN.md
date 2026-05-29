@@ -54,7 +54,7 @@ Reproduce: `python motor/scripts/gear_fea.py` (→ `motor/iterations/_gear_fea.j
   weaker than PA6, FDM 100 %-infill knocks bulk down ~30–40 % (layer adhesion) →
   ~50–65 MPa, and a wet/creep/cyclic safety factor brings the **root-bending
   allowable to a conservative 30 MPa** (cf. the grip campaign's `STRENGTH = 25` for
-  eTPU-95A).
+  Bambu TPU 95A HF).
 
 ## 2. The torque the teeth must carry
 

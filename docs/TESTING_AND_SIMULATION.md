@@ -96,8 +96,8 @@ This gives correct physics for "small strain, large rotation" with a symmetric t
 that makes Newton's method converge robustly. (A `numpy`/`scipy` CPU implementation and
 an identical **CuPy/CUDA GPU** mirror both exist; see A.11.)
 
-**Material:** linear-elastic isotropic, **E = 40 MPa, ν = 0.42** (eSUN eTPU-95A; the
-modulus is an **engineering estimate** — TPU is strongly nonlinear, with a 1 %-strain
+**Material:** linear-elastic isotropic, **E = 9.8 MPa (in-plane X-Y), ν = 0.42** (Bambu TPU 95A HF, MEASURED ISO 527 printed-specimen — replaces the old eSUN 40 MPa guess; the
+ISO 527 initial-tangent vs finite-strain secant — TPU is strongly nonlinear, with a 1 %-strain
 secant modulus 2–4× different from the 10 %-strain secant modulus, and our bending-
 dominated rib strains are in the 3–8 % range). A single linear modulus is therefore a
 working approximation; a sensitivity sweep (E = 30/40/60 MPa) is in
@@ -153,7 +153,7 @@ At each step we compute, per tet, the co-rotated stress and reduce it to the
 From that and the contact field we report:
 
 - **Grip reaction (N)** — the summed contact force pushing the object out.
-- **Peak von Mises (MPa)** and **safety margin** = `TPU_STRENGTH (25 MPa) / σ_vm,max`.
+- **Peak von Mises (MPa)** and **safety margin** = `TPU_STRENGTH (27.3 MPa, Bambu in-plane) / σ_vm,max`.
 - **Contact arc (°)** — angular span of the contact patch around the object = how far
   the finger *wraps*.
 - **Pressure CoV** — coefficient of variation (std/mean) of contact force along the
@@ -274,7 +274,7 @@ bound below ~100k DOF — so CPU is the default; see `MSI_REMOTE.md`).
 The finger FEA (Part A) has **no friction and no fluid model** — it can tell you how the
 finger *wraps*, but not how well a surface *texture* resists an object **slipping**,
 especially **underwater** where a water film makes things slick, and given that
-**as-printed eSUN eTPU-95A has a glossy, low-friction skin**. Grip-texture quality was
+**as-printed Bambu TPU 95A HF has a glossy, low-friction skin**. Grip-texture quality was
 therefore never measured by Part A. Part B builds the missing physics.
 
 ## B.2 Two-tier architecture
@@ -326,7 +326,7 @@ object **condition** (B.4) the model computes an **effective holding coefficient
    directions ≈ 0.64, worst-case ≈ 0 along the ridge); 2-D/isotropic patterns approach 1
    in every direction. Blended as `W_PRIMARY·M_primary + (1−W_PRIMARY)·M_worst`.
 7. **Durability** — root bending stress `σ_root = 6·τ·AR` (AR = post aspect ratio);
-   margin vs the 25 MPa printed strength. Validated by Tier-2 FEA (B.5).
+   margin vs the 27.3 MPa printed strength. Validated by Tier-2 FEA (B.5).
 8. **Micro-suction** — a small cavity bonus for dimple/sucker patterns, **explicitly
    flagged speculative** (wet + smooth surfaces only).
 

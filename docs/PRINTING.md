@@ -243,7 +243,7 @@ brim on the snap pins and enclosure for adhesion.
 
 ### 3. TPU ether-based — ~95A Shore (fingers, final material)
 
-> **Selected filament: eSUN eTPU-95A on a Bambu Lab P1S (0.4 mm hardened nozzle).**
+> **Selected filament: Bambu TPU 95A HF on a Bambu Lab P1S (0.4 mm hardened nozzle).**
 > For the complete, importable Bambu Studio profiles (filament + process) and every
 > setting with rationale, see **`PRINT_PROFILE_P1S_TPU.md`**. The section below is the
 > general (slicer-agnostic) TPU guidance.
@@ -264,9 +264,10 @@ consistent extrusion control that only a direct-drive extruder provides.
 
 | Parameter | Range | Notes |
 |---|---|---|
-| Nozzle | 220–235°C | Start at 225°C; raise if under-extrusion in the thin ribs |
-| Bed | 30–50°C | Textured PEI, unheated also works; lightly wipe with IPA |
-| Cooling | Off or 10% max | TPU needs interlayer adhesion; high cooling causes delamination at flex cycles |
+| Nozzle | 220–240°C | Bambu TPU 95A HF band; start at 230°C (Bambu's specimen temp); raise if under-extrusion in the thin ribs |
+| Bed | 30–35°C **with glue** | Bambu's recommended prep for TPU 95A HF; textured PEI / Cool / Eng plate, glue does the adhesion |
+| Drying | 70°C ≥ 8 h | Bambu spec (was 55°C/4 h for eSUN); HF is humidity-sensitive — keep in a dry box |
+| Cooling | fan on (this build: 50–80%) | TPU needs interlayer adhesion; the finger flexes in service, so the profile runs lower fan to protect Z-bonds (see PRINT_PROFILE §3) |
 
 #### Retraction
 

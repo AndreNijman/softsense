@@ -35,8 +35,10 @@ from skfem.helpers import grad, transpose, ddot, trace, eye, mul
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
-E_TPU = 40.0           # MPa
-TPU_YIELD = 25.0       # MPa
+E_TPU = 9.8            # MPa  -- Bambu TPU 95A HF in-plane (X-Y), ISO 527 printed
+TPU_YIELD = 27.3       # MPa  -- in-plane tensile strength (this 2D section is in-plane)
+# NOTE: this 2D plane-strain model forbids the through-Z collapse and UNDER-predicts
+# crush; underwater_crush_3d.py (E_Z=7.4, strength_Z=22.3) is the governing analysis.
 NU_LIST = [0.42, 0.45, 0.48]
 DEPTHS_M = [0.0, 10.0, 30.0, 100.0, 300.0, 600.0]
 RHO_G = 1025.0 * 9.81e-6   # MPa/m

@@ -22,10 +22,19 @@ Three effects are in play, and they're routinely confused:
 
 The headline result, in one line:
 
-> **At the primary operating depth (≤30 m), the finger survives both the
-> nominal flooded case AND the worst-case trapped-air case. The finger
-> can be crushed at depths >~200 m IF its cells fail to flood — so
+> **In the nominal FLOODED state the finger is fine at any practical depth
+> (von Mises ≈ 0). In the TRAPPED-AIR state the geometry is crushed from
+> very shallow depth (≥10 m) and the MATERIAL yields beyond ~177 m — so
 > ensuring the cells flood is a pre-dive procedure, not a finger redesign.**
+>
+> **Material note (2026 switch to Bambu TPU 95A HF):** the crush von-Mises
+> stress field is **load-controlled → modulus-INDEPENDENT**, so the vM
+> numbers below are identical to the previous eSUN run. What changed with
+> the measured, ~4× softer modulus is (a) displacements scale ~5.4× larger
+> (the linear-validity envelope now trips at even shallower depth) and
+> (b) the measured through-Z strength 22.3 MPa (vs the old 25 MPa estimate)
+> moves the material-yield depth from ~199 m to ~177 m (vM = 0.1258·depth MPa,
+> crossing strength/0.1258).
 
 Gear ceiling `T_safe` (`motor/DRIVETRAIN.md`) is unchanged in any case
 because it is gear-limited, not finger-limited.
@@ -37,10 +46,10 @@ because it is gear-limited, not finger-limited.
 | Effect | At 30 m | At 100 m | At 300 m | Verdict |
 |---|---|---|---|---|
 | FLOODED finger — peak vM (3D, ν=0.45) | ≈0 (bulk hydrostatic) | ≈0 | ≈0 | **negligible by physics** — vM = 0 in the free bulk because σ = −P·I. 3D FEA sanity-check confirms (peak vM 0.3 MPa is clamp boundary only) |
-| TRAPPED-AIR finger — peak vM (3D worst case, ν=0.45) | **3.8 MPa** | **12.6 MPa** | linearity broken (>finger-thickness sag) | 30 m: 6.6× yield margin, **4.8 mm contact-face sag (half finger thickness)** → geometrically crushed. 100 m: 2.0× margin, 16 mm sag (gas/self-contact limited in reality). 200 m+: material yields |
-| **2D plane-strain UNDER-estimate** (trapped-air, the original figure I quoted) | 0.41 MPa, 0.6 mm sag | 1.35 MPa, 2.1 mm | — | **2D was wrong** — εz = 0 hides the dominant foam-collapse mode; 3D is the correct number |
-| Bulk linear contraction (ν=0.45, flooded) | −0.075% | −0.25% | −0.75% | 68 / 226 / 678 μm on the 90 mm blade. Sub-PRINT_CLEAR until ~100 m |
-| Pin-bore radial contraction (ν=0.45, flooded) | −1.7 μm | −5.8 μm | −17 μm | Trivial vs 300 μm PRINT_CLEAR — pin stays running clearance |
+| TRAPPED-AIR finger — peak vM (3D worst case, ν=0.45) | **3.8 MPa** | **12.6 MPa** | linearity broken (≫finger-thickness sag) | 30 m: 5.9× yield margin (vs 22.3 MPa), linear sag **26 mm (2.6× finger thickness — far past validity)** → geometrically crushed. 100 m: 1.8× margin. ≥~177 m: material yields. (vM is modulus-independent — same as the old eSUN run; sag is ~5.4× larger on the softer measured modulus.) |
+| **2D plane-strain UNDER-estimate** (trapped-air, the original figure I quoted) | 0.41 MPa, 2.6 mm sag | 1.35 MPa, 8.7 mm | — | **2D was wrong** — εz = 0 hides the dominant foam-collapse mode; 3D is the correct number |
+| Bulk linear contraction (ν=0.45, flooded) | −0.31% | −1.0% | −3.1% | 396 / 1320 / 3960 μm on the 90 mm blade — **uniform** isotropic shrink (no shape change, vM≈0), just larger on the softer modulus |
+| Pin-bore radial contraction (ν=0.45, flooded) | −7 μm | −24 μm | −70 μm | Trivial vs 300 μm PRINT_CLEAR — pin stays running clearance |
 | 20% modulus drop (typical wet TPU) at 8 mm closure | grip force ~−20% | (depth-independent) | (depth-independent) | gripper softer, T_safe unchanged |
 | 50% modulus drop (worst-case sat.) | grip force ~−50% | (depth-independent) | (depth-independent) | still wraps; less force margin |
 
@@ -69,13 +78,16 @@ interior stress is the pure hydrostatic state
 
   σ_ij = −P δ_ij,  ε_v = −P / K,  von Mises = 0,
 
-with bulk modulus K = E / (3(1−2ν)). For E_TPU = 40 MPa:
+with bulk modulus K = E / (3(1−2ν)). For E_TPU = 9.8 MPa (Bambu TPU 95A HF,
+in-plane X-Y; the bulk-contraction displacement scales 1/K, so the softer
+measured modulus gives ~4× more uniform shrink than the old 40 MPa guess —
+still benign, vM = 0):
 
 | ν | K (MPa) |
 |---|---|
-| 0.42 | 83.3 |
-| 0.45 | 133.3 |
-| 0.48 | 333.3 |
+| 0.42 | 20.4 |
+| 0.45 | 32.7 |
+| 0.48 | 81.7 |
 
 The only place deviatoric stress can develop is at the **rigid mount-bore
 clamp**, where the printed PA12-GF dowel holds the TPU that wants to
@@ -83,7 +95,8 @@ contract isotropically. A 1D Poisson-restraint argument gives
 
   σ_clamp ≲ (1 − 2ν) · P.
 
-At 30 m: 0.012 – 0.048 MPa depending on ν — 500–2000× below TPU yield.
+At 30 m: 0.012 – 0.048 MPa depending on ν — 500–2000× below the 27.3 MPa
+in-plane strength. (This bound is pressure-only, independent of E.)
 
 The hydrostatic-pressure story is **analytical, not a finite-element
 question**. The 2D plane-strain FEA below is a sanity check that the
@@ -119,7 +132,8 @@ Sweep over ν ∈ {0.42, 0.45, 0.48} and depths {0, 10, 30, 100, 300, 600} m
 | 600 m | 6.03 | 0.938 | 0.619 | 0.268 |
 
 Even the most-conservative case (ν=0.42, 600 m) is **0.94 MPa peak vM
-against 25 MPa TPU yield — 27× margin**. The pressure question is
+against the 27.3 MPa in-plane strength — 29× margin** (these vM values are
+load-controlled and identical to the old eSUN run — modulus-independent). The pressure question is
 **closed**: water doesn't stress the TPU at any depth the system can
 physically operate at (the actuator pressure rating sets the system
 limit, not the finger).
@@ -128,12 +142,16 @@ limit, not the finger).
 
 | depth | ν=0.42 | ν=0.45 | ν=0.48 |
 |---|---|---|---|
-| 30 m | 152 | 97 | 40 |
-| 100 m | 507 | 323 | 132 |
-| 300 m | 1521 | 970 | 396 |
+| 30 m | 621 | 396 | 162 |
+| 100 m | 2069 | 1320 | 539 |
+| 300 m | 6207 | 3960 | 1616 |
 
-These are the WHOLE-FINGER deformation amplitudes — small everywhere
-relative to the 22 × 90 mm blade and the 300 μm `PRINT_CLEAR` clearance.
+These are the WHOLE-FINGER **uniform isotropic-contraction** amplitudes —
+~4× larger than the old 40 MPa guess gave, because displacement scales 1/E
+and the measured modulus is softer. They do **not** threaten clearances:
+this is uniform shrink (the whole blade gets slightly smaller with vM ≈ 0),
+not a local gap closing. The clearance-relevant number is the pin-bore
+radial contraction in §1 (tens of μm, well under the 300 μm `PRINT_CLEAR`).
 
 Figure: `fea/pictures/underwater_pressure.png`.
 
@@ -164,11 +182,13 @@ The 2D section mesh comes back with **12 boundary loops** total:
 
 ### 2D plane-strain result (under-estimates the true load case)
 
-| depth | P (MPa) | peak vM (MPa) | contact wall sag (μm) | margin |
+| depth | P (MPa) | peak vM (MPa) | contact wall sag (μm) | margin (vs 27.3) |
 |---|---|---|---|---|
-| 30 m | 0.30 | 0.41 | 637 | 62× |
-| 100 m | 1.01 | 1.35 | 2122 | 18.5× |
-| 300 m | 3.02 | 4.05 | 6366 | 6.2× |
+| 30 m | 0.30 | 0.41 | 2598 | 67× |
+| 100 m | 1.01 | 1.35 | 8661 | 20× |
+| 300 m | 3.02 | 4.05 | 25982 | 6.7× |
+
+(vM unchanged from the old run — load-controlled; sag ~4× larger on the softer measured modulus. ν=0.45 shown.)
 
 The first version of this analysis used 2D plane-strain because it was
 fast and reused the existing 2D mesh. **It is wrong.** Plane-strain
@@ -192,26 +212,34 @@ correctly orients both outer-skin and inner-cavity face normals.
 
 **Sanity check (flooded, 100 m, ν=0.45):**
 
-  f_net = 1e-13     (numerical zero — equilibrium satisfied)
+  f_net = 1e-13      (numerical zero — equilibrium satisfied)
   mean σ_xx = -0.986 MPa   vs analytical -P = -1.006 (2% mesh)
-  peak |u| = 227 μm   vs analytical P/(3K) · L = 226 μm
+  peak |u| = 1226 μm   (uniform bulk contraction; ~5.4× the old 227 μm because E_Z 40→7.4)
   peak vM = 0.31 MPa   (mostly clamp boundary; bulk ≈ 0 as required)
 
 Reproduces σ = -P·I in the free bulk → FEA is trustworthy.
 
 **Trapped-air result (ν = 0.45):**
 
+Margins are vs the measured through-Z strength **22.3 MPa** (the crush is a
+through-thickness mode). vM is **load-controlled and identical to the old
+eSUN E=40 run**; only the sag (∝ 1/E) is ~5.4× larger, and the yield
+verdict shifts because the measured strength is 22.3 vs the old 25 estimate.
+
 | depth | P (MPa) | peak vM (MPa) | contact-wall sag (μm) | margin | verdict |
 |---|---|---|---|---|---|
 | 0 m | 0.00 | 0.00 | 0 | ∞ | trivial |
-| 10 m | 0.10 | **1.27** | **1605** (1.6 mm) | 20× | material OK, **geometry degraded** |
-| 30 m | 0.30 | **3.77** | **4816** (4.8 mm) | 6.6× | material OK, **GEOMETRICALLY CRUSHED** (half finger thickness) |
-| 100 m | 1.01 | 12.58 | 16054 (>finger thickness) | 2.0× | linear FEA past validity; gas/contact dominates |
-| 200 m | 2.01 | 25.16 | 32108 | 1.0× | **MATERIAL YIELDS** |
-| 300 m | 3.02 | 37.74 | 48162 | 0.7× | **MATERIAL YIELDS** |
+| 10 m | 0.10 | **1.26** | **8678** (8.7 mm) | 17.7× | material OK, **geometry already crushed** (sag ≈ finger thickness) |
+| 30 m | 0.30 | **3.77** | **26033** (26 mm) | 5.9× | material OK, **GEOMETRICALLY CRUSHED** (linear sag 2.6× finger thickness — far past validity) |
+| 100 m | 1.01 | 12.58 | 86778 (≫thickness) | 1.8× | linear FEA past validity; gas/contact dominates |
+| 150 m | 1.51 | ~18.9 | ~130000 | ~1.2× | approaching yield |
+| 200 m | 2.01 | 25.16 | 173556 | **0.89×** | **MATERIAL YIELDS** |
+| 300 m | 3.02 | 37.74 | 260334 | **0.59×** | **MATERIAL YIELDS** |
 
-**3D is ~10× worse than 2D plane-strain at every depth.** At 30 m the
-contact face sags 4.8 mm — half the finger Z-thickness. The blade is
+**3D is ~10× worse than 2D plane-strain at every depth.** At 30 m the linear
+solve predicts 26 mm of sag — 2.6× the finger's 10 mm Z-thickness, i.e. deep
+past the linear-elastic validity envelope. Physically the cells self-contact
+and gas backpressure intervene long before that, but the blade is
 unrecognizably distorted; the wrap geometry is wrecked.
 
 ### Why 3D is so much worse — foam collapse
@@ -220,9 +248,9 @@ The trapped-air finger blade behaves as a **closed-cell foam** in
 compression. Cell wall thickness t ≈ 1.4 mm; cell size b ≈ 6 mm. The
 effective foam modulus for bending-dominated cell collapse is:
 
-  E_foam ≈ E_TPU · (t/b)³ ≈ 40 · 0.013 = 0.5 MPa
+  E_foam ≈ E_TPU · (t/b)³ ≈ 7.4 · 0.013 ≈ 0.10 MPa
 
-Two orders of magnitude below the parent E_TPU. Under any pressure
+(through-Z E_TPU = 7.4 MPa; ~75× below the parent modulus.) Under any pressure
 differential, both the contact face and the spine face move INWARD
 together, and the slanted ribs bend like trusses with no internal
 support. This is a *global* deformation mode, not local plate-bending
@@ -237,26 +265,24 @@ the only available mode was in-plane bowing of the contact wall.
 NLAYERS=5 → 7 gives identical answers within 1% (verified). The
 linear-elastic FEA does NOT model:
 
-1. **Adiabatic gas compression in cells.** At 30 m, predicted sag is
-   4.8 mm in a ~6 mm-deep cell — 80% volume reduction would push
-   internal gas pressure to ~9 atm via PV^γ = const (γ=1.4). External
-   water pressure at 30 m is only ~4 atm. So the real cell would
-   re-expand — gas backpressure CAPS the deflection. The actual
-   trapped-air sag at 30 m is **bounded but still meaningful** —
-   probably 1–2 mm rather than 4.8 mm.
-2. **Self-contact between contact wall and spine/ribs.** At 4.8 mm sag
-   on a ~6 mm cell, the contact wall self-contacts and halts further
-   motion (force is then taken by direct compression of the rib stack).
-3. **Material nonlinearity.** 22% strain in a ~22 mm blade dimension
-   is past TPU's linear-elastic limit; real response stiffens at large
-   compressive strain.
+1. **Adiabatic gas compression in cells.** The linear solve now predicts
+   far more sag than the cell can physically give (26 mm at 30 m into a
+   ~6 mm-deep cell), so the cell fully closes; the trapped gas compresses
+   adiabatically (PV^γ, γ=1.4) and self-contact intervenes. Gas backpressure
+   + self-contact CAP the real deflection at roughly cell-closure (~several
+   mm) — but at that point the geometry is already wrecked.
+2. **Self-contact between contact wall and spine/ribs.** Once the contact
+   wall closes the ~6 mm cell it self-contacts and halts further motion
+   (force is then taken by direct compression of the rib stack).
+3. **Material nonlinearity.** The linear strains here are well past TPU's
+   linear-elastic regime; real response stiffens at large compressive strain.
 
-So the linear 3D numbers **overstate actual deflection at 30 m+ depths
-where cells nearly close**. But this works in the favor of the
-engineering verdict: even ACCOUNTING for gas backpressure, contact-face
-sag at 30 m would be **~1–2 mm — visible distortion, wrap geometry
-wrecked**. At 10 m the linear sag is 1.6 mm; gas backpressure correction
-is <5%, so 1.6 mm is essentially the real answer.
+So the linear 3D sag numbers **massively overstate actual deflection** —
+they are diagnostic of "the cell collapses", not a literal displacement.
+But this only sharpens the engineering verdict: the cells close and the
+wrap geometry is wrecked from very shallow depth. At 10 m the linear sag
+is already 8.7 mm — larger than the finger thickness — so even 10 m closes
+the cells. **There is no trapped-air depth shallow enough to be safe.**
 
 **Bottom line: a finger with cells trapping air is geometrically crushed
 at any operating depth ≥10 m. There is no depth shallow enough to
@@ -299,22 +325,23 @@ is essentially free — and it's the question the user is actually asking
 
 ### Sweep (`iter_harness.py`, `GRIPPER_E_TPU` env, REPORT_MODE = closure, R=22 mm cylinder, ν = 0.42, NLAYERS = 3)
 
-| run name | E_TPU (MPa) | scenario | peak vM (MPa) | grip @ 8 mm (N) | tip inward (mm) | arc (°) | margin vs 25 MPa† |
+| run name | E_TPU (MPa) | scenario | peak vM (MPa) | grip @ 8 mm (N) | tip inward (mm) | arc (°) | margin vs 27.3 MPa† |
 |---|---|---|---|---|---|---|---|
-| under_E40_dry | 40.0 | dry baseline | 3.30 | 9.31 | −6.13 | 13.6 | 7.6× |
-| under_E32_wet20 | 32.0 | 20% softening (typical wet) | 2.64 | 7.45 | −6.13 | 13.6 | 9.5× |
-| under_E28_wet30 | 28.0 | 30% softening | 2.31 | 6.52 | −6.13 | 13.6 | 10.8× |
-| under_E20_wet50 | 20.0 | 50% softening (warm long soak) | 1.65 | 4.66 | −6.13 | 13.6 | 15.1× |
+| under_E98_dry | 9.8 | dry baseline (measured X-Y) | 0.81 | 2.28 | −6.13 | 13.6 | 33.7× |
+| under_E78_wet20 | 7.8 | 20% softening (typical wet) | 0.64 | 1.82 | −6.13 | 13.6 | 42.4× |
+| under_E69_wet30 | 6.9 | 30% softening | 0.57 | 1.61 | −6.13 | 13.6 | 47.9× |
+| under_E49_wet50 | 4.9 | 50% softening (warm long soak) | 0.41 | 1.14 | −6.13 | 13.6 | 67.4× |
 
-> † Margin computed against the **dry-print** 25 MPa estimate
-> (`iter_harness.py` L124, `docs/MATERIALS.md`). **Wet TPU strength
-> also drops on soak** — typically less than modulus does, but by a
-> non-zero amount. The honest reading of the right column is: stress
-> drops by the full modulus ratio, strength drops more slowly, so the
-> gripper does **not become stress-limited** as the finger softens.
-> The wet-vs-dry safer-ness comparison would require a measured
-> wet-strength datum on this specific filament (eSUN eTPU-95A) which
-> the project does not have.
+> † Margin vs the **measured** Bambu TPU 95A HF in-plane strength 27.3 MPa
+> (ISO 527 printed; `iter_harness.py`, `docs/MATERIALS.md`) — replacing the
+> old 25 MPa estimate. The absolute grip/vM numbers are ~4× lower than the
+> old eSUN-guess (E 40→9.8) table because at fixed closure both scale with
+> E; this is closure-mode (absolute) reporting, not the force-targeted
+> ranking basis. **Wet TPU strength also drops on soak** — typically less
+> than modulus does — so stress drops by the full modulus ratio while
+> strength drops more slowly: the gripper does **not** become stress-limited
+> as the finger softens. A measured wet-strength datum on Bambu TPU 95A HF
+> would close the last gap; the project does not yet have one.
 
 The sweep reproduces the linear-elastic prediction (Hooke's law guarantee,
 not an emergent finding):
@@ -393,17 +420,21 @@ vs E_TPU, (c) wrap quality (contact arc, tip inward) vs E_TPU.
   does not capture this; the underwater case inherits the same gap.
   For sustained-grip applications the relevant follow-on is a
   Prony-series viscoelastic solve, not an additional pressure case.
-- **E_TPU is an engineering estimate** (40 MPa, per `iter_harness.py`
-  L115–123 and `docs/MATERIALS.md`). The wet-modulus sweep is therefore
-  itself a sensitivity study on top of an estimate. The conclusion
-  ("force scales linearly with E at fixed kinematics") is robust to
-  E_TPU because it falls out of linear elasticity, not from a specific
+- **E_TPU is now a MEASURED value** (9.8 MPa in-plane / 7.4 MPa through-Z,
+  Bambu TPU 95A HF ISO 527 printed-specimen TDS; per `iter_harness.py`
+  and `docs/MATERIALS.md`) — an upgrade over the old 40 MPa eSUN guess.
+  The caveat is now *definitional*: ISO 527 reports the initial-tangent
+  modulus, while a Fin-Ray at finite wrap strain is hyperelastic, so the
+  wet-modulus sweep remains a sensitivity study and absolute forces stay
+  order-of-magnitude. The conclusion ("force scales linearly with E at
+  fixed kinematics") falls out of linear elasticity, independent of the
   modulus value.
-- **No measured wet/dry datum on this specific filament** (eSUN
-  eTPU-95A). The 10–30% softening band is from polymer-chemistry
-  literature on ether-TPU. A soak-test on a printed finger blade would
-  pin down the actual modulus drop and shrink the uncertainty band —
-  see `BENCH_TEST.md` if extended.
+- **No measured wet/dry datum on this specific filament** (Bambu TPU 95A
+  HF). Bambu publishes a dry saturated water-absorption of 1.08 % (low),
+  but no wet-modulus number; the 10–30 % softening band is from
+  polymer-chemistry literature on ether-TPU. A soak-test on a printed
+  finger blade would pin down the actual modulus drop and shrink the
+  uncertainty band — see `BENCH_TEST.md` if extended.
 - **Plane-strain is conservative for pressure** but pessimistic for
   shear-dominated loadings. The wet-modulus sweep uses the 3D
   corotational solver, which is the right model for grip kinematics.

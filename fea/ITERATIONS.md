@@ -54,7 +54,7 @@ pictures, and notes. Harness: `fea/scripts/iter_harness.py`.
   bore-rim node rings are fixed in all 3 translations.
 - **Grasp scenario (frozen):** rigid amphora-neck cylinder R=22 mm, centre y=80 mm,
   pressed 10 mm into the contact face over 24 steps, kpen=2000.
-- **Material:** TPU ~95A, E=40 MPa, ν=0.42 (assumed; ν relaxed for linear-tet
+- **Material:** TPU ~95A, E=9.8 MPa in-plane, ν=0.42 (Bambu TPU 95A HF measured ISO 527; legacy runs in this doc used the old E=40 estimate; ν relaxed for linear-tet
   locking, per the bundle).
 - **Mesh density frozen** (gmsh 0.5–1.3 mm); only the geometry changes.
 
@@ -65,7 +65,7 @@ pictures, and notes. Harness: `fea/scripts/iter_harness.py`.
 | `top_third_force_frac` | share of contact force in the upper third | ≥ 0.20 |
 | `tip_inward_mm` | apex displacement toward the object (the wrap) | > baseline, clearly |
 | `stress_spread_frac` | fraction of elements above 0.3×peak vM (load shared) | higher = better |
-| `margin_x` | TPU strength (25 MPa) / peak vM (stay fragile-safe) | ≥ 5 |
+| `margin_x` | TPU strength (27.3 MPa) / peak vM (stay fragile-safe) | ≥ 5 |
 
 **Stop condition:** all of `engage_y_frac ≥ 0.70`, `top_third_force_frac ≥ 0.20`,
 `tip_inward_mm` clearly above baseline, `margin_x ≥ 5` — or 6 iterations, whichever

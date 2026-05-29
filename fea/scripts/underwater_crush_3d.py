@@ -36,10 +36,17 @@ REPO = os.path.dirname(os.path.dirname(HERE))
 if REPO not in sys.path:
     sys.path.insert(0, REPO)
 
-# ----- material -----
-E_TPU = 40.0
-NU = 0.45        # mid-value for the elastomer (0.42 ... 0.48 bracket)
-TPU_YIELD = 25.0
+# ----- material: Bambu TPU 95A HF, THROUGH-THICKNESS (Z / build) direction -----
+# The dominant collapse mode here is the cells crushing through the finger's 10 mm
+# thickness, which is the print build direction (Z). Bambu's ISO 527 printed-specimen
+# TDS gives the WEAK Z values: E_Z = 7.4 MPa, tensile strength_Z = 22.3 MPa -- the
+# honest, conservative basis for a through-thickness crush. (In-plane X-Y is stiffer:
+# 9.8 MPa / 27.3 MPa.) NOTE: under load control the von Mises field is E-INDEPENDENT;
+# lowering E from the old 40 -> 7.4 scales DISPLACEMENT ~5.4x (validity envelope moves
+# much shallower) but leaves the stress/yield verdict driven only by strength 25 -> 22.3.
+E_TPU = 7.4
+NU = 0.45        # mid-value for the elastomer (0.42 ... 0.48 bracket); Bambu lists none
+TPU_YIELD = 22.3
 
 # ----- geometry / mesh -----
 NLAYERS = 5      # Z layers (was 3 in iter_harness; bumped for plate-bend resolution)

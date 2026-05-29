@@ -44,7 +44,7 @@ COEFFS = dict(
     MU_FILM=0.08,     # wet smooth hydroplaning floor             [cited tire 0.05-0.15]
     MU_CAP=2.5,       # physical max effective friction           [cited clean rubber]
     MU_GOOD=0.60,     # reference "good grip" for normalising      [ESTIMATE]
-    # --- as-printed eSUN eTPU-95A is SLICK: FDM TPU contact faces come out glossy
+    # --- as-printed Bambu TPU 95A HF is SLICK: FDM TPU contact faces come out glossy
     #     with a low-friction skin (real grip << ideal/lab TPU). A flat printed
     #     land keeps only SKIN_SLICK of the ideal adhesion; edges & channel
     #     side-walls (rough layer lines, fresh-cut geometry) break that skin and
@@ -65,8 +65,8 @@ COEFFS = dict(
     C_EDGE=0.6,       # edge contribution to hysteresis per 1/mm   [PLACEHOLDER]
     # --- soft-land flattening (Tier-2 FEA calibrates C_FLAT) ---
     C_FLAT=0.8,       # phi grows with p_real/E'                   [CALIBRATE vs FEA]
-    E_TPU=40.0,       # MPa eSUN eTPU-95A estimate (finger study)  [project]
-    NU=0.42, STRENGTH=25.0,  # MPa printed strength (finger study) [project]
+    E_TPU=9.8,        # MPa Bambu TPU 95A HF, ISO 527 in-plane X-Y (measured) [project]
+    NU=0.42, STRENGTH=27.3,  # MPa Bambu TPU 95A HF in-plane tensile (ISO 527) [project]
     # --- micro-suction (speculative, dimple/sucker only) ---
     SUCT_GAIN=0.25,   # mu boost from suction (wet smooth only)    [SPECULATIVE]
     # --- score weights ---

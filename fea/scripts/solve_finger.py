@@ -27,9 +27,9 @@ contact load is applied on a patch of the contact face (the artifact push). The
 slanted ribs make the tip curl inward -> the Fin Ray wrap, emergent (no contact
 search needed -> robust). Outputs deformed configs + von Mises + force/closure.
 
-TPU ~95A assumed: E, nu below (engineering ESTIMATES, not measured on the
-print; see docs/MATERIALS.md and docs/PRINT_PROFILE_P1S_TPU.md for the
-honest provenance).
+Bambu TPU 95A HF: E below is the published ISO 527 in-plane (X-Y) printed-specimen
+modulus (9.8 MPa); nu is a literature estimate (Bambu publishes none). See
+docs/MATERIALS.md and docs/PRINT_PROFILE_P1S_TPU.md for the honest provenance.
 
 Note: the 5.4 N F_TARGET is INTENTIONALLY just below the load-control limit
 point at ~5.7 N — the geometry sits at the edge of a snap instability under
@@ -49,8 +49,8 @@ from skfem.helpers import grad, transpose, ddot, trace, eye, mul
 
 HERE = os.path.dirname(__file__)
 
-# ---- material: TPU ~95A, plane strain (ASSUMED values) ----
-E_TPU = 40.0          # MPa  (Shore 95A ~ tens of MPa; assumed)
+# ---- material: Bambu TPU 95A HF, plane strain ----
+E_TPU = 9.8           # MPa  (ISO 527 in-plane X-Y, printed specimen; Bambu TDS)
 NU_TPU = 0.45         # near-incompressible; 0.45 to limit P1 volumetric locking
 MU = E_TPU / (2.0 * (1.0 + NU_TPU))
 LAM = E_TPU * NU_TPU / ((1.0 + NU_TPU) * (1.0 - 2.0 * NU_TPU))   # plane strain

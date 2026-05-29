@@ -30,7 +30,7 @@ shaped the model:
   object is the enemy.
 - **Every object surface** — smooth, rough, ridged, slimy, soft — not one. (Same
   universality mandate the user enforced on the finger: "works on every shape/size".)
-- **eSUN eTPU-95A, as-printed, is slick.** FDM TPU comes out with a glossy
+- **Bambu TPU 95A HF, as-printed, is slick.** FDM TPU comes out with a glossy
   low-friction skin; the texture has to overcome the material's own slipperiness.
   (User-added requirement mid-campaign.)
 - Printable on a Bambu P1S, 0.4 mm hardened nozzle, 0.16 mm layer.
@@ -66,7 +66,7 @@ Mid-build the user added two requirements, both incorporated as first-class:
 - **Object surface span** — added a **ridged/corrugated** object condition (Ra 80 µm)
   alongside smooth/rough/slimy/soft/curved, so the battery spans "smooth, rough,
   ridgy" surfaces explicitly.
-- **As-printed eTPU slickness** — added a `SKIN_SLICK` factor: a flat printed land
+- **As-printed TPU slickness** — added a `SKIN_SLICK` factor: a flat printed land
   keeps only ~45% of ideal adhesion; edges and channel side-walls deglaze it back.
   This made the smooth control appropriately terrible and made texture's value partly
   about breaking the slick skin, not only drainage.

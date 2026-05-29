@@ -38,9 +38,10 @@ from skfem.helpers import grad, transpose, ddot, trace, eye, mul
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
-# material — TPU 95A, two values of nu (the iter_harness 0.42 conservative
-# choice, and 0.48 as a more realistic elastomer Poisson value).
-E_TPU = 40.0       # MPa  (estimate — see iter_harness comments)
+# material — Bambu TPU 95A HF in-plane (X-Y), ISO 527 printed specimen. nu bracket
+# 0.42..0.48 (Bambu publishes none). Flooded hydrostatic gives vM≈0 regardless of E;
+# E only sets the (tiny) bulk-contraction displacement.
+E_TPU = 9.8        # MPa  (X-Y, Bambu TDS — replaces old 40 MPa eSUN guess)
 NU_LIST = [0.42, 0.45, 0.48]
 
 # depths (m). Seawater ρ = 1025 kg/m³, g = 9.81 m/s² → P = 0.010054 MPa per m.
@@ -174,7 +175,7 @@ def main():
         "preface": ("Hydrostatic-pressure sanity check on the flooded TPU finger. "
                     "Plane-strain CONSERVATIVE UPPER BOUND for deviatoric stress "
                     "(real 3D body can also strain in Z, reducing the constraint)."),
-        "material": {"E_TPU_MPa": E_TPU, "tpu_yield_MPa_estimate": 25.0,
+        "material": {"E_TPU_MPa": E_TPU, "tpu_strength_MPa_inplane": 27.3,
                      "rho_seawater_kg_m3": 1025.0, "g_m_s2": 9.81},
         "physics_note": ("Free body: σ_ij = -P δ_ij → vM = 0. Only deviatoric "
                          "stress source is the rigid clamp at the mount bores."),

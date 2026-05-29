@@ -1,0 +1,29 @@
+[under_E98_dry] params={}
+  section: 1434 nodes / 2225 tris
+  clamp nodes=76 (2 bores)  ndof=17208 tets=20025
+  step  1/24 press= 0.42 it=2 grip=  0.00N vmmax=0.00
+  step  2/24 press= 0.83 it=9 grip=  0.10N vmmax=0.03
+  step  3/24 press= 1.25 it=9 grip=  0.23N vmmax=0.06
+  step  4/24 press= 1.67 it=9 grip=  0.35N vmmax=0.10
+  step  5/24 press= 2.08 it=10 grip=  0.48N vmmax=0.14
+  step  6/24 press= 2.50 it=10 grip=  0.61N vmmax=0.17
+  step  7/24 press= 2.92 it=10 grip=  0.73N vmmax=0.21
+  step  8/24 press= 3.33 it=9 grip=  0.86N vmmax=0.24
+  step  9/24 press= 3.75 it=9 grip=  0.99N vmmax=0.28
+  step 10/24 press= 4.17 it=9 grip=  1.11N vmmax=0.31
+  step 11/24 press= 4.58 it=9 grip=  1.24N vmmax=0.35
+  step 12/24 press= 5.00 it=9 grip=  1.37N vmmax=0.38
+  step 13/24 press= 5.42 it=9 grip=  1.49N vmmax=0.42
+  step 14/24 press= 5.83 it=9 grip=  1.62N vmmax=0.45
+  step 15/24 press= 6.25 it=9 grip=  1.75N vmmax=0.49
+  step 16/24 press= 6.67 it=9 grip=  1.88N vmmax=0.52
+  step 17/24 press= 7.08 it=9 grip=  2.01N vmmax=0.56
+  step 18/24 press= 7.50 it=9 grip=  2.15N vmmax=0.60
+  step 19/24 press= 7.92 it=9 grip=  2.28N vmmax=0.63
+  step 20/24 press= 8.33 it=9 grip=  2.42N vmmax=0.67
+  step 21/24 press= 8.75 it=9 grip=  2.55N vmmax=0.70
+  step 22/24 press= 9.17 it=9 grip=  2.69N vmmax=0.74
+  step 23/24 press= 9.58 it=9 grip=  2.82N vmmax=0.77
+  step 24/24 press=10.00 it=9 grip=  2.95N vmmax=0.81
+[under_E98_dry] metrics: {"contact_nodes": 19, "contact_arc_deg": 13.6, "pressure_cov": 0.83, "closure_at_target": 7.92, "reached_target": false, "locked": false, "stress_spread_frac": 0.146, "engage_y_frac": 0.06, "bot_third_force_frac": 0.0, "mid_third_force_frac": 1.0, "top_third_force_frac": 0.0, "tip_inward_mm": -6.13, "max_von_mises_MPa": 0.809, "margin_x": 33.74, "grip_at_press_N": 2.28, "press_mm": 7.92, "contact_y_min": 74.0, "contact_y_max": 79.4, "did_converge_all_steps": true, "n_steps_not_converged": 0, "newton_iters_max_used": 10, "newton_iters_mean": 8.83, "newton_iters_per_step": [2, 9, 9, 9, 10, 10, 10, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9], "did_converge_per_step": [true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true], "residual_final_per_step": [5.071272257325364e-12, 2.9331343402615898e-05, 0.0004031738315816841, 0.0016009779708328492, 0.00011732590678168062, 0.0001180233093773702, 0.00048204375178409177, 0.00039708345423987554, 0.00044319889982682813, 0.0002830667386169575, 0.00030140772931410516, 0.0009490536305358192, 0.0007776853321239493, 0.0007291770281993936, 0.000869953255140648, 0.0006610756605551694, 0.0008673185524966434, 0.0004787673581032315, 0.000685713182852698, 0.0008300974605269678, 0.0008265354403949634, 0.0008057189121628664, 0.0007633604246048752, 0.0007442279621591093], "newton_max_iters": 16, "newton_tol_rel": 0.002, "report_mode": "closure", "target_grip_stress_probe_N": 12.0, "press_at_report_mm": 8.0, "nu_used": 0.42, "e_tpu_used": 9.8, "nlayers_used": 3}
+[under_E98_dry] done in 302s

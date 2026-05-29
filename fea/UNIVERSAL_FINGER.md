@@ -126,7 +126,7 @@ pose, four-bar closure unchanged.
 - **0.652** — the FEA-optimised *bare* geometry (`finray2`, **no grip teeth**) — the
   search ceiling.
 - **0.584** — the **as-shipped `gripper.py` finger**: the winning geometry **plus the
-  friction grip-teeth** (which objects need so they don't slip), in **eSUN eTPU-95A**,
+  friction grip-teeth** (which objects need so they don't slip), in **Bambu TPU 95A HF**,
   full 7-object battery (`FULL_esun`). The teeth cost ~0.07 vs the bare shape — they
   add contact-pressure unevenness on round objects — but they're required for grip.
 
@@ -153,7 +153,7 @@ consistent safe ~12 N — where the **old finger's grip swung 7×** with object 
 On round objects the new finger makes more contact but the grip-teeth keep
 pressure-evenness mixed (higher cov) — round-object *even wrap* is still the physics
 ceiling (§4). All von-Mises margins stay **5.7–8.6× at the 12 N stress-probe load**
-(eSUN printed strength 25 MPa); see the callout in §2 for what this means under
+(Bambu TPU 95A HF in-plane strength 27.3 MPa, ISO 527); see the callout in §2 for what this means under
 the drivetrain's actual operating force.
 
 > ⚠️ **Locking correction (`fea/FEA.md` P2-vs-P1 section).** A locking-stable
