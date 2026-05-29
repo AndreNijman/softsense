@@ -132,7 +132,7 @@ exits below the link eye.
   tensile strength 27.3 MPa in-plane (X-Y) / 22.3 MPa through-Z (ISO 527 printed,
   Bambu TDS), elongation >650 % (X-Y) / >480 % (Z). Melting temp 183 °C. "HF" =
   high-flow: ~3× the throughput of standard TPU 95A (max volumetric speed ~12 mm³/s,
-  prints up to ~200 mm/s, AMS-compatible). Print profile + FEA validation:
+  prints up to ~200 mm/s; external-spool only — Bambu rates 95A HF too soft for the AMS). Print profile + FEA validation:
   `PRINT_PROFILE_P1S_TPU.md`. 95A shore balances conformance with grip force; softer
   (85A) for delicate objects, stiffer (98A) for more grip force.
 

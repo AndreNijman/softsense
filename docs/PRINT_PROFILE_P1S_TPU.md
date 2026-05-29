@@ -20,9 +20,9 @@ steel nozzle**, slicer **Bambu Studio**.
    Configs…**): the **filament** profile `Bambu_TPU-95A-HF_@P1S_0.4.json` and the
    **process** profile `finger_TPU_0.16mm_@P1S_0.4.json`. (Or start from Bambu Studio's
    own system **Bambu TPU 95A HF** preset and apply the process profile.)
-2. **Dry first: 70 °C for 8 h** (Bambu spec). TPU 95A HF is AMS-compatible, but for the
-   critical cyclically-flexed finger an **external spool + desiccant box** removes any
-   AMS PTFE-bend stringing risk.
+2. **Dry first: 70 °C for 8 h** (Bambu spec). Run it from an **external spool, NOT the
+   AMS** — Bambu's own system profile states 95A HF is *"too soft and not compatible
+   with the AMS."* Keep it in a dry box while printing.
 3. **Use the Textured PEI plate, NO glue** (see §1 — glue *over*-adheres TPU on
    textured PEI; glue is only for smooth plates). Select the imported filament +
    process, slice `print_plates/plate_tpu_1.stl` (both fingers), print.
@@ -37,10 +37,10 @@ slightly up on the measured 27.3 MPa strength), and the design ranking is unchan
 
 | Item | Setting | Why |
 |---|---|---|
-| Spool path | **External spool (recommended) or AMS** | TPU 95A HF is rated AMS-compatible (unlike soft standard TPU). For this critical flexing part an external spool fed straight to the toolhead removes the AMS long-PTFE bend as a stringing/consistency variable. Either works on the P1S. |
+| Spool path | **External spool — NOT the AMS** | Bambu's own `Bambu TPU 95A HF @base` profile states: *"This filament is too soft and not compatible with the AMS."* Feed it straight to the toolhead from an external spool; the soft 95A buckles in the AMS feed + long PTFE. |
 | Drying | **70 °C ≥ 8 h** (Bambu spec; or X1-bed 80–90 °C 12 h), keep in a dry box while printing; storage <20 % RH | TPU 95A HF is "highly sensitive to humidity"; wet TPU = stringing, bubbles, weak layers. |
 | Nozzle | **0.4 mm hardened steel** (you have this) | Fine for TPU. Use a clean/new or cold-pulled nozzle — TPU drags old residue. Do **not** use a 0.2 mm nozzle for TPU. |
-| Extruder | P1S stock direct extruder | HF flows easily; the P1S direct extruder handles it. Feed straight (external spool) or via AMS. |
+| Extruder | P1S stock direct extruder | HF flows easily; the P1S direct extruder handles it, fed straight from the external spool. |
 | Plate | **Textured PEI plate, NO glue** (preferred) | Bambu Wiki TPU guidance: the textured PEI keys TPU mechanically — "excellent adhesion without adhesives," and *"applying glue may cause excessive adhesion."* Keep the bed at **30–35 °C** (low) so the large flat 28×96 finger footprint stays removable; release by cooling, lifting a corner, squirting **IPA** into the gap, then peeling slowly (don't pry a hot part — chips the PEI). **Alternative:** a smooth plate (Cool/Engineering/High-Temp) needs **glue** there as a release barrier — the datasheet's blanket "Bed prep: Glue" line is for those smooth plates, not the textured one. The Engineering plate gives a glossy bottom you don't need on a finger base, so textured-PEI/no-glue is the pick. |
 | Orientation | **Flat on the 28×96 face** (as in `print_plates/`) | Fin Ray cells lie in the build plane → self-supporting, no supports; in-plane bending (the grip mechanism) runs in the **strong X-Y direction** (E 9.8 MPa / 27.3 MPa vs the weaker through-Z 7.4 / 22.3). |
 
@@ -48,54 +48,63 @@ slightly up on the measured 27.3 MPa strength), and the design ranking is unchan
 
 ## 2. The two importable profiles
 
-| File | Type | Inherits (system base) | Shows up for |
+| File | Type | Inherits (real system preset) | Shows up for |
 |---|---|---|---|
-| `profiles/Bambu_TPU-95A-HF_@P1S_0.4.json` | filament | `Generic TPU @base` | **Bambu Lab P1S / P1P / X1C 0.4 nozzle** |
+| `profiles/Bambu_TPU-95A-HF_@P1S_0.4.json` | filament | **`Bambu TPU 95A HF @BBL P1S`** | **Bambu Lab P1S 0.4 nozzle** |
 | `profiles/finger_TPU_0.16mm_@P1S_0.4.json` | process | `0.20mm Standard @BBL X1C` | Bambu Lab P1S / P1P / X1C, 0.4 nozzle |
 
 Both are `"from": "User"`, `instantiation: "true"`, and inherit a real Bambu system
-profile so any value not overridden resolves cleanly. (The P1S has no dedicated
-`@BBL P1S` process; it uses the X1C process via `upward_compatible_machine` — so the
-process profile inherits the X1C base, which is correct for the P1S.) If your Bambu
-Studio ships a system **Bambu TPU 95A HF** filament preset, you can re-base the
-filament profile on it (change `"inherits"`) for vendor-tuned pressure-advance, etc.
+preset so every value not overridden resolves to Bambu's tested defaults.
+
+- **Filament** inherits Bambu's own **`Bambu TPU 95A HF @BBL P1S`** (verified against
+  the BambuStudio profile repo). You own the filament, so your Studio already ships
+  that preset — the import resolves cleanly and you get Bambu's tested nozzle/flow/
+  retraction and the *Direct Drive High Flow* template for free. This preset overrides
+  **only** the gripper-specific notes + start g-code (external-spool / textured-PEI /
+  drying reminders) and locks `compatible_printers` to P1S 0.4. **Nothing material is
+  re-typed**, so there's nothing to drift from Bambu's calibration.
+- **Process** inherits `0.20mm Standard @BBL X1C` (the P1S has no dedicated `@BBL P1S`
+  process; it uses the X1C process via `upward_compatible_machine`, confirmed present
+  in your Studio's process dropdown).
 
 **Import:** Bambu Studio → File → Import → *Import Configs…* → pick both `.json`. They
 appear under **User Presets** in the filament and process dropdowns when a P1S 0.4 is
-selected. If a profile is rejected on an older Studio build, bump `"version"` to match
-your installed profile version (top of your `BBL.json`).
+selected. If the filament import ever warns that the parent preset is missing, your
+Studio's TPU-95A-HF system preset name differs — re-point `"inherits"` to the exact
+name shown in your filament dropdown (or just duplicate Bambu's preset in Studio and
+paste the two `filament_notes`/start-g-code reminders in).
 
 ---
 
-## 3. Filament settings — every value + why (`Bambu TPU 95A HF @P1S 0.4`)
+## 3. Filament settings — what you inherit + what we override
 
-Bambu's TDS recommends nozzle 220–240 °C, bed 30–35 °C (glue prep — but see §1: that
-glue line is for *smooth* plates; on the recommended textured PEI use NO glue), drying 70 °C 8 h,
-chamber 25–45 °C, cooling fan on, printing speed <200 mm/s, retraction 0.8–1.4 mm @
-20–40 mm/s. The profile sets:
+This preset **inherits `Bambu TPU 95A HF @BBL P1S`** and deliberately re-types
+**nothing** mechanical, so the finger prints on Bambu's own tested values (verified
+against the BambuStudio profile repo). The inherited values are:
 
-| Setting | Value | Rationale |
+| Setting | Inherited value (Bambu system) | Note |
 |---|---|---|
-| `filament_type` | TPU | — |
-| `filament_vendor` | Bambu Lab | — |
-| `filament_density` | **1.22 g/cm³** | Bambu TDS (ISO 1183; used for weight/cost only). |
-| `filament_flow_ratio` | **0.95** | Soft 95A over-extrudes; slight under-flow keeps the 1.2 mm contact wall dimensionally true. |
-| `filament_max_volumetric_speed` | **12 mm³/s** | The HF headline — ~4× the old eSUN cap (3.0). The finger's slowest member draws ~1.3 mm³/s, so this is a generous ceiling, not a bottleneck; it's what lets the process speeds in §4 rise. |
-| `nozzle_temperature` | **230 °C** | Bambu's specimen-test temperature; mid of the 220–240 band; balances flow against the layer bonding a cyclically-flexed part needs. |
-| `nozzle_temperature_initial_layer` | **235 °C** | Hotter first layer = better bed bond on flexible filament. |
-| `nozzle_temperature_range_low/high` | 220 / 240 | Bambu bounds. |
-| `hot_plate_temp` / `textured_plate_temp` / `cool_plate_temp` / `eng_plate_temp` | **35 °C** (initial 35) | Bambu's 30–35 °C band. TPU 95A HF wants a cooler plate than the old eSUN 45 °C; on the recommended **textured PEI** the texture does the adhesion (NO glue — see §1), and the low temp keeps the large flat footprint removable. |
-| `filament_retraction_length` | **0.8 mm** | TPU needs minimal retraction (Bambu 0.8–1.4). 0.8 mm is safe for the P1S direct path; more pulls soft filament into the heatbreak → jams. |
-| `filament_retraction_speed` | **30 mm/s** | Mid of Bambu's 20–40; slow retract for soft filament. |
-| `filament_z_hop` | **0.4 mm** (Auto Lift) | Clears the 0.6 mm grip teeth on travel without stringing across the contact face. |
-| `fan_min_speed` / `fan_max_speed` | **50 / 80 %** | **Conservative deviation from "fan on"** — NOT claimed optimal. The finger flexes in service; lower fan protects the interlayer (Z) bonds that shear during flex (the weak 7.4 MPa / 22.3 MPa direction), at the predicted-safe (~8× margin) loads. **Untested under cycling.** If you fatigue-test and it holds, full cooling may give cleaner ribs/teeth — treat 100 % as the validated-once-tested setting. |
-| `overhang_fan_speed` | 100 % | Full cooling on any short overhang (rib undersides). HF overhang limit ~55°. |
-| `additional_cooling_fan_speed` | 70 % | Aux part fan. |
-| `close_fan_the_first_x_layers` | **3** | Fans off for the first 3 layers → strong bed adhesion (critical for the narrow TPU footprint). |
-| `fan_cooling_layer_time` / `slow_down_layer_time` | 60 / 8 s | Slow small layers so they cool/bond. |
-| `temperature_vitrification` | **30 °C** | Filament soften-point for the slow-down logic (Generic-TPU system value — *not* the bed temp). |
-| `filament_start_gcode` | reminder note | "Textured PEI, NO glue; bed 30–35 °C; dry 70 °C 8 h; external spool safest for the flexing part." |
-| `compatible_printers` | **P1S / P1P / X1C 0.4** | The profile assumes the hardened nozzle; keep it off machines that may have a brass nozzle (TPU wears brass). |
+| `nozzle_temperature` / initial layer | **230 °C / 230 °C** | Bambu's tested temp for 95A HF (same for both — no hotter first layer). |
+| `filament_flow_ratio` | **1.0** | Bambu's calibrated flow for HF on the P1S. (Don't drop it to "under-extrude for thin walls" without a flow-calibration print — Bambu tuned 1.0.) |
+| `filament_max_volumetric_speed` | **12 mm³/s** | The HF headline — ~4× the old eSUN cap (3.0). The finger's slowest member draws ~1.3 mm³/s, so it's a generous ceiling; it's what lets the §4 process speeds rise. |
+| `filament_retraction_length` / speed / deretraction | **0.8 mm / 10 mm/s / 10 mm/s** | Bambu's values; minimal, slow retract so soft filament isn't pulled into the heatbreak. |
+| `filament_density` | **1.22 g/cm³** | ISO 1183 (weight/cost only). |
+| HF flow template, pressure advance, fan curve | inherited | comes with the `Direct Drive High Flow` template the system preset includes. |
+
+We override **only** the non-mechanical reminders, so there's nothing to drift from
+Bambu's calibration:
+
+| Override | Value | Why |
+|---|---|---|
+| `name` | `Bambu TPU 95A HF @P1S 0.4 (gripper fingers)` | identifies the gripper preset. |
+| `compatible_printers` | **P1S 0.4 only** | locks it to the hardened-nozzle P1S (TPU wears brass). |
+| `filament_start_gcode` / `filament_notes` | external-spool-not-AMS · textured-PEI-no-glue · dry 70 °C 8 h · 0.4 hardened nozzle | carried with the profile so the operator can't miss them. |
+
+> **Cooling note (not overridden — read before a fatigue-critical build):** the finger
+> flexes in service, and high part-cooling can weaken the interlayer (Z) bonds (the
+> weak 7.4 MPa / 22.3 MPa direction). This preset leaves fan at Bambu's TPU default;
+> if you want to protect Z-bonds you can lower max fan to ~50–80 % — **untested under
+> cycling**, so treat Bambu's default as the validated setting unless you fatigue-test.
 
 ---
 

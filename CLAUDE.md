@@ -57,7 +57,8 @@
   optional. BOM-delta proposal at §8.
 - `docs/PRINT_PROFILE_P1S_TPU.md` + `profiles/` — print the fingers in **Bambu TPU 95A HF on a
   Bambu P1S, 0.4 mm hardened nozzle** (importable Bambu Studio filament+process). HF = high-flow
-  (~3× throughput, AMS-compatible); Bambu publishes measured ISO 527 data — see below.
+  (~3× throughput; external-spool only — Bambu rates 95A HF too soft for the AMS);
+  Bambu publishes measured ISO 527 data — see below.
 - `regen.sh` — rebuild all derived artifacts (poses, parts, plates, heroes, GIF).
 
 ## Conventions
