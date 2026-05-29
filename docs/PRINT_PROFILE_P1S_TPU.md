@@ -23,9 +23,9 @@ steel nozzle**, slicer **Bambu Studio**.
 2. **Dry first: 70 °C for 8 h** (Bambu spec). TPU 95A HF is AMS-compatible, but for the
    critical cyclically-flexed finger an **external spool + desiccant box** removes any
    AMS PTFE-bend stringing risk.
-3. **Apply glue stick to the plate** (Bambu's recommended prep for this filament),
-   select the imported filament + process, slice `print_plates/plate_tpu_1.stl` (both
-   fingers), print.
+3. **Use the Textured PEI plate, NO glue** (see §1 — glue *over*-adheres TPU on
+   textured PEI; glue is only for smooth plates). Select the imported filament +
+   process, slice `print_plates/plate_tpu_1.stl` (both fingers), print.
 
 The FEA (`fea/UNIVERSAL_FINGER.md`, `fea/SCALABILITY.md`) is **confirmed valid for
 Bambu TPU 95A HF**: see §5 — the force-targeted safety margins stay **~8×** (and edge
@@ -41,7 +41,7 @@ slightly up on the measured 27.3 MPa strength), and the design ranking is unchan
 | Drying | **70 °C ≥ 8 h** (Bambu spec; or X1-bed 80–90 °C 12 h), keep in a dry box while printing; storage <20 % RH | TPU 95A HF is "highly sensitive to humidity"; wet TPU = stringing, bubbles, weak layers. |
 | Nozzle | **0.4 mm hardened steel** (you have this) | Fine for TPU. Use a clean/new or cold-pulled nozzle — TPU drags old residue. Do **not** use a 0.2 mm nozzle for TPU. |
 | Extruder | P1S stock direct extruder | HF flows easily; the P1S direct extruder handles it. Feed straight (external spool) or via AMS. |
-| Plate | **Textured PEI or Cool/Eng plate, GLUE STICK** | Bambu's recommended prep for TPU 95A HF is a glue layer on the plate — it grips during the print and releases the flexible part cleanly afterward. |
+| Plate | **Textured PEI plate, NO glue** (preferred) | Bambu Wiki TPU guidance: the textured PEI keys TPU mechanically — "excellent adhesion without adhesives," and *"applying glue may cause excessive adhesion."* Keep the bed at **30–35 °C** (low) so the large flat 28×96 finger footprint stays removable; release by cooling, lifting a corner, squirting **IPA** into the gap, then peeling slowly (don't pry a hot part — chips the PEI). **Alternative:** a smooth plate (Cool/Engineering/High-Temp) needs **glue** there as a release barrier — the datasheet's blanket "Bed prep: Glue" line is for those smooth plates, not the textured one. The Engineering plate gives a glossy bottom you don't need on a finger base, so textured-PEI/no-glue is the pick. |
 | Orientation | **Flat on the 28×96 face** (as in `print_plates/`) | Fin Ray cells lie in the build plane → self-supporting, no supports; in-plane bending (the grip mechanism) runs in the **strong X-Y direction** (E 9.8 MPa / 27.3 MPa vs the weaker through-Z 7.4 / 22.3). |
 
 ---
@@ -69,7 +69,8 @@ your installed profile version (top of your `BBL.json`).
 
 ## 3. Filament settings — every value + why (`Bambu TPU 95A HF @P1S 0.4`)
 
-Bambu's TDS recommends nozzle 220–240 °C, bed 30–35 °C with glue, drying 70 °C 8 h,
+Bambu's TDS recommends nozzle 220–240 °C, bed 30–35 °C (glue prep — but see §1: that
+glue line is for *smooth* plates; on the recommended textured PEI use NO glue), drying 70 °C 8 h,
 chamber 25–45 °C, cooling fan on, printing speed <200 mm/s, retraction 0.8–1.4 mm @
 20–40 mm/s. The profile sets:
 
@@ -83,7 +84,7 @@ chamber 25–45 °C, cooling fan on, printing speed <200 mm/s, retraction 0.8–
 | `nozzle_temperature` | **230 °C** | Bambu's specimen-test temperature; mid of the 220–240 band; balances flow against the layer bonding a cyclically-flexed part needs. |
 | `nozzle_temperature_initial_layer` | **235 °C** | Hotter first layer = better bed bond on flexible filament. |
 | `nozzle_temperature_range_low/high` | 220 / 240 | Bambu bounds. |
-| `hot_plate_temp` / `textured_plate_temp` / `cool_plate_temp` / `eng_plate_temp` | **35 °C** (initial 35) | Bambu's 30–35 °C band **with glue**. TPU 95A HF wants a cooler plate than the old eSUN 45 °C; the glue does the adhesion. |
+| `hot_plate_temp` / `textured_plate_temp` / `cool_plate_temp` / `eng_plate_temp` | **35 °C** (initial 35) | Bambu's 30–35 °C band. TPU 95A HF wants a cooler plate than the old eSUN 45 °C; on the recommended **textured PEI** the texture does the adhesion (NO glue — see §1), and the low temp keeps the large flat footprint removable. |
 | `filament_retraction_length` | **0.8 mm** | TPU needs minimal retraction (Bambu 0.8–1.4). 0.8 mm is safe for the P1S direct path; more pulls soft filament into the heatbreak → jams. |
 | `filament_retraction_speed` | **30 mm/s** | Mid of Bambu's 20–40; slow retract for soft filament. |
 | `filament_z_hop` | **0.4 mm** (Auto Lift) | Clears the 0.6 mm grip teeth on travel without stringing across the contact face. |
@@ -93,7 +94,7 @@ chamber 25–45 °C, cooling fan on, printing speed <200 mm/s, retraction 0.8–
 | `close_fan_the_first_x_layers` | **3** | Fans off for the first 3 layers → strong bed adhesion (critical for the narrow TPU footprint). |
 | `fan_cooling_layer_time` / `slow_down_layer_time` | 60 / 8 s | Slow small layers so they cool/bond. |
 | `temperature_vitrification` | **30 °C** | Filament soften-point for the slow-down logic (Generic-TPU system value — *not* the bed temp). |
-| `filament_start_gcode` | reminder note | "Apply glue; dry 70 °C 8 h; external spool safest for the flexing part." |
+| `filament_start_gcode` | reminder note | "Textured PEI, NO glue; bed 30–35 °C; dry 70 °C 8 h; external spool safest for the flexing part." |
 | `compatible_printers` | **P1S / P1P / X1C 0.4** | The profile assumes the hardened nozzle; keep it off machines that may have a brass nozzle (TPU wears brass). |
 
 ---
@@ -208,7 +209,8 @@ nozzle:
 
 - **Bambu TPU 95A HF Technical Data Sheet V1.0** — Bambu Lab (ISO 527 Young's modulus
   9.8/7.4 MPa, tensile 27.3/22.3 MPa, elongation >650 %/>480 %, density 1.22 g/cm³,
-  water absorption 1.08 %, melting 183 °C; nozzle 220–240 °C, bed 30–35 °C with glue,
+  water absorption 1.08 %, melting 183 °C; nozzle 220–240 °C, bed 30–35 °C (glue for
+  smooth plates; textured PEI no-glue per the Bambu Wiki TPU guide),
   dry 70 °C 8 h, max vol speed ~12 mm³/s, <200 mm/s, fan on, retraction 0.8–1.4 mm).
 - Bambu Studio profile schema — `github.com/bambulab/BambuStudio`
   `resources/profiles/BBL/{filament,process,machine}` (Generic TPU + 0.20mm Standard
