@@ -54,8 +54,11 @@ import numpy as np
 import trimesh
 
 ROOT = Path(__file__).resolve().parent.parent   # repo root (script lives in scripts/)
-PARTS_DIR = ROOT / "parts"
-OUT_DIR = ROOT / "print_plates"
+# Dir overrides (GRIPPER_PARTS_DIR / GRIPPER_PLATES_DIR) so a scaled variant builds into
+# its own tree (e.g. variants/scale_2.0x/{parts,plates}) and the tracked print_plates/
+# is never touched (it is wiped on each run -- redirecting OUT_DIR avoids that hazard).
+PARTS_DIR = Path(os.environ["GRIPPER_PARTS_DIR"]) if os.environ.get("GRIPPER_PARTS_DIR") else ROOT / "parts"
+OUT_DIR = Path(os.environ["GRIPPER_PLATES_DIR"]) if os.environ.get("GRIPPER_PLATES_DIR") else ROOT / "print_plates"
 ORIENTED_DIR = OUT_DIR / "oriented"
 SCRIPTS_DIR = ROOT / "scripts"
 

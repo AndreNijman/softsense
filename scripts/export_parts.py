@@ -87,7 +87,9 @@ import gripper  # noqa: E402  -- imported after GRIPPER_OPEN is set
 # --------------------------------------------------------------------------
 # Config
 # --------------------------------------------------------------------------
-OUT_DIR = REPO_ROOT / "parts"
+# Output dir override (GRIPPER_PARTS_DIR) so a scaled variant (GRIPPER_SCALE) can be
+# exported into its own tree, e.g. variants/scale_2.0x/parts, without touching the 1x.
+OUT_DIR = Path(os.environ["GRIPPER_PARTS_DIR"]) if os.environ.get("GRIPPER_PARTS_DIR") else REPO_ROOT / "parts"
 
 # STL mesh quality: 0.05 mm linear deviation is the FDM sweet spot -- smooth
 # enough for the gear teeth / Fin Ray ribs / snap barbs without bloating the mesh.
