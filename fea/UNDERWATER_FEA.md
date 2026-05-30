@@ -441,3 +441,93 @@ vs E_TPU, (c) wrap quality (contact arc, tip inward) vs E_TPU.
 - **Sustained immersion creep** (days–weeks at constant load + soaked)
   is bounded by `UNDERWATER.md §2` (creep section). Not a pressure
   effect; covered by the snap-fit constraints, not this FEA.
+
+---
+
+## 7. Self-similar scale (1.5× / 2.0×) — invariance confirmed
+
+`gripper.py` now carries a global self-similar scale (`GRIPPER_SCALE`,
+default 1.0) that multiplies **every** linear dimension — walls included —
+so the wall-thickness / radius ratio is held constant (the `SCALABILITY.md`
+fix). The expectation here is not a new finding but a textbook similitude
+result, stated **before** running and then verified:
+
+> Under uniform geometric scaling ×k with **pressure (traction)** boundary
+> conditions and linear elasticity, element stiffness ∝ E·L scales as k and
+> the pressure load ∝ P·L² scales as k², so displacement scales as **k** while
+> strain (= B·u) — and therefore the **von-Mises field and the material-yield
+> depth — are SCALE-INVARIANT**. Flooded stays vM ≈ 0 at every scale.
+
+Both underwater scripts were re-run at `GRIPPER_SCALE` = 1.0 / 1.5 / 2.0
+(local, screen/coarse) via `fea/scripts/underwater_scale_driver.py`, a thin
+driver that imports the original scripts unmodified and only (a) rebinds the
+crush extrusion Z-span to the *scaled* finger thickness `Z_FINGER0 ..
+Z_FINGER0+T_FINGER` (the crush script hardcodes the 1× 13→23 mm) and (b)
+scales the gmsh element-size targets ×k so the mesh is *relatively* the same.
+The 1.0 run reproduces the published §2/§3 numbers exactly, which gates the
+1.5/2.0 results. Result JSONs in `variants/scale_{1.0,1.5,2.0}x/fea/`.
+
+### 7.1 Flooded probe (`underwater_pressure_probe.py`) — exact invariance
+
+The 2D flooded probe scales the **baked** section mesh + clamp landmarks ×k,
+so the discretization (topology, `n_clamp` = 33) is byte-identical at every
+scale. This is the clean check, and it lands on the analytic answer to 5
+decimals (ν = 0.45):
+
+| depth | peak vM (MPa), all k | disp 1.0 (μm) | 1.5/1.0 | 2.0/1.0 |
+|---|---|---|---|---|
+| 100 m | 0.10311 | 1320.1 | **1.5000** | **2.0000** |
+| 300 m | 0.30933 | 3960.4 | **1.5000** | **2.0000** |
+| 600 m | 0.61865 | 7920.8 | **1.5000** | **2.0000** |
+
+peak vM identical to all printed digits at k = 1.0/1.5/2.0; displacement
+scales exactly ×k. This is the pressure-only clamp bound ~(1−2ν)·P, which is
+scale-free by inspection. Flooded vM ≈ 0 at every scale, as predicted.
+
+### 7.2 Trapped-air crush (`underwater_crush_3d.py`) — invariance confirmed
+
+| depth | vM 1.0 | vM 1.5 | vM 2.0 | yield depth |
+|---|---|---|---|---|
+| 30 m | 3.774 MPa | 3.869 | 4.019 | — |
+| 100 m | 12.581 MPa | 12.896 | 13.397 | — |
+| (slope / yield) | 0.1258 MPa/m → **177.3 m** | 0.1290 → 172.9 m | 0.1340 → 166.5 m | — |
+
+Peak displacement scales ≈ ×k (contact-wall sag at 100 m: 86.8 mm → 134.2 mm
+≈ ×1.5 → 191.2 mm ≈ ×2.0). The vM field is **modulus- and load-controlled**,
+so as predicted it does **not** scale with size: the headline crush verdict
+(geometrically crushed from ≥10 m if cells trap air; material yields beyond
+~177 m) is unchanged at 1.5× and 2.0×. Pre-dive cell flooding remains the
+load-critical procedure at every scale.
+
+**On the small residual (do not over-read it).** The re-meshed crush shows a
+*monotonic* creep — peak vM +2.5 % at 1.5× and +6.5 % at 2.0×, yield depth
+177 → 173 → 167 m — and the gmsh node count climbs (1434 → 1503 → 1553). That
+is **not** physics: it is non-self-similar discretization. Two contributors:
+(i) gmsh's mesh is not exactly self-similar even at scaled element targets, and
+(ii) `gripper.py` deliberately **holds** the finish features (fillets,
+chamfers, `FR_GRIP_*` micro-texture, `DFM_EDGE`) at absolute size, so on a 2×
+part they are *relatively* sharper and gmsh refines there. A self-similar
+**control** — scaling the 1× tet coordinates directly (identical tets, identical
+clamp DOFs, no re-mesh; `variants/scale_*x/fea/underwater_crush_selfsimilar_control.json`)
+— removes both and recovers **exact** invariance:
+
+| depth | vM (control), all k | disp 1.0 | disp 1.5 | disp 2.0 |
+|---|---|---|---|---|
+| 10 m | 1.25807 MPa | 9492.2 μm | 14238.3 (×1.5) | 18984.4 (×2.0) |
+| 30 m | 3.77422 MPa | 28476.7 | 42715.0 (×1.5) | 56953.3 (×2.0) |
+| 100 m | 12.58074 MPa | 94922.2 | 142383.4 (×1.5) | 189844.5 (×2.0) |
+
+vM identical to 5 decimals, displacement exactly ×k, and the peak-vM tet sits
+in the contact-wall **field** (~0.23·blade from base) — not at the clamp — at
+every scale. So the re-meshed ±few-% is a meshing artifact of the as-designed
+held-feature part, not a real strength change with size. The land FEA still
+bounds the wet case at every scale.
+
+### 7.3 Fidelity note
+
+These runs are **local, screen/coarse** (NLAYERS = 5, gmsh 0.5–1.3 mm ×k;
+MSI was down). A high-fidelity MSI re-run (finer mesh, NLAYERS ≥ 8) is
+warranted only if a certified absolute crush-depth number is needed — but it
+would not change the scale-invariance conclusion, which is analytic. The
+honest absolute crush figures already carry the §3 linear-validity caveat
+(sag ≫ wall thickness past ~10 m); scaling does not relax that.

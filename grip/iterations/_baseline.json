@@ -15,7 +15,7 @@
         "land": 1.2,
         "depth": 0.6
       },
-      "wet_hold": 0.6142
+      "wet_hold": 0.6167
     },
     {
       "name": "tread",
@@ -25,7 +25,7 @@
         "land": 1.2,
         "depth": 1.0
       },
-      "wet_hold": 0.7087
+      "wet_hold": 0.7127
     },
     {
       "name": "treefrog",
@@ -35,7 +35,7 @@
         "channel": 0.5,
         "depth": 0.4
       },
-      "wet_hold": 1.0895
+      "wet_hold": 1.0927
     },
     {
       "name": "sucker",
@@ -46,7 +46,7 @@
         "depth": 0.6,
         "cavity": 0.4
       },
-      "wet_hold": 1.1068
+      "wet_hold": 1.11
     }
   ],
   "checks": [

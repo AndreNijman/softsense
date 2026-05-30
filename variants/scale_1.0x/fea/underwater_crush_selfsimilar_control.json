@@ -1,0 +1,34 @@
+{
+  "description": "Self-similar CONTROL for the 3D trapped-air crush: the 1x tet mesh coordinates are scaled x k directly (same tets, same clamp DOF indices, no gmsh re-mesh), so the discretization is EXACTLY self-similar. This isolates the similitude prediction from gmsh's non-self-similar re-meshing. Peak-vM tet is in the contact-wall field (~0.23*blade from base), NOT at the clamp, at every scale.",
+  "material": {
+    "E_TPU": 7.4,
+    "nu": 0.45,
+    "yield": 22.3
+  },
+  "vM_peak_MPa": {
+    "10m": 1.25807,
+    "30m": 3.77422,
+    "100m": 12.58074
+  },
+  "note_vM": "EXACTLY scale-invariant to 5 decimals across k=1.0/1.5/2.0.",
+  "disp_peak_um": {
+    "1.0": {
+      "10m": 9492.2,
+      "30m": 28476.7,
+      "100m": 94922.2
+    },
+    "1.5": {
+      "10m": 14238.3,
+      "30m": 42715.0,
+      "100m": 142383.4
+    },
+    "2.0": {
+      "10m": 18984.4,
+      "30m": 56953.3,
+      "100m": 189844.5
+    }
+  },
+  "note_disp": "Scales EXACTLY x k (x1.5 and x2.0 to machine precision).",
+  "yield_depth_m": 177.3,
+  "note_yield": "yield depth = 22.3 / 0.12581 = 177.3 m at every scale (vM slope scale-invariant)."
+}

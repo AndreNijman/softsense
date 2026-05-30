@@ -1,0 +1,52 @@
+{
+  "sigma_allow": 30.0,
+  "i_g": 2.6666666666666665,
+  "geometry": {
+    "PINION_T": 16.0,
+    "CROWN_TOOTH_H": 6.0,
+    "T_CRANK": 10.0
+  },
+  "gears": {
+    "pinion": {
+      "s_root": 1.776,
+      "h": 3.2,
+      "b_eff": 12.0,
+      "sigma_ref_at_10N": 5.364,
+      "F_tooth_allow_N": 55.9,
+      "T_safe_input_Nm": 0.336,
+      "lever_mm": 6.0
+    },
+    "crown": {
+      "s_root": 2.094,
+      "h": 5.6,
+      "b_eff": 12.0,
+      "sigma_ref_at_10N": 6.7147,
+      "F_tooth_allow_N": 44.7,
+      "T_safe_input_Nm": 0.268,
+      "lever_mm": 6.0
+    },
+    "sector": {
+      "s_root": 4.877,
+      "h": 6.0,
+      "b_eff": 10.0,
+      "sigma_ref_at_10N": 1.6072,
+      "F_tooth_allow_N": 186.7,
+      "T_safe_input_Nm": 1.68,
+      "lever_mm": 9.0
+    }
+  },
+  "T_safe_input_Nm": 0.268,
+  "binding_gear": "crown",
+  "proposed_resize": {
+    "CROWN_RC": 11.0,
+    "CROWN_TEETH": 12,
+    "PINION_TEETH": 6,
+    "module": 1.833,
+    "PINION_RP": 5.5,
+    "i_g": 2.0,
+    "PINION_T": 8.0,
+    "T_safe_input_Nm_conservative": 0.401,
+    "T_safe_input_Nm_realistic_2x": 0.802,
+    "note": "proposed/not-implemented; tip-load+sharp-shoulder+30MPa are ~2-3x conservative, so realistic T_safe ~2x; needs CAD clearance validation"
+  }
+}

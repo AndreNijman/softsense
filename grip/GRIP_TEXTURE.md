@@ -204,7 +204,77 @@ safe closed-pose gap and a low post aspect at no grip cost.
 near-smooth face scores ~0.25. The shipped crosshatch scores **0.746** (conservative
 ≥0.5 mm channels; the at-floor champion reaches 0.808).
 
-## 8. The result, in pictures
+## 8. Behaviour under `GRIPPER_SCALE` (self-similar 1.0 / 1.5 / 2.0×)
+
+The grip micro-texture now scales with the whole gripper: every `FR_GRIP_*` in
+`gripper.py` carries `* SCALE`, so the crosshatch channel goes **0.54 → 0.81 →
+1.08 mm** at 1.0 / 1.5 / 2.0×, with land and depth scaling in lockstep (pitch
+1.8 → 2.7 → 3.6 mm, land 1.26 → 1.89 → 2.52 mm, depth 0.6 → 0.9 → 1.2 mm). The
+grip model is geometry-only and **does not import `gripper.py` or read
+`GRIPPER_SCALE`** — the scores below were obtained by feeding the *scaled*
+crosshatch geometry into `grip_model.py` by hand, which is the correct framing:
+objects in the sea do not scale, only the texture does.
+
+The result is **not** flat self-similar invariance — the honest finding splits in
+two (rescored shipped crosshatch, conservative basis):
+
+> † The 1.0× full-surrogate score is **0.750** on the *current* coefficient basis
+> (Bambu TPU 95A HF, in-plane E = 9.8 MPa), vs the **0.746** quoted for the same
+> shipped geometry in §3/§7. The 0.004 gap is the eSUN E ≈ 40 MPa → Bambu E = 9.8 MPa
+> modulus switch shifting `phi_eff` through `Eprime` (the §3/§7 numbers predate the
+> switch); it is immaterial and does not affect the scale conclusion.
+
+| scale | channel | full surrogate score | cited-physics core only |
+|---|---|---|---|
+| 1.0× | 0.54 mm | **0.750** † | 0.818 |
+| 1.5× | 0.81 mm | **0.663** (−11.6 %) | 0.816 (−0.2 %) |
+| 2.0× | 1.08 mm | **0.584** (−22.2 %) | 0.814 (−0.5 %) |
+
+- **The drainage plateau holds at every scale.** The depth/drainage-saturation
+  result of §7 (grip is insensitive to channel depth above ~0.3 mm because the
+  Reynolds squeeze-film drains within the grasp time) extends cleanly: 0.54·1.5 =
+  0.81 and 0.54·2.0 = 1.08 mm both sit **far above the ~0.3 mm threshold**, so the
+  dewetted fraction `ψ` stays ≈ 1.00 on every wet condition at every scale
+  (coarser channels drain *at least* as well). The **cited-physics core** —
+  Briscoe–Tabor friction `τ₀+αp`, the Reynolds/channel drainage, the directional
+  `M`-factors and the beam-theory durability — is therefore **scale-invariant to
+  within −0.5 %** (it is built from dimensionless ratios and a saturated drainage
+  term). The task's drainage intuition is correct *for the physics that drives the
+  ranking*.
+
+- **The full surrogate score softens ~12 % (1.5×) / ~22 % (2.0×) — entirely
+  through the size-dependent `[ESTIMATE]`/`[PLACEHOLDER]` edge terms**, not
+  through drainage. Scaling the texture up holds φ, aspect and the `M`-factors
+  fixed but moves two *in-plane* quantities the depth-only sweep never touched:
+  edge density `edge_dens = 4/λ` **halves** (2.22 → 1.11 /mm), weakening the
+  skin-deglaze and edge-hysteresis terms, and the characteristic land `land_char`
+  **grows** (1.26 → 2.52 mm), crossing `LAND_CRIT = 2.0` so the partial-slip
+  edge-efficiency `η_edge` drops. These are *directionally real* contact-splitting
+  / fixed-print-resolution effects (at a fixed 0.16 mm layer height, a coarser
+  texture has fewer skin-breaking edges per unit area), not pure artifacts — so
+  the honest stance is **"modest softening, not flat invariance."** They are also
+  the model's lowest-confidence terms; neutralising them (set `SKIN_SLICK=1`,
+  `LAND_CRIT→∞`, `C_EDGE=EDGE_PIERCE=0`) flattens the score to within −0.5 %, which
+  is the decomposition that isolates the cause.
+
+- **Ranking and printability are preserved.** The crosshatch's lead over the
+  near-smooth control is set by the cited core, so the rank ordering is unchanged
+  with scale. Printability *improves*: `min_feat` grows 0.54 → 0.81 → 1.08 mm
+  (all comfortably above the 0.42 mm `MIN_PRINT` floor) while the post aspect ratio
+  is **scale-invariant** (0.476 at every scale — both numerator and denominator
+  scale), so durability margin is unchanged.
+
+No MSI re-run is warranted: the scale dependence here is **analytic in the Tier-1
+surrogate** (a closed-form consequence of `edge_dens ∝ 1/λ` and the `land_char`
+vs `LAND_CRIT` ratio), not an FEA-derived effect, so a per-scale solve sweep would
+reproduce the same closed-form numbers at compute cost for no new information. A
+full per-scale Tier-2 contact-FEA + agent-swarm re-optimisation would only be
+worth MSI time if the *texture family itself* were re-opened at a new scale (e.g.
+to ask whether a finer-relative texture should be re-introduced at 2.0× to recover
+the edge density) — which is out of scope here, since the brief is self-similar
+scaling of the *shipped* optimum.
+
+## 9. The result, in pictures
 
 ### Old single-axis ridges → new crosshatch posts
 

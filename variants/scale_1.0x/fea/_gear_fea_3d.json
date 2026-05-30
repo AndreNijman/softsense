@@ -1,0 +1,44 @@
+{
+  "geometry": {
+    "CROWN_TEETH": 24,
+    "CROWN_RC": 8.0,
+    "CROWN_TOOTH_H": 3.0,
+    "CROWN_FACE_H": 2.8,
+    "DISK_T": 4.0,
+    "LAND_FRAC": 0.5,
+    "PINION_T_loaded": 8.0
+  },
+  "material": {
+    "E": 3500.0,
+    "NU": 0.4,
+    "SIGMA_ALLOW": 30.0
+  },
+  "mesh": {
+    "nnodes": 988,
+    "ntet": 3199,
+    "ndof": 2964,
+    "root_band_elements": 933,
+    "top_loaded_nodes": 68,
+    "bottom_clamped_nodes": 101
+  },
+  "load": {
+    "F_ref_tangential_N": 10.0,
+    "lever_mm": 3.0
+  },
+  "peak_vM": {
+    "root_band_MPa": 55.834,
+    "overall_MPa": 55.834
+  },
+  "F_allow_tooth_N": 5.37,
+  "T_safe_input_Nm": 0.0161,
+  "interpretation": [
+    "3D linear-elastic FEA: 3199 tets / 2964 DOF.",
+    "Geometry: one crown tooth + a ring sector (15.0\u00b0 pitch wide), r \u2208 [5.0, 11.0] mm, disk thickness 4.0 mm, tooth face height 2.8 mm.",
+    "Disk bottom clamped (z=0); tangential force 10.0 N applied uniformly to the tooth top face (z=6.8 mm), +y direction.",
+    "Peak vM in the root band = 55.83 MPa at the 10 N reference load.",
+    "Linear-scale to SIGMA_ALLOW = 30.0 MPa: F_allow = 5.4 N tooth tangential force.",
+    "T_safe(crown, 3D) = F_allow \u00d7 PINION_RP / 1000 = 0.0161 N\u00b7m input-shaft torque.",
+    "Comparison: gear_fea.py (single-station 2D) gives T_safe = 0.0340 N\u00b7m; gear_fea_radial.py (radial 2D inner-edge bound) gives T_safe = 0.0131 N\u00b7m; this 3D solve gives T_safe = 0.0161 N\u00b7m.",
+    "CAVEATS: linear-elastic (no plasticity, no fracture); no neighbour-tooth load sharing (the sector is one pitch wide with free-ish ends, so this is conservative); uniform tangential traction on the tooth top (a real moving contact line is non-uniform); straight-flank tooth shape (will edge-load and gall in PA12-GF in a real mesh, not roll cleanly). The bench-grade ceiling remains the printed-coupon torque-to-failure test in motor/BENCH_TEST.md."
+  ]
+}

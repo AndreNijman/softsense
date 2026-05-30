@@ -1,0 +1,174 @@
+{
+  "shipped_single_station": {
+    "label": "shipped (single-station 2D crown FEA)",
+    "T_safe_Nm": 0.268,
+    "i_g": 2.6666666666666665,
+    "MA_tip_per_mm": 0.009796703437598326,
+    "MA_mid_per_mm": 0.011480754182586077,
+    "eta_low": 0.3978,
+    "eta_high": 0.7049475,
+    "F_per_finger_corners_N": {
+      "F_worst_tip_eta_lo": 1.393,
+      "F_mid_eta_lo": 1.632,
+      "F_tip_eta_hi": 2.468,
+      "F_best_mid_eta_hi": 2.892
+    },
+    "F_per_finger_band_N": [
+      1.393,
+      2.892
+    ],
+    "stress_probe_F_N": 12.0,
+    "published_margin_at_probe": [
+      5.7,
+      8.6
+    ],
+    "implied_margin_at_operating_force": [
+      23.7,
+      74.1
+    ],
+    "operating_force_vs_probe_ratio": [
+      0.116,
+      0.241
+    ],
+    "note": "F is the per-FINGER clamp force at the contact face; T_in is input-shaft torque, gated by gear-tooth root-bending at T_safe. Stress-margin scaling is linear in F as a conservative lower bound (contact patch grows sub-linearly with load)."
+  },
+  "shipped_radial_inner_edge": {
+    "label": "shipped (radial 2D crown FEA, inner-edge bound)",
+    "T_safe_Nm": 0.1048,
+    "i_g": 2.6666666666666665,
+    "MA_tip_per_mm": 0.009796703437598326,
+    "MA_mid_per_mm": 0.011480754182586077,
+    "eta_low": 0.3978,
+    "eta_high": 0.7049475,
+    "F_per_finger_corners_N": {
+      "F_worst_tip_eta_lo": 0.545,
+      "F_mid_eta_lo": 0.638,
+      "F_tip_eta_hi": 0.965,
+      "F_best_mid_eta_hi": 1.131
+    },
+    "F_per_finger_band_N": [
+      0.545,
+      1.131
+    ],
+    "stress_probe_F_N": 12.0,
+    "published_margin_at_probe": [
+      5.7,
+      8.6
+    ],
+    "implied_margin_at_operating_force": [
+      60.5,
+      189.5
+    ],
+    "operating_force_vs_probe_ratio": [
+      0.045,
+      0.094
+    ],
+    "note": "F is the per-FINGER clamp force at the contact face; T_in is input-shaft torque, gated by gear-tooth root-bending at T_safe. Stress-margin scaling is linear in F as a conservative lower bound (contact patch grows sub-linearly with load)."
+  },
+  "shipped_3d": {
+    "label": "shipped (3D crown FEA, tooth + disk sector)",
+    "T_safe_Nm": 0.3256,
+    "i_g": 2.6666666666666665,
+    "MA_tip_per_mm": 0.009796703437598326,
+    "MA_mid_per_mm": 0.011480754182586077,
+    "eta_low": 0.3978,
+    "eta_high": 0.7049475,
+    "F_per_finger_corners_N": {
+      "F_worst_tip_eta_lo": 1.692,
+      "F_mid_eta_lo": 1.983,
+      "F_tip_eta_hi": 2.998,
+      "F_best_mid_eta_hi": 3.514
+    },
+    "F_per_finger_band_N": [
+      1.692,
+      3.514
+    ],
+    "stress_probe_F_N": 12.0,
+    "published_margin_at_probe": [
+      5.7,
+      8.6
+    ],
+    "implied_margin_at_operating_force": [
+      19.5,
+      61.0
+    ],
+    "operating_force_vs_probe_ratio": [
+      0.141,
+      0.293
+    ],
+    "note": "F is the per-FINGER clamp force at the contact face; T_in is input-shaft torque, gated by gear-tooth root-bending at T_safe. Stress-margin scaling is linear in F as a conservative lower bound (contact patch grows sub-linearly with load)."
+  },
+  "shipped_headline": {
+    "label": "shipped (3D crown FEA, tooth + disk sector)",
+    "T_safe_Nm": 0.3256,
+    "i_g": 2.6666666666666665,
+    "MA_tip_per_mm": 0.009796703437598326,
+    "MA_mid_per_mm": 0.011480754182586077,
+    "eta_low": 0.3978,
+    "eta_high": 0.7049475,
+    "F_per_finger_corners_N": {
+      "F_worst_tip_eta_lo": 1.692,
+      "F_mid_eta_lo": 1.983,
+      "F_tip_eta_hi": 2.998,
+      "F_best_mid_eta_hi": 3.514
+    },
+    "F_per_finger_band_N": [
+      1.692,
+      3.514
+    ],
+    "stress_probe_F_N": 12.0,
+    "published_margin_at_probe": [
+      5.7,
+      8.6
+    ],
+    "implied_margin_at_operating_force": [
+      19.5,
+      61.0
+    ],
+    "operating_force_vs_probe_ratio": [
+      0.141,
+      0.293
+    ],
+    "note": "F is the per-FINGER clamp force at the contact face; T_in is input-shaft torque, gated by gear-tooth root-bending at T_safe. Stress-margin scaling is linear in F as a conservative lower bound (contact patch grows sub-linearly with load)."
+  },
+  "proposed_resize": {
+    "label": "proposed re-size (un-implemented)",
+    "T_safe_Nm": 0.401,
+    "i_g": 2.6666666666666665,
+    "MA_tip_per_mm": 0.009796703437598326,
+    "MA_mid_per_mm": 0.011480754182586077,
+    "eta_low": 0.3978,
+    "eta_high": 0.7049475,
+    "F_per_finger_corners_N": {
+      "F_worst_tip_eta_lo": 2.084,
+      "F_mid_eta_lo": 2.442,
+      "F_tip_eta_hi": 3.692,
+      "F_best_mid_eta_hi": 4.327
+    },
+    "F_per_finger_band_N": [
+      2.084,
+      4.327
+    ],
+    "stress_probe_F_N": 12.0,
+    "published_margin_at_probe": [
+      5.7,
+      8.6
+    ],
+    "implied_margin_at_operating_force": [
+      15.8,
+      49.5
+    ],
+    "operating_force_vs_probe_ratio": [
+      0.174,
+      0.361
+    ],
+    "note": "F is the per-FINGER clamp force at the contact face; T_in is input-shaft torque, gated by gear-tooth root-bending at T_safe. Stress-margin scaling is linear in F as a conservative lower bound (contact patch grows sub-linearly with load)."
+  },
+  "interpretation": [
+    "The finger-FEA TARGET_GRIP of 12 N is a STRESS-PROBE LOAD used to rank designs at a closure the FEA can reach in software. It is NOT the operating force the shipped drivetrain can safely deliver.",
+    "Per the gear-tooth FEA, the SHIPPED crown gear binds at T_safe = 0.3256 N.m (3D solid FEA, the headline; 0.1048 N.m radial 2D inner-edge bound; 0.2680 N.m single-station 2D, optimistic).",
+    "Through kinematics_chain, the 3D T_safe maps to a per-finger force band of 1.69..3.51 N -- an order of magnitude below the 12 N stress-probe load.",
+    "Implied finger-FEA vM margin at the 3D-bound operating force is 20..61x (conservative; small-strain linear scaling), i.e. the finger is WAY safer than the 5.7-8.6x at 12 N suggests because the gear cap limits the actual stress reached.",
+    "The headline finger-FEA conclusions are therefore: the DESIGN RANKING is valid at any sub-T_safe load (small-strain elastic regime preserves rank), the ABSOLUTE force in newtons is not delivered by the current drivetrain, and the absolute stress magnitudes (2.7 MPa peak vM) only apply if the drivetrain were re-sized to reach 12 N. The proposed gear re-size in gear_fea.proposed_resize() would deliver 2.1..4.3 N per finger."
+  ]
+}

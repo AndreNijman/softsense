@@ -169,6 +169,107 @@ ring ≈ 6 N·m) with margin the cramped right-angle stage can never reach — a
 pole-slip *is* a mechanical force limiter (it protects the gripper and the specimen).
 The gear FEA is the quantitative reason the fallback is a genuine #2, not a courtesy.
 
+## 9. Self-similar scaling — T_safe ~ k³, tip force ~ k² (the gear is *still* the limit)
+
+`gripper.py` now carries a global self-similar scale (`GRIPPER_SCALE`, default 1.0).
+At `GRIPPER_SCALE = k` every linear gear dimension scales by `k` while the tooth
+**counts are held**, so the module scales `k` and the mesh ratio `i_g = 24/9 =
+2.667:1` is preserved (true mechanical similitude). All four chain scripts
+(`gear_fea.py`, `gear_fea_radial.py`, `drivetrain_force_envelope.py`,
+`kinematics_chain.py`) read `gripper.py` for their dims, so `GRIPPER_SCALE=k`
+propagates automatically — no per-script parameter editing.
+
+The power laws fall out of dimensional analysis and are confirmed numerically:
+
+- **Tooth root-bending capacity `T_safe ~ k³`.** Allowable tooth force `F_allow ∝
+  σ_allow · b · s_root² / h ∝ k²` (face width `b ~ k`, root thickness `s_root ~ k`,
+  height `h ~ k`), and the lever (`PINION_RP ~ k`) adds one more `k` →
+  `T_safe = F_allow · lever ~ k³`. σ_allow (material) is held.
+- **Mechanical advantage `MA ~ 1/k`.** `MA = |dθ_crank/dx_P|`: the crank angle is
+  similitude-invariant, the contact displacement `dx_P ~ k`, so `MA ~ 1/k`.
+- **Deliverable tip force `F ~ k²`.** `F = T_safe · i_g · MA / 2 · η`, with `i_g`
+  and `η` scale-invariant (counts + angles held) → `F ~ k³ · k⁻¹ = k²`.
+
+Reproduce: `GRIPPER_SCALE=k PYTHONPATH=. python motor/scripts/gear_fea_radial.py`
+(and `gear_fea.py`, `drivetrain_force_envelope.py`). Result JSONs per scale live in
+`variants/scale_<k>x/fea/`; the combined summary is
+`variants/scale_scaling_summary.json`.
+
+### 9.1 Headline table (radial 2D inner-edge bound — the self-similar basis)
+
+The **radial 2D crown FEA** (`gear_fea_radial.py`, the binding inner-edge slice) is
+the scaling headline: it is fully geometry-driven from `gripper.py`, so it reads the
+power law cleanly. The single-station 2D (`gear_fea.py`) independently confirms `k³`.
+
+| `GRIPPER_SCALE` | `T_safe` (radial 2D) | `T_safe` (single-station 2D) | per-finger force band | T_safe ratio vs 1× | force-hi ratio vs 1× |
+|---|---|---|---|---|---|
+| **1.0×** | 0.0131 N·m | 0.034 N·m | **0.14 – 0.28 N** | 1.00 (k³ = 1.00) | 1.00 (k² = 1.00) |
+| **1.5×** | 0.0442 N·m | 0.113 N·m | **0.31 – 0.64 N** | 3.37 (k³ = 3.375) | 2.25 (k² = 2.25) |
+| **2.0×** | 0.1048 N·m | 0.268 N·m | **0.55 – 1.13 N** | 8.00 (k³ = 8.00) | 4.00 (k² = 4.00) |
+
+The fits land on `k³` / `k²` to three significant figures. **`T_safe` and the force
+band are quoted on the *same* radial 2D basis** — they are not mixed across models.
+
+### 9.2 Servo headroom — the ratio SHRINKS with scale, but the gear is still the limit
+
+`T_safe` grows as `k³` while servo stall torque is fixed (a bigger gripper does not
+get a bigger motor for free), so the **stall ÷ T_safe ratio shrinks with scale**.
+That ratio is *not* comfort headroom — it is the **over-torque danger**: how badly a
+servo would smash the printed crown on a firmware/limit fault. Smaller is *safer* in
+that sense, but it is still enormous:
+
+| servo | stall | × T_safe @ 1.0× | × T_safe @ 1.5× | × T_safe @ 2.0× |
+|---|---|---|---|---|
+| DYNAMIXEL XW540-T260 | 9.5 N·m | ~725× | ~215× | ~91× |
+| Feetech STS3250 | 4.9 N·m | ~374× | ~111× | ~47× |
+| Feetech STS3215 | 2.94 N·m | ~224× | ~67× | ~28× |
+
+Even at 2.0× the weakest servo in the ladder (STS3215) still over-torques the gear by
+~28×; the crossover where a servo could *no longer* exceed `T_safe` is around `k ≈ 6`
+(`T_safe ∝ k³` reaches ~2.94 N·m near `k = 0.0131·6³·...`, i.e. far beyond any
+printable size). **Conclusion: the gripper is gear-limited at every scale in
+[1.0, 2.0], and the firmware current-limit remains the mandatory gear-protection
+mechanism at all scales** — the same "one decision, N ESC profiles" posture, just
+with the per-scale `T_safe` setpoint from the table above. The force *grows* with
+size (good — a 2× gripper delivers ~4× the per-finger clamp force, 0.55–1.13 N vs
+0.14–0.28 N), but it is **still capped far below the finger's 12 N stress-probe
+capability**, so the qualitative finding of §6 is scale-invariant: a *functional*
+absolute grip still needs the module/radius re-size, not just a bigger envelope.
+
+### 9.3 Honesty: what does NOT scale cleanly, and the MSI follow-up
+
+- **`gear_fea_3d.py` is NOT self-similar as configured.** It hardcodes `DISK_T =
+  4.0 mm` (absolute, not `×SCALE`) and meshes at **absolute** gmsh sizes
+  (`mesh_max=0.6, mesh_min=0.25`), so its mesh density (988 → 1567 → 2658 nodes) and
+  its disk-to-tooth proportion both change with `k`. Its `T_safe` therefore reads
+  0.0161 → 0.140 → 0.326 N·m, a ratio of ~8.7× / ~20× vs `k`, far above `k³`. This is
+  a **tooling artifact, not physics** — the 3D model simply cannot read the power law
+  while its disk and mesh are pinned to absolute sizes. The shipped 1× repo posture
+  (per `OVERNIGHT_FIXES.md`) treats 3D as the better *physics* at 1×; that judgement
+  stands for the 1× point, but for the **scaling study the radial 2D bound is the
+  honest basis** because it is the one that is actually self-similar. The 3D
+  per-scale JSONs are retained in `variants/scale_<k>x/fea/_gear_fea_3d.json` flagged
+  as non-scaling.
+- **MSI re-run warranted (high-fidelity follow-up):** make `gear_fea_3d.py`
+  self-similar (`DISK_T = 4.0 * g.SCALE`; gmsh `MeshSizeMax/Min` scaled by `SCALE`)
+  and re-run at `k ∈ {1.0, 1.5, 2.0}` on the MSI (RTX-3070 node, `docs/MSI_REMOTE.md`)
+  to confirm the 3D solve also recovers `k³` once disk + mesh scale with the part.
+  This is the clean way to cross-check the radial 2D headline at higher fidelity; it
+  is left for the MSI because the 3D mesh + build123d STEP step is the heavy part.
+- **`torque_chain.py` does NOT scale.** Its `T_SAFE` and `SERVOS` are **hardcoded 1×
+  literals** (lines 33–37); it only imports `kinematics_chain` for `MA`/`i_g`. Run at
+  `GRIPPER_SCALE=k` it therefore pairs `k`-scaled `MA` (which falls as `1/k`) against
+  *fixed* 1× `T_safe`, producing tip-force curves that **shrink** with scale — the
+  exact opposite of the real `k²` law. It is a **1× illustration plotter only**; its
+  scaled output must not be quoted. To make it scale you would replace the `T_SAFE`
+  literals with the per-scale radial values from §9.1 (a one-line-per-scale edit, left
+  optional since the force-envelope script already delivers the correct per-scale
+  band).
+- **All bounds remain 2D/linear upper-bound estimates.** Scaling does not change the
+  §-Honesty caveats: straight-flank-vs-involute edge-loading, no base-disk compliance
+  in 2D, no moving contact line. The bench torque-to-failure on a printed coupon
+  (`BENCH_TEST.md`) is the only validated ceiling, at every scale.
+
 > **Honesty.** T_safe is a 2D-FEA upper-bound estimate. The crown is a 3D face
 > gear (a 2D plane-stress single-station tooth model is partial; the
 > radial-station integration on this branch is tighter but still 2D), the

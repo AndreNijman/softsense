@@ -1,0 +1,100 @@
+{
+  "scale": 1.5,
+  "Z_span": [
+    19.5,
+    34.5
+  ],
+  "mesh_min_max": [
+    0.75,
+    1.9500000000000002
+  ],
+  "mesh": {
+    "n_nodes_2d": 1503,
+    "n_tris": 2343,
+    "n_nodes_3d": 9018,
+    "n_tets": 35145,
+    "n_layers": 5,
+    "ndof": 27054
+  },
+  "material": {
+    "E_TPU": 7.4,
+    "nu": 0.45,
+    "yield": 22.3
+  },
+  "load_case": "TRAPPED AIR \u2014 outer skin (perimeter + \u00b1Z silhouette) wetted at P_depth; inner cell walls traction-free",
+  "runs": [
+    {
+      "depth_m": 0.0,
+      "P_MPa": 0.0,
+      "peak_vM_MPa": 0.0,
+      "median_vM_MPa": 0.0,
+      "peak_disp_um": 0.0,
+      "contact_wall_disp_um": 0.0,
+      "margin_to_yield": 22300000000.0,
+      "survives": true
+    },
+    {
+      "depth_m": 10.0,
+      "P_MPa": 0.1005525,
+      "peak_vM_MPa": 1.289646298444947,
+      "median_vM_MPa": 0.23736789796771457,
+      "peak_disp_um": 14657.49549643706,
+      "contact_wall_disp_um": 13418.870952910333,
+      "margin_to_yield": 17.291562831521556,
+      "survives": true
+    },
+    {
+      "depth_m": 30.0,
+      "P_MPa": 0.3016575,
+      "peak_vM_MPa": 3.8689388953348662,
+      "median_vM_MPa": 0.7121036939031187,
+      "peak_disp_um": 43972.486489311064,
+      "contact_wall_disp_um": 40256.6128587308,
+      "margin_to_yield": 5.763854277173814,
+      "survives": true
+    },
+    {
+      "depth_m": 100.0,
+      "P_MPa": 1.005525,
+      "peak_vM_MPa": 12.896462984449427,
+      "median_vM_MPa": 2.373678979676988,
+      "peak_disp_um": 146574.95496437018,
+      "contact_wall_disp_um": 134188.70952910275,
+      "margin_to_yield": 1.7291562831521614,
+      "survives": true
+    },
+    {
+      "depth_m": 200.0,
+      "P_MPa": 2.01105,
+      "peak_vM_MPa": 25.792925968898853,
+      "median_vM_MPa": 4.747357959353976,
+      "peak_disp_um": 293149.90992874035,
+      "contact_wall_disp_um": 268377.4190582055,
+      "margin_to_yield": 0.8645781415760807,
+      "survives": false
+    },
+    {
+      "depth_m": 300.0,
+      "P_MPa": 3.016575,
+      "peak_vM_MPa": 38.68938895334856,
+      "median_vM_MPa": 7.121036939031394,
+      "peak_disp_um": 439724.86489311076,
+      "contact_wall_disp_um": 402566.1285873087,
+      "margin_to_yield": 0.5763854277173829,
+      "survives": false
+    }
+  ],
+  "flooded_sanity": {
+    "depth_m": 100.0,
+    "f_net": [
+      -2.0228263508670352e-12,
+      1.7408297026122455e-12,
+      0.0
+    ],
+    "peak_vM_MPa": 0.33946752295942256,
+    "peak_disp_um": 1852.2382869030441
+  },
+  "vM_slope_MPa_per_m": 0.1289646298444948,
+  "yield_depth_m": 172.9156283152154,
+  "runtime_s": 563.0839736461639
+}
