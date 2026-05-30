@@ -318,22 +318,26 @@ MOUNT_HOLE_R = PIN_R + PRINT_CLEAR   # finger pin bore (FDM clearance)
 # crossing 0.54 mm channels squeeze the water film out (tyre-tread / tree-frog
 # mechanism) and the post edges break the glossy printed-TPU skin. Conservative
 # (>= 0.5 mm channel) variant: universal grip score 0.75 vs the smooth-face 0.25.
-FR_GRIP_DEPTH = 0.6     # post height proud of the contact face (mm); grip-neutral
-                        # above ~0.3 (drainage saturates) so kept at 0.6 for the
-                        # safe closed-pose finger-finger gap and a low post aspect
-FR_GRIP_PITCH = 1.8     # post pitch along the blade length Y (mm); land = pitch-FLAT
-FR_GRIP_Y0_FRAC = 0.15  # texture starts at this fraction of the blade length
-FR_GRIP_Y1_FRAC = 0.95  # texture ends at this fraction of the blade length
-FR_GRIP_ROOT_IN = 0.2   # post root sits this far INTO the body (fuses cleanly)
-FR_GRIP_FLAT = 0.54     # channel width between posts along Y (mm) -> land 1.26 mm
+# Grip micro-texture SCALES self-similarly with the gripper (×SCALE). The wet-grip
+# campaign found grip is grip-NEUTRAL above a ~0.3 mm channel (drainage saturates), and
+# the scaled channels stay above that at every scale (0.54 -> 0.81 -> 1.08 mm), so scaling
+# the cell is grip-safe (coarser channels drain at least as well) AND keeps the post COUNT
+# constant -- holding it absolute quadrupled the post count at 2x and made the finger build
+# ~10x slower. The closed-pose finger-finger gap also scales proportionally (no collision).
+FR_GRIP_DEPTH = 0.6 * SCALE  # post height proud of the contact face (mm)
+FR_GRIP_PITCH = 1.8 * SCALE  # post pitch along the blade length Y (mm); land = pitch-FLAT
+FR_GRIP_Y0_FRAC = 0.15  # texture starts at this fraction of the blade length -- FRACTION held
+FR_GRIP_Y1_FRAC = 0.95  # texture ends at this fraction of the blade length -- FRACTION held
+FR_GRIP_ROOT_IN = 0.2 * SCALE  # post root sits this far INTO the body (fuses cleanly)
+FR_GRIP_FLAT = 0.54 * SCALE  # channel width between posts along Y (mm) -> land 1.26 mm
 FR_GRIP_CROSS = True    # crosshatch: chop the Y-ridges into posts with Z-channels
-FR_GRIP_CROSS_PITCH = 1.8  # post pitch across the finger depth Z (mm)
-FR_GRIP_CROSS_GAP = 0.54   # channel width between posts along Z (mm)
+FR_GRIP_CROSS_PITCH = 1.8 * SCALE  # post pitch across the finger depth Z (mm)
+FR_GRIP_CROSS_GAP = 0.54 * SCALE   # channel width between posts along Z (mm)
 # print-friendly rounding (FDM TPU, prints flat on the z0 face)
 FR_BASE_CHAMFER = 0.5    # bottom-edge (bed face) chamfer: kills elephant-foot
 FR_CELL_FILLET = 0.8     # fillet radius on internal rib-cell / spar corners
 FR_TIP_FILLET = 1.5      # round the blade tip apex
-FR_GRIP_TIP_FLAT = 0.5   # half-width of the flat at each post tip (slight draft)
+FR_GRIP_TIP_FLAT = 0.5 * SCALE  # half-width of the flat at each post tip (slight draft)
 
 # --------------------------------------------------------------------------
 # Colours (clean industrial: dark slate body, matte-black TPU jaws, steel)
