@@ -86,6 +86,10 @@ holds a **flat** universal score and reaches the 12 N stress-probe at every scal
 | Small-circle grip reached | 12.0 N | 12.3 N | 13.5 N |
 | (blade-only could only reach) | 12 N | ~3.6 N | ~2.7 N |
 
+*(The blade-only row is quoted from the prior `SCALABILITY.md` study; the fresh self-similar
+1.0× run reproduces its 1× score 0.632 ≈ 0.645, anchoring the same basis. A fresh blade-only
+control at 1.5×/2× would make the contrast fully airtight — flagged for the MSI re-run.)*
+
 On the current Bambu TPU 95A HF material (E = 9.8 MPa, ~4× softer) the 12 N probe isn't
 reached within the stroke at any size, but the score still does **not** fall — it edges up
 0.484 → 0.543 → 0.591, because the bigger finger develops more absolute grip at the same
@@ -151,10 +155,31 @@ input shaft still installs from below, pinion-first).
 
 ## 6. Honest framing & downstream changes
 
+### What this fixes — and what it does NOT
+
+This scale-up fixes **reach (jaw opening) and finger stiffness** — the bigger finger is no
+longer floppy and can close around a large object. It does **NOT** meaningfully raise the
+**grip force**: per-finger force is still only **0.31–0.64 N at 1.5× / 0.55–1.13 N at 2×**,
+because the gripper stays **gear-limited** (the printed crown/pinion `T_safe`, not the
+motor, is the ceiling). Force scales ~k² off a sub-Newton base, so a 248 mm jaw that can
+*reach around* an amphora can still only *squeeze* with ~1 N.
+
+> **If the real problem is squeezing strength** (likely what "never picks anything up"
+> meant), scaling is only half the fix — the other half is the **proposed gear re-size**
+> (`CROWN_RC 11`, module 1.83, 12/6 teeth) that raises `T_safe` ~10–30× independent of
+> scale. That changes the mesh ratio, so it's **your call**, not done here. Combined with
+> 2× scaling it would put per-finger force into the multi-newton range. Flagging it as the
+> next decision.
+
 - **Force is bigger but still gear-limited.** Self-similar scaling raises the deliverable
   grip force ~k² (≈ 2.25× at 1.5×, 4× at 2×) and the gear ceiling ~k³, but the gripper is
   still **gear/motor-current-limited**, not a high-force industrial jaw. The repo posture
   stays rank/size, not certified absolute newtons.
+- **Assembly at 2× needs more hand force (or a clamp).** Snap-pin and cover-clip *insertion*
+  force scales ~k² (≈ 2.25× at 1.5×, **~4× at 2×**) even though the *bending strain* is
+  scale-invariant (so the clips don't over-strain — they just take more push). At 1.5× this
+  is still hand-pressable; **at 2× expect to need a clamp / arbor press** to seat the snap
+  pins and click the cover. Geometry and retention are unchanged.
 - **Mounting interface changed.** The flange bolt-pattern and the D-coupler scale (the
   coupler must transmit ~k² torque), so the 7 separate mounting **adapters**
   (`motor/cad/adapters/`) must be re-scaled to re-mate. Consider stepping the flange bolts
