@@ -35,7 +35,7 @@ gen_step() returns 17 labelled leaf solids in assembled world coordinates:
     pin_A_R, pin_A_L, pin_B_R, pin_B_L  (internal axle SNAP PINS)
     pin_C_R, pin_D_R, pin_C_L, pin_D_L  (finger-pivot SNAP PINS)
     front_cover                          (integral snap clips)
-    input_pinion_shaft                   (pinion + shaft + collar + D-coupler)
+    input_pinion_shaft                   (pinion + shaft + bottom shoulder + D-coupler)
 
 We collapse duplicates by the part LABEL via an explicit map (LABEL_TO_NAME),
 NOT by a geometric/bounding-box fingerprint. The old fingerprint approach broke
@@ -153,8 +153,9 @@ def part_meta(name: str):
         return ("PA12-GF",
                 "print shaft-axis VERTICAL: rotate 90 about X so the shaft stands "
                 "up; D-coupler/shoulder end DOWN on the bed (r=5.0mm, wider base), "
-                "pinion teeth UP. Shaft cylinder = self-supporting rings. Collar "
-                "mid-shaft bridges ~1.8mm radially (1-2 layers). SUPPORTLESS.")
+                "pinion teeth UP. Shaft cylinder = self-supporting rings; the "
+                "bottom shoulder bridges ~1.8mm radially (1-2 layers). SUPPORTLESS. "
+                "Installs into the housing FROM BELOW (pinion-first).")
     if name.startswith("drive_arm"):
         return ("PA12-GF",
                 "lay the flat gear+arm plate face-down on the bed (5 mm thick). "
@@ -339,10 +340,11 @@ def main():
                  "gear+arm plate. Both arms ride on snap-pin axles -- neither "
                  "has an integral shaft. The input shaft is a separate part: "
                  "`input_pinion_shaft`.")
-    lines.append("- **input_pinion_shaft** (pinion + vertical shaft + capture "
-                 "collar + D-coupler) prints shaft-axis VERTICAL (rotate 90° "
+    lines.append("- **input_pinion_shaft** (pinion + vertical shaft + bottom "
+                 "shoulder + D-coupler) prints shaft-axis VERTICAL (rotate 90° "
                  "about X from exported pose): D-coupler/shoulder end on bed "
-                 "(r=5.0 mm, wider base), pinion teeth up. Supportless.")
+                 "(r=5.0 mm, wider base), pinion teeth up. Supportless. Installs "
+                 "into the housing from below, pinion-first.")
     manifest.write_text("\n".join(lines) + "\n")
     print("Wrote {}".format(manifest))
 
