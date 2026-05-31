@@ -89,9 +89,11 @@ filament dropdown (or duplicate Bambu's preset in Studio and paste the two
 
 ## 3. Filament settings — what you inherit + what we override
 
-This preset **inherits `Bambu TPU 95A HF @BBL P1S`** and deliberately re-types
-**nothing** mechanical, so the finger prints on Bambu's own tested values (verified
-against the BambuStudio profile repo). The inherited values are:
+This preset **inherits `Bambu TPU 95A HF @BBL P1S`** (Bambu's own tested values, verified
+against the BambuStudio profile repo) and then applies a small **anti-stringing / wall-streak
+tune** on top — added after a first print came out very stringy with streaks along the walls
+on *dried* filament, i.e. a genuine profile issue, not moisture (see §3a). The inherited base
+values are:
 
 | Setting | Inherited value (Bambu system) | Note |
 |---|---|---|
@@ -102,14 +104,30 @@ against the BambuStudio profile repo). The inherited values are:
 | `filament_density` | **1.22 g/cm³** | ISO 1183 (weight/cost only). |
 | HF flow template, pressure advance, fan curve | inherited | comes with the `Direct Drive High Flow` template the system preset includes. |
 
-We override **only** the non-mechanical reminders, so there's nothing to drift from
-Bambu's calibration:
+Overrides — the **anti-stringing tune** (mechanical) plus the operator reminders:
 
-| Override | Value | Why |
-|---|---|---|
-| `name` | `Bambu TPU 95A HF @P1S 0.4 (gripper fingers)` | identifies the gripper preset. |
-| `compatible_printers` | **P1S 0.4 only** | locks it to the hardened-nozzle P1S (TPU wears brass). |
-| `filament_start_gcode` / `filament_notes` | external-spool-not-AMS · textured-PEI-no-glue · dry 70 °C 8 h · 0.4 hardened nozzle | carried with the profile so the operator can't miss them. |
+| Override | Was (inherited) | Now | Why |
+|---|---|---|---|
+| `nozzle_temperature` | 230 °C | **220 °C** | Less melt ooze → less stringing. (Initial layer kept **230 °C** for bed adhesion.) |
+| `filament_retraction_length` | 0.8 mm | **1.0 mm** | A touch more pull-back; modest so soft TPU isn't dragged into the heatbreak. |
+| `filament_retraction_speed` / deretraction | 10 / 10 mm/s | **30 / 25 mm/s** | The big one — the stock 10 mm/s is far too slow, so ooze leaks out during the retract. Retract fast. |
+| `filament_z_hop` / type | 0 (OFF) | **0.4 mm / Auto Lift** | **Fixes "streaks along the walls"** — lifts the nozzle clear of printed walls on travel so it stops smearing across them. |
+| `filament_wipe` | off | **on** | Wipes the nozzle as it retracts → less ooze blob to start a string. |
+| `filament_retract_when_changing_layer` | off | **on** | Retract at the Z-seam → cleaner seam, less seam stringing. |
+| `filament_retraction_minimum_travel` | — | **1 mm** | Don't retract for sub-1 mm hops (avoids over-retraction grinding the soft TPU). |
+| `name` / `compatible_printers` / start-gcode / notes | — | gripper preset · **P1S 0.4 only** · external-spool-not-AMS · textured-PEI-no-glue · dry 70 °C 8 h | operator reminders carried with the profile. |
+
+`filament_flow_ratio` (1.0), `filament_max_volumetric_speed` (12), pressure advance and the
+fan curve are **left at Bambu's calibration** — the fix is retraction/temperature/travel, not flow.
+
+### 3a. If it's *still* stringy after this
+
+Apply in order (one at a time, re-print a small test):
+1. **Re-dry the spool** — TPU re-absorbs moisture fast; "dried a while ago" ≈ wet. 70 °C, 8 h, print from a dry box. (You said it was dried recently, so this tune targets the profile first — but moisture is still the #1 cause if streaks have a fuzzy/popped texture.)
+2. **Nozzle 220 → 215 °C** (watch layer adhesion — the finger flexes; don't go below ~210).
+3. **Slow the outer wall** 30 → 22 mm/s (process profile `outer_wall_speed`) — slower walls ooze less and look cleaner.
+4. **Retraction 1.0 → 1.2 mm** (not higher on direct-drive TPU — risks grinding).
+5. Check for a **partially clogged / TPU-residue nozzle** (cold-pull) — TPU drags old material and prints rough.
 
 > **Cooling note (not overridden — read before a fatigue-critical build):** the finger
 > flexes in service, and high part-cooling can weaken the interlayer (Z) bonds (the

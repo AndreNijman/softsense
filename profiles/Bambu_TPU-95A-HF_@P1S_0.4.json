@@ -10,10 +10,20 @@
         "Direct Drive Standard",
         "Direct Drive High Flow"
     ],
+    "nozzle_temperature": ["220", "220"],
+    "nozzle_temperature_initial_layer": ["230", "230"],
+    "filament_retraction_length": ["1", "1"],
+    "filament_retraction_speed": ["30", "30"],
+    "filament_deretraction_speed": ["25", "25"],
+    "filament_z_hop": ["0.4", "0.4"],
+    "filament_z_hop_types": ["Auto Lift", "Auto Lift"],
+    "filament_wipe": ["1", "1"],
+    "filament_retract_when_changing_layer": ["1", "1"],
+    "filament_retraction_minimum_travel": ["1", "1"],
     "filament_start_gcode": [
         "; Bambu TPU 95A HF (gripper Fin Ray fingers). EXTERNAL SPOOL — NOT the AMS (Bambu rates 95A HF too soft for the AMS). PLATE: textured PEI, NO glue (glue over-adheres TPU on textured PEI); bed 30-35 C. Dry 70 C 8 h first. 0.4 mm hardened nozzle."
     ],
     "filament_notes": [
-        "Gripper Fin Ray fingers, printed in Bambu TPU 95A HF. INHERITS the Bambu system 'Bambu TPU 95A HF @BBL P1S', so the tested values come straight from Bambu: nozzle 230 C, flow ratio 1.0, max volumetric speed 12 mm3/s (HF = ~3x standard-TPU throughput), retraction 0.8 mm @ 10 mm/s, density 1.22. Only gripper-specific reminders are overridden here. SPOOL: external spool, NOT the AMS — Bambu's own profile states 95A HF is 'too soft and not compatible with the AMS'. PLATE: Textured PEI, NO glue (Bambu Wiki: glue over-adheres TPU on textured PEI); keep bed 30-35 C so the large flat 28x96 finger footprint stays removable; release by cooling, lifting a corner, IPA into the gap, peel slowly. A SMOOTH plate (Cool/Engineering/High-Temp) would instead NEED glue as a release barrier. DRYING: 70 C 8 h; store <20% RH. NOZZLE: 0.4 mm hardened. Pair with 'Gripper finger TPU 0.16mm @P1S 0.4' process."
+        "Gripper Fin Ray fingers, printed in Bambu TPU 95A HF. INHERITS the Bambu system 'Bambu TPU 95A HF @BBL P1S', so the tested values come straight from Bambu: nozzle 230 C, flow ratio 1.0, max volumetric speed 12 mm3/s (HF = ~3x standard-TPU throughput), retraction 0.8 mm @ 10 mm/s, density 1.22. ANTI-STRINGING / WALL-STREAK OVERRIDES (filament was dried, so this is a true profile fix): the stock base leaves retraction SPEED at the machine 10 mm/s, Z-HOP OFF (0) and WIPE off at 230 C -- that combination strings on the rib-heavy finger and lets the nozzle drag over printed walls (the 'streaks all along the walls'). Fixed here: nozzle 230->220 C (first layer kept 230 for adhesion); retraction 0.8->1.0 mm at 10->30 mm/s; deretraction 25 mm/s; Z-HOP 0.4 mm 'Auto Lift' (nozzle clears the walls on travel); wipe on; retract on layer change; min-travel 1 mm (no over-retraction on the soft TPU). If stringing persists after this, drop nozzle to 215 C and/or slow the outer wall 30->22 mm/s. Other overrides are gripper-specific reminders. SPOOL: external spool, NOT the AMS — Bambu's own profile states 95A HF is 'too soft and not compatible with the AMS'. PLATE: Textured PEI, NO glue (Bambu Wiki: glue over-adheres TPU on textured PEI); keep bed 30-35 C so the large flat 28x96 finger footprint stays removable; release by cooling, lifting a corner, IPA into the gap, peel slowly. A SMOOTH plate (Cool/Engineering/High-Temp) would instead NEED glue as a release barrier. DRYING: 70 C 8 h; store <20% RH. NOZZLE: 0.4 mm hardened. Pair with 'Gripper finger TPU 0.16mm @P1S 0.4' process."
     ]
 }
