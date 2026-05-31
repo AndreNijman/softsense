@@ -21,3 +21,6 @@ motor/cad/output/frame_*.step
 
 # scaled-variant build logs (regenerable)
 variants/**/_*.log
+
+# Claude Code scratch worktrees (the workflow scripts under .claude/ are kept)
+.claude/worktrees/
