@@ -31,7 +31,7 @@ is no shaft exiting the back or side.
 | `front_cover` | 1 | Snap-on cover with 4 integral cantilever clips |
 | `drive_arm_R` | 1 | Right gear sector + crank arm (rides on axle dowel `pin_A_R`) |
 | `drive_arm_L` | 1 | Left gear sector + crank arm + **integral crown gear** (rides on axle dowel `pin_A_L`) |
-| `input_pinion_shaft` | 1 | Vertical input shaft: pinion + shaft + collar + bottom D-coupler |
+| `input_pinion_shaft` | 1 | Vertical input shaft: pinion + continuous journal + bottom shoulder + D-coupler |
 | `follower_R` | 1 | Right B→D link bar |
 | `follower_L` | 1 | Left B→D link bar |
 | `finger_R` | 1 | Right Fin Ray compliant jaw (TPU) |
@@ -162,16 +162,16 @@ The enclosure prints **open-front**. The mechanism drops straight in.
 
 ### Step 3a — Install the input drive shaft
 
-1. **Drop `input_pinion_shaft` into the bottom-wall journal bores:** lower the
-   shaft down through the upper journal boss bore (2 mm bearing, in the cavity)
-   and into the lower journal bore in the bottom wall (7 mm bearing). The
-   pinion end enters the cavity first and meshes the crown gear on `drive_arm_L`
-   at the −Y (bottom) azimuth.
-2. **Confirm collar seating:** the integral collar (OD 5.8 mm) is larger than
-   the bore and will seat in the housing pocket between the two bore mouths —
-   this is the axial capture. It should drop in freely and sit in the pocket
-   with a small amount of axial play (~0.25 mm each side). No click; no barb.
-   The collar cannot pull out (−Y) or push in (+Y) past either bore shoulder.
+1. **Push `input_pinion_shaft` UP into the journal from below** (after the cover
+   is on): the shaft is a plain cylinder (≤4.0 mm) below the pinion, so it feeds
+   pinion-first up through the lower journal bore and the upper boss bore (one
+   continuous 4.3 mm bearing). The pinion (Ø7.44 mm < the bore) passes through
+   and enters the cavity, meshing the crown gear on `drive_arm_L` at the −Y
+   azimuth. Push until the bottom shoulder lands on the flange.
+2. **Confirm the +Y stop:** the bottom shoulder (OD 5.8 mm > bore) bottoms on the
+   flange outer face — that is the push-in stop. (There is no mid-shaft collar;
+   the older collar-in-pocket design was un-installable and was removed.) The
+   shaft runs in flooded journal bores (no bushing) — confirm it turns freely.
 3. The D-profile coupler end exits below the housing bottom, below the mounting
    flange. The shaft runs in flooded journal bores (no bushing needed); confirm
    it turns freely.
@@ -333,8 +333,9 @@ Reverse in order — no tools:
 3. **Axle dowels (A_R, B_R, B_L ×3):** with the cover off, the head is
    uncapped. Lift each dowel straight up out of the front-open cavity. There
    is no barb to compress — it slides free.
-4. **Input drive:** pull the `input_pinion_shaft` straight up out of the bottom
-   journal bores.
+4. **Input drive:** with the actuator detached, pull the `input_pinion_shaft`
+   straight DOWN and out the bottom of the journal (the bottom shoulder won't
+   pass the bore upward, so it leaves the way it went in — downward).
 5. **Arms and followers:** lift `follower_R`, `follower_L`, `drive_arm_R`, and
    `drive_arm_L` out of the cavity. All four arms ride on axle dowels; none
    have integral shafts.
@@ -353,9 +354,9 @@ are pinched and pulled — neither requires force after releasing its retainer.
    `+` slot on each finger snap pin; test-flex each barb and clip.
 3. **Fit-test one finger pin** + a scrap counterbored coupon; verify the click
    and that the lip seats in the pocket before committing the remaining 6 pins.
-4. **Assemble in order:** mesh arms → drop into housing → drop `input_pinion_shaft`
-   into bottom journals → install 4 axle dowels → snap on front cover → place
-   fingers → snap in 4 finger pins.
+4. **Assemble in order:** mesh arms → drop into housing → install 4 axle dowels →
+   snap on front cover → push `input_pinion_shaft` UP into the journal from below
+   (pinion-first) → place fingers → snap in 4 finger pins → bolt on the actuator.
 5. **Function check:** rotate the bottom D-shaft; both jaws must open/close symmetrically.
 6. **Flood check:** submerge, watch bubbles clear, cycle jaws wet.
 7. **Read `UNDERWATER.md`** for material prep and seawater guidance before the

@@ -92,13 +92,25 @@ def evaluate(name, gen, params, mode="screen"):
     mmax, mmin = (2.4, 1.1) if mode == "screen" else (1.3, 0.5)
     # scale finger, press stroke, and mesh together so every scale is meshed to the
     # same element count and closed proportionally (fair comparison across sizes).
+    # TWO independent scale knobs that COMPOSE:
+    #   * gripper.SCALE (GRIPPER_SCALE env): the new GLOBAL SELF-SIMILAR scale -- blade
+    #     AND walls grow together (the SCALABILITY.md fix). Applied at gripper import.
+    #   * _scale -> FINGER_SCALE: the legacy BLADE-ONLY knob (walls fixed) the original
+    #     scalability study used. Kept so that study stays reproducible.
+    # The EFFECTIVE blade factor vs the 90 mm reference is eff = gripper.SCALE * _scale,
+    # so the test geometry (press stroke, mesh, object size + grasp height) scales by
+    # eff. base_y is already in the gripper.SCALE frame; divide it back out to recover
+    # the 1x base so the 1x-frame battery heights map to the same FRACTION up the blade.
+    # (At gripper.SCALE==1 this reduces EXACTLY to the original blade-only behaviour.)
     H.gripper.FINGER_SCALE = scale
-    H.PRESS_MAX = 10.0 * scale
-    H.MESH_MAX, H.MESH_MIN = mmax * scale, mmin * scale
+    eff = H.gripper.SCALE * scale
+    H.PRESS_MAX = 10.0 * eff
+    H.MESH_MAX, H.MESH_MIN = mmax * eff, mmin * eff
     # scale the object battery: object size and grasp height proportional to the blade
     refR = H.gripper.solve_side_right(0.0)
     base_y = max(refR["C"][1], refR["D"][1]) - H.gripper.FR_BASE_DROP
-    battery = [(s, R * scale, base_y + (yc - base_y) * scale) for (s, R, yc) in battery]
+    base_y_1x = base_y / H.gripper.SCALE
+    battery = [(s, R * eff, base_y + (yc - base_y_1x) * eff) for (s, R, yc) in battery]
     p = dict(params)
     if gen != "production":
         p["_gen"] = gen
@@ -119,7 +131,8 @@ def evaluate(name, gen, params, mode="screen"):
                   f"margin={m['margin_x']:.1f} -> obj={obj_score(m):.3f}")
     score, base, incon = universal(results)
     out = dict(name=name, gen=gen, mode=mode, params=params,
-               scale=scale, target_grip=H.TARGET_GRIP,
+               scale=scale, gripper_scale=H.gripper.SCALE,
+               eff_scale=round(H.gripper.SCALE * scale, 4), target_grip=H.TARGET_GRIP,
                E_MPa=H.E_TPU, strength_MPa=H.TPU_STRENGTH,
                score=round(score, 4), base=round(base, 4), grip_incon=round(incon, 3),
                n_nodes=int(p2d.shape[0]),

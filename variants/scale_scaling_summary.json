@@ -1,0 +1,62 @@
+{
+  "basis": "radial 2D crown FEA (gear_fea_radial.py) is the self-similar headline bound; single-station 2D (gear_fea.py) independently confirms k^3; 3D (gear_fea_3d.py) is NOT self-similar (hardcoded DISK_T=4.0 + absolute gmsh mesh sizes) so it cannot read the power law and is excluded from the scaling headline.",
+  "power_laws": {
+    "T_safe": "~k^3",
+    "tip_force": "~k^2",
+    "MA": "~1/k",
+    "i_g": "scale-invariant (counts held)",
+    "eta": "scale-invariant"
+  },
+  "servo_stall_Nm": {
+    "XW540-T260": 9.5,
+    "STS3250": 4.9,
+    "STS3215": 2.94
+  },
+  "scales": {
+    "1.0": {
+      "T_safe_radial_Nm": 0.0131,
+      "T_safe_single_station_Nm": 0.034,
+      "T_safe_3d_Nm_NONSCALING": 0.0161,
+      "F_per_finger_band_radial_N": [
+        0.136,
+        0.283
+      ],
+      "servo_headroom_ratio": {
+        "XW540-T260": 725.0,
+        "STS3250": 374.0,
+        "STS3215": 224.0
+      },
+      "binding": "gear (crown tooth root-bending) at every scale; current-limit is the protection"
+    },
+    "1.5": {
+      "T_safe_radial_Nm": 0.0442,
+      "T_safe_single_station_Nm": 0.113,
+      "T_safe_3d_Nm_NONSCALING": 0.1404,
+      "F_per_finger_band_radial_N": [
+        0.306,
+        0.636
+      ],
+      "servo_headroom_ratio": {
+        "XW540-T260": 215.0,
+        "STS3250": 111.0,
+        "STS3215": 67.0
+      },
+      "binding": "gear (crown tooth root-bending) at every scale; current-limit is the protection"
+    },
+    "2.0": {
+      "T_safe_radial_Nm": 0.1048,
+      "T_safe_single_station_Nm": 0.268,
+      "T_safe_3d_Nm_NONSCALING": 0.3256,
+      "F_per_finger_band_radial_N": [
+        0.545,
+        1.131
+      ],
+      "servo_headroom_ratio": {
+        "XW540-T260": 91.0,
+        "STS3250": 47.0,
+        "STS3215": 28.0
+      },
+      "binding": "gear (crown tooth root-bending) at every scale; current-limit is the protection"
+    }
+  }
+}

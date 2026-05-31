@@ -10,14 +10,14 @@ STL mesh tolerance: `0.05 mm` (linear), `0.1` (angular). Each part is translated
 |------|-----|-----------|----------|-----------|-----------|-------------------|
 | `enclosure.step`/`.stl` | 1 | yes | PETG / Nylon | 96.0 x 41.0 x 28.0 | enclosure | open cavity face UP on the bed (back flange down); supports only inside the shaft bore. |
 | `drive_arm_R.step`/`.stl` | 1 | yes | PA12-GF | 26.6 x 51.2 x 5.0 | drive_arm_R | lay the flat gear+arm plate face-down on the bed (5 mm thick). Both arms ride on snap-pin axles (no integral shaft). |
-| `drive_arm_L.step`/`.stl` | 1 | yes | PA12-GF | 26.5 x 51.2 x 8.0 | drive_arm_L | lay the flat gear+arm plate face-down on the bed (5 mm thick). Both arms ride on snap-pin axles (no integral shaft). |
+| `drive_arm_L.step`/`.stl` | 1 | yes | PA12-GF | 26.5 x 51.2 x 7.0 | drive_arm_L | lay the flat gear+arm plate face-down on the bed (5 mm thick). Both arms ride on snap-pin axles (no integral shaft). |
 | `follower.step`/`.stl` | 2 | yes | PETG / Nylon | 11.2 x 40.0 x 5.0 | follower_R, follower_L | lay the flat link bar face-down on the bed (5 mm thick). |
 | `finger_R.step`/`.stl` | 1 | yes | TPU (shore ~95A) | 29.2 x 96.1 x 10.0 | finger_R | lay the Fin Ray plane FLAT on the bed, RIDGE (contact-face) side DOWN for clean grip ridges; the 10 mm depth is the Z height (may want a 90 deg rotate from the exported pose). |
 | `finger_L.step`/`.stl` | 1 | yes | TPU (shore ~95A) | 29.2 x 96.1 x 10.0 | finger_L | lay the Fin Ray plane FLAT on the bed, RIDGE (contact-face) side DOWN for clean grip ridges; the 10 mm depth is the Z height (may want a 90 deg rotate from the exported pose). |
 | `snap_pin_axle.step`/`.stl` | 4 | yes | PETG | 7.8 x 7.8 x 20.8 | pin_A_R, pin_B_R, pin_A_L, pin_B_L | stand HEAD DOWN with the pin AXIS VERTICAL (barb tip up); no supports -- the split barb prints as a self-supporting cone and springs out past the far bore face to lock. |
 | `snap_pin_finger.step`/`.stl` | 4 | yes | PETG | 7.8 x 7.8 x 26.8 | pin_C_R, pin_D_R, pin_C_L, pin_D_L | stand HEAD DOWN with the pin AXIS VERTICAL (barb tip up); no supports -- the split barb prints as a self-supporting cone and springs out past the far bore face to lock. |
 | `front_cover.step`/`.stl` | 1 | yes | PETG / Nylon | 100.8 x 36.0 x 23.5 | front_cover | outer face DOWN on the bed, snap clips pointing UP; the clips print as unsupported cantilevers off the inner face -- no supports needed. |
-| `input_pinion_shaft.step`/`.stl` | 1 | yes | PA12-GF | 11.6 x 35.0 x 11.6 | input_pinion_shaft | print shaft-axis VERTICAL: rotate 90 about X so the shaft stands up; D-coupler/shoulder end DOWN on the bed (r=5.0mm, wider base), pinion teeth UP. Shaft cylinder = self-supporting rings. Collar mid-shaft bridges ~1.8mm radially (1-2 layers). SUPPORTLESS. |
+| `input_pinion_shaft.step`/`.stl` | 1 | yes | PA12-GF | 11.6 x 35.0 x 11.6 | input_pinion_shaft | print shaft-axis VERTICAL: rotate 90 about X so the shaft stands up; D-coupler/shoulder end DOWN on the bed (r=5.0mm, wider base), pinion teeth UP. Shaft cylinder = self-supporting rings; the bottom shoulder bridges ~1.8mm radially (1-2 layers). SUPPORTLESS. Installs into the housing FROM BELOW (pinion-first). |
 
 ## Notes
 
@@ -27,4 +27,4 @@ STL mesh tolerance: `0.05 mm` (linear), `0.1` (angular). Each part is translated
 - **Fingers are chiral.** `finger_R` and `finger_L` share a bounding box / volume but are mirror images (Fin Ray ribs all slant the same way within a finger), so both are exported. Print in TPU, ridge side down.
 - **Followers are identical.** A follower is a symmetric link bar; left and right are the same part -> one file, qty 2.
 - **Drive arms differ.** `drive_arm_L` carries the crown gear on its +Z face (right-angle stage); `drive_arm_R` is a plain gear+arm plate. Both arms ride on snap-pin axles -- neither has an integral shaft. The input shaft is a separate part: `input_pinion_shaft`.
-- **input_pinion_shaft** (pinion + vertical shaft + capture collar + D-coupler) prints shaft-axis VERTICAL (rotate 90° about X from exported pose): D-coupler/shoulder end on bed (r=5.0 mm, wider base), pinion teeth up. Supportless.
+- **input_pinion_shaft** (pinion + vertical shaft + bottom shoulder + D-coupler) prints shaft-axis VERTICAL (rotate 90° about X from exported pose): D-coupler/shoulder end on bed (r=5.0 mm, wider base), pinion teeth up. Supportless. Installs into the housing from below, pinion-first.

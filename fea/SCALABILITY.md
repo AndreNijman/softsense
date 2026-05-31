@@ -143,3 +143,127 @@ changes):** make the walls scale with `FINGER_SCALE` for large sizes, e.g.
 big fingers and likely extend the usable band well past 2×. The mount would still
 stay fixed so it bolts to the (separately scaled) linkage. This study only
 *characterises* the current finger; tuning the walls is a separate task.
+
+---
+
+## 7. Self-similar scale-up (`GRIPPER_SCALE`) — walls scale too
+
+§1–§6 above study the **blade-only** `FINGER_SCALE` knob (walls held at fixed absolute
+thickness), and §6 predicts the cure: *"a self-similar finger (walls ∝ scale) would be
+scale-invariant."* The model now has that knob. `GRIPPER_SCALE` (env var, range
+0.5–3.0) multiplies **every** linear dimension of the gripper — blade **and** walls,
+mount, gear, pins — so the whole part grows geometrically (true mechanical similitude).
+The wall-to-blade ratio is now **constant** at every scale instead of dropping ~4×
+across the band. This section tests §6's prediction directly. (`GRIPPER_SCALE` and the
+legacy `FINGER_SCALE` compose: `eval_finger.py` uses an *effective* blade factor
+`eff = GRIPPER_SCALE · FINGER_SCALE`; here `FINGER_SCALE = 1`, so `eff = GRIPPER_SCALE`.
+Press stroke, mesh size, and the object battery all scale by `eff`, exactly as in
+§3 — a fair self-similar comparison.)
+
+### 7.1 The material moved since §1–§6 — read both bases
+
+The §4 table (0.645 / 0.441 / 0.368) was computed on the **old eSUN E≈40 MPa** modulus.
+The repo finger material is now **Bambu TPU 95A HF, measured in-plane E = 9.8 MPa**
+(~4× softer; see `CLAUDE.md` / `UNIVERSAL_FINGER.md`). The fixed-12 N stress-probe is a
+*comparative* load (the drivetrain delivers sub-Newton in service — §2); on the ~4×
+softer current material the finger **cannot build 12 N within the 10·`eff` mm press
+stroke at any scale** (it under-grips the probe, with very high margins). So the
+absolute fixed-12 N screen score is **lower on the current material at every scale,
+including 1.0×** (0.484 vs the old 0.645). That is a *material* shift, not a scaling
+regression, and it is consistent with the repo's standing position: force-targeted
+**rankings and margins are modulus-insensitive** (preserved), but the **absolute
+fixed-12 N screen score is not** — because reaching 12 N within a finite stroke depends
+on stiffness. Both bases are reported below.
+
+**(A) Matched E = 40 MPa basis — the controlled contrast vs the old blade-only table.**
+Re-running at `_E:40` isolates the *one* variable that changed between the old blade-only
+runs and these: **walls fixed vs walls-scaled.** Same modulus, same `eff` blade factor,
+same battery, same scorer.
+
+| scale (`eff`) | OLD blade-only @12 N (walls fixed) | NEW self-similar @12 N (walls ∝ scale) | small-circle grip reached | small-circle margin |
+|---|---|---|---|---|
+| **1.0×** | 0.645 | **0.632** | 12.0 N (reached) | 8.5× |
+| **1.5×** | **0.441** | **0.598** | **12.3 N (reached)** | 9.9× |
+| **2.0×** | **0.368** | **0.619** | **13.5 N (reached)** | 11.0× |
+
+(1.0× reproduces the old 0.645 to within 0.013 — the small residual is strength 27.3 vs
+the old 25 MPa plus mesh discretisation. This confirms the scaling code is **neutral at
+1.0×**: it does not by itself move the score.)
+
+**Headline — the bigger finger KEEPS its grip.** Self-similar scaling holds the score
+**flat at ~0.60–0.63 across 1.0–2.0×** (0.632 / 0.598 / 0.619 — non-monotonic, within
+scorer noise), versus the blade-only **collapse to 0.441 → 0.368**. The mechanism is the
+one §6 named: with the wall/blade ratio fixed, the big finger is no longer relatively
+thin-walled, so it **reaches the 12 N probe at every scale** (12.0 → 12.3 → 13.5 N) where
+the blade-only finger went floppy and could only manage ~3.6 → ~2.7 N before running out
+of stroke. §6's prediction is confirmed.
+
+**(B) Current Bambu E = 9.8 MPa basis — today's shipped material, same `{}` probe.**
+
+| scale (`eff`) | self-similar score @12 N target | small-circle grip @ full stroke | note |
+|---|---|---|---|
+| **1.0×** | **0.484** | 3.6 N (12 N not reached) | soft material under-grips the probe |
+| **1.5×** | **0.543** | 5.3 N (12 N not reached) | grip *rises* with scale (see below) |
+| **2.0×** | **0.591** | 6.8 N (12 N not reached) | box reaches 13.1 N; rounds still short |
+
+On the soft current material the probe is unreachable at every scale, so the score is
+**force-reach-limited, not floppiness-limited**. The score still **does not fall** with
+scale — it edges *up* (0.484 → 0.543 → 0.591), because at a fixed *absolute* 12 N target
+the larger self-similar finger develops **more absolute grip at the same proportional
+closure** (force builds ~`eff²` for a given relative stroke). The point that matters for
+the headline: on **either** material the self-similar finger holds or improves its score
+as it scales up — the floppy up-scaling collapse of §5 is gone.
+
+### 7.2 What "keeps its grip" does and does not mean (honest reading)
+
+- **It is force-reach + safety that is preserved, not wrap.** Round-object conformance is
+  modest at *every* scale, including 1.0× — the small-circle `contact_arc_deg` is only
+  ~8–11° on round objects at all scales (at E40 2.0× the small circle is a near-point
+  press, arc ≈ 3.7° at 13.5 N). The held score comes from the finger continuing to reach
+  the probe **safely** (the grip term plus a healthy von-Mises margin), which is exactly
+  the §5 failure mode (under-grip / floppy) that self-similar scaling fixes. It does **not**
+  mean the big finger conforms *more* — round-object wrap is a near-constant, not a scale win.
+- **Force at a given grip scales ~`eff²` but stays gear-limited.** A `k×` self-similar
+  finger develops ~`k²` the contact force at the same fingertip *pressure* / proportional
+  closure (area scaling). This is a **rank/size** statement, not an absolute-newton claim:
+  the shipped drivetrain is still `T_safe`-bounded (per-finger operating force 0.14–0.73 N,
+  §2 and `motor/DRIVETRAIN.md`), and a bigger crown/pinion printed at the same scale raises
+  `T_safe` ~`k³` (section modulus) but the *service* force remains whatever the motor
+  current limit allows — the gripper does not suddenly deliver tens of newtons just because
+  the FEA probe is reachable. No absolute-newton overclaim is made or implied.
+- **One mild self-similar degradation to flag honestly:** on the flat-faced box the
+  pressure spreads less evenly as it scales (E40 box `pressure_cov` rises 1.00 → 1.85 → 2.02
+  from 1.0× to 2.0×) and its von-Mises margin falls (9.1× → 5.3× → 4.8×) as contact
+  concentrates on the now-stiffer wall. It stays **safe** (margin > 1.5 everywhere, no
+  yield), but the very-large self-similar finger is slightly more peaky on flat contacts.
+
+### 7.3 Reproduce / artifacts
+
+```
+GRIPPER_SCALE=1.0 PYTHONPATH=/home/andre/gripper-cad \
+  /home/andre/.cad-venv/bin/python fea/scripts/eval_finger.py selfsim_1p0 production '{}' screen
+# …1.5, 2.0 likewise. Add '{"_E":40}' for the matched-basis contrast (selfsim_E40_*).
+```
+
+- Current-material evals: `fea/iterations/selfsim_{1p0,1p5,2p0}/eval.json`.
+- Matched-E40 contrast evals: `fea/iterations/selfsim_E40_{1p0,1p5,2p0}/eval.json`.
+- The 1.0× run is kept in `fea/iterations/` as the reference; the 1.5× and 2.0× results
+  (current basis `eval.json` + matched-basis `eval_E40basis.json` + `wrap_stages.png`) are
+  copied into `variants/scale_1.5x/fea/` and `variants/scale_2.0x/fea/`.
+- `wrap_stages.png` figures are rendered on the **current E = 9.8 MPa** material (the soft
+  basis the parts actually print in); the §7.1(A) contrast *table* is the matched E = 40 MPa
+  basis. The figures therefore show the (lower-force) current-material wrap, not the E40 table.
+
+### 7.4 Coarse / local-run caveat — where an MSI re-run is warranted
+
+These runs were done **locally in coarse `screen` mode** (3-object battery; `NSTEPS = 12`;
+mesh `MESH_MAX/MIN = 2.4/1.1 · eff`) because the MSI FEA node is currently down. The
+**rank conclusion is robust** (the self-similar vs blade-only gap is large — 0.60+ vs
+0.37–0.44 — and the §6 prediction it confirms is mechanical, not marginal). A
+**high-fidelity MSI re-run is warranted** to firm up the absolute numbers before any
+publication-grade claim: the **full 7-object battery** at `NSTEPS = 24` and the finer
+`MESH_MAX/MIN = 1.3/0.5 · eff`, ideally at both the E40 and current-E bases, plus a
+mesh-convergence check at 2.0× (element count is held constant across scales by the
+`· eff` mesh sizing, but absolute resolution at 2.0× is the coarsest in the set). The
+flat-contact `pressure_cov` rise at 2.0× (§7.2) in particular deserves a finer mesh to
+confirm it is physical and not discretisation.

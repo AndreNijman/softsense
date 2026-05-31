@@ -1,0 +1,64 @@
+{
+  "generated": "2026-05-31T03:08:52",
+  "note": "Wet-grip re-evaluation of the SHIPPED crosshatch under GRIPPER_SCALE. grip_model.py is geometry-only; scale applied to input geometry by hand (sea objects do not scale, only the texture). Channel 0.54->0.81->1.08mm.",
+  "saturation_threshold_mm": 0.3,
+  "literature_gate_pass": true,
+  "scales": {
+    "1.0x": {
+      "geom_mm": {
+        "pitch": 1.8,
+        "channel": 0.54,
+        "land": 1.26,
+        "depth": 0.6
+      },
+      "channel_above_saturation": true,
+      "full_surrogate_score": 0.7501,
+      "cited_physics_core_score": 0.8176,
+      "psi_dewet_smooth_wet": 0.9935,
+      "edge_dens_per_mm": 2.2222,
+      "land_char_mm": 1.26,
+      "aspect": 0.4762,
+      "min_feat_mm": 0.54,
+      "printable": true
+    },
+    "1.5x": {
+      "geom_mm": {
+        "pitch": 2.7,
+        "channel": 0.81,
+        "land": 1.8900000000000001,
+        "depth": 0.8999999999999999
+      },
+      "channel_above_saturation": true,
+      "full_surrogate_score": 0.6634,
+      "cited_physics_core_score": 0.8159,
+      "psi_dewet_smooth_wet": 0.9857,
+      "edge_dens_per_mm": 1.4815,
+      "land_char_mm": 1.89,
+      "aspect": 0.4762,
+      "min_feat_mm": 0.81,
+      "printable": true
+    },
+    "2.0x": {
+      "geom_mm": {
+        "pitch": 3.6,
+        "channel": 1.08,
+        "land": 2.52,
+        "depth": 1.2
+      },
+      "channel_above_saturation": true,
+      "full_surrogate_score": 0.5835,
+      "cited_physics_core_score": 0.8136,
+      "psi_dewet_smooth_wet": 0.9753,
+      "edge_dens_per_mm": 1.1111,
+      "land_char_mm": 2.52,
+      "aspect": 0.4762,
+      "min_feat_mm": 1.08,
+      "printable": true
+    }
+  },
+  "full_score_softening_pct": {
+    "s1p5": -11.56,
+    "s2p0": -22.21
+  },
+  "core_invariance_pct_1to2": -0.49
+}

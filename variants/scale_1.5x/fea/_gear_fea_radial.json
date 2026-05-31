@@ -1,0 +1,68 @@
+{
+  "baseline_single_station": {
+    "sigma_at_10N_MPa": 11.9372,
+    "T_safe_Nm": 0.113,
+    "s_root_mm": 1.571
+  },
+  "radial_stations": [
+    {
+      "r": 7.5,
+      "s_root": 0.9817477042468102,
+      "h": 4.199999999999999,
+      "b_eff": 9.0,
+      "sigma_at_Fref": 30.520910668018104
+    },
+    {
+      "r": 9.75,
+      "s_root": 1.2762720155208533,
+      "h": 4.199999999999999,
+      "b_eff": 9.0,
+      "sigma_at_Fref": 18.0488258582307
+    },
+    {
+      "r": 12.0,
+      "s_root": 1.5707963267948966,
+      "h": 4.199999999999999,
+      "b_eff": 9.0,
+      "sigma_at_Fref": 11.937239185026375
+    },
+    {
+      "r": 14.25,
+      "s_root": 1.8653206380689396,
+      "h": 4.199999999999999,
+      "b_eff": 9.0,
+      "sigma_at_Fref": 8.472622448872487
+    },
+    {
+      "r": 16.5,
+      "s_root": 2.1598449493429825,
+      "h": 4.199999999999999,
+      "b_eff": 9.0,
+      "sigma_at_Fref": 6.308765521644146
+    }
+  ],
+  "worst_radial_station": {
+    "r": 7.5,
+    "s_root": 0.9817477042468102,
+    "sigma_at_10N_MPa": 30.520910668018104,
+    "F_allow_tooth_N": 9.82932662996719,
+    "T_safe_Nm": 0.0442
+  },
+  "thin_plate_inner_edge": {
+    "r_in": 7.5,
+    "r_out": 16.5,
+    "s_in": 0.9817477042468102,
+    "h": 4.199999999999999,
+    "b_eff": 9.0,
+    "sigma_inner_Lewis_MPa": 29.05080977393109,
+    "sigma_inner_2DFEA_MPa": 30.520910668018104,
+    "F_allow_tooth_N": 9.82932662996719,
+    "T_safe_Nm": 0.0442
+  },
+  "interpretation": [
+    "The crown is a 3D face-gear tooth. Tangential tooth thickness s_root grows with radius. The SHIPPED gear_fea.py single-station model evaluates at r=CROWN_RC (mid-station); a multi-station evaluation shows the INNER-edge slice (r=CROWN_RC-CROWN_TOOTH_H) is more highly stressed -- s_root there is smaller, so for the same tangential tooth force the root stress rises.",
+    "Per-station 2D plane-stress FEA across 5 radial stations: the worst is at r=7.50 mm with sigma@10N = 30.52 MPa (vs the single-station baseline of 11.94 MPa at r=CROWN_RC). Recomputed T_safe(crown, radial) = 0.044 N.m, vs the baseline 0.113 N.m.",
+    "An analytic 'thin-plate inner-edge' bound (Lewis-style cantilever at s_root = s_in, F applied at the tooth tip with the full mesh-band b_eff = 9.00 mm) gives sigma = 29.1 MPa at 10 N reference and T_safe = 0.044 N.m.",
+    "WHAT IS STILL MISSING: the base-disk bending compliance, the moving contact line under rotation, the tangential+radial+axial load decomposition of a real crown mesh, and the printed straight-flank-vs-involute edge-loading effect (PA12-GF face teeth in a real mesh will gall and edge-load, not roll cleanly). The 2D FEA here is a tighter upper bound, not a validated ceiling. The only real answer is the printed-coupon torque-to-failure measurement in motor/BENCH_TEST.md."
+  ]
+}

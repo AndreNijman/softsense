@@ -43,52 +43,61 @@ Capture proof (model-measured): at nominal the pin lip sits in the void pocket
 (0 mm³ interference); raise the pin 0.5 mm and the lip clashes the rigid
 shoulder (4.26 mm³) — the shoulder physically blocks pull-out.
 
-### 1b. Input-shaft axial capture (`input_pinion_shaft`) — collar in pocket
+### 1b. Input-shaft axial capture (`input_pinion_shaft`) — install-from-below
 
 The vertical input shaft is a separate printed part (`input_pinion_shaft`,
-PA12-GF). Its axis runs along model −Y (world-down). Axial capture uses the same
-rigid geometric principle as the axle dowels:
+PA12-GF). Its axis runs along model −Y (world-down).
 
-- **Two journal bearings** in the housing, bore radius `SHAFT_R_BORE = 4.3 mm`
-  (running clearance 0.3 mm around the 4.0 mm shaft radius):
-  - **Upper journal:** `DRIVE_UBORE_Y = (−15.5, −13.5)` → **2.0 mm** long,
-    in a boss standing up from the inside of the bottom wall. Alignment guide.
-  - **Lower journal:** `DRIVE_LBORE_Y = (−25.0, −18.0)` → **7.0 mm** long,
-    through the bottom wall and flange. Load-bearing exit bore.
+> **Corrected design.** An earlier version captured a mid-shaft COLLAR (OD 5.8 mm
+> > both 4.3 mm bores) in a pocket between the two journals. That was
+> geometrically captured but **un-installable**: the collar could not pass either
+> journal, and the housing parting plane (the front cover, at Z≈22) is ~11.5 mm
+> away from the journal (Z≈10.5), so it could not clamshell it either — the
+> one-piece shaft had no assembly path. The collar is **gone**. Capture is now at
+> the accessible ends:
 
-- **Integral capture collar** between the two journals:
-  - Collar OD: `SHAFT_COLLAR_R = 5.8 mm` (= `SHAFT_R + 1.8`) — wider than the
-    4.3 mm bore by **1.5 mm each side** (the rigid shoulder catch).
-  - Collar length: `SHAFT_COLLAR_T = 2.0 mm`, centred in a pocket of height
-    `DRIVE_POCKET_Y` span = 2.5 mm → **~0.25 mm axial play each side**.
-  - The pocket radius `POCKET_R = 6.0 mm` keeps a 0.2 mm radial clearance so
-    the collar spins freely.
-  - The two bore-mouth shoulders (where the bore narrows from pocket radius back
-    to journal radius) are the **rigid axial stops**: one prevents −Y pull-out,
-    the other prevents +Y push-in. No barb; no elastic preload; **geometric
-    capture** immune to creep relaxation.
+- **One continuous journal** in the housing, bore radius `SHAFT_R_BORE = 4.3 mm`
+  (running clearance 0.3 mm around the 4.0 mm shaft radius), made of the boss
+  upper bore + the wall/flange lower bore with no pocket between them — a longer,
+  uninterrupted bearing.
 
-- **Redundant shoulder** just below the flange (`SHAFT_SHOULDER_R = 5.8 mm`,
-  `SHAFT_SHOULDER_T = 2.0 mm`) provides a second +Y push-in stop and a clean
-  land for the D-coupler.
+- **Installable one-piece shaft.** Every feature from the pinion down is
+  ≤ `SHAFT_R = 4.0 mm` < bore, so the part drops **in from below** (−Y),
+  pinion-first up through the journal into the cavity (`PINION_TIP = 3.72 mm` <
+  bore → the pinion passes). Sequence: assemble the internals from the open
+  front and snap the cover on, then push the input shaft up from underneath.
 
-**Net axial play:** ~0.25 mm each side of the collar in the pocket — small
-enough to prevent wobble, large enough to assemble and disassemble without
-pressing. The shaft cannot pull out (−Y) or be pushed in (+Y) past either bore
-mouth shoulder.
+- **+Y push-in stop:** the bottom **shoulder** (`SHAFT_SHOULDER_R = 5.8 mm` >
+  bore) bottoms on the flange outer face. Rigid, geometric.
+
+- **−Y pull-out stop:** the bottom D-coupler engages the actuator horn-adapter /
+  wet D-socket bolted under the flange (`motor/cad/system_assembly.py`), which
+  blocks the shaft from dropping once the servo is mounted.
+
+The shaft cannot be pushed in (+Y) past the flange shoulder, and cannot pull out
+(−Y) once the actuator is bolted on.
 
 ### 1c. Right-angle crown↔pinion mesh — genuine tooth interleave
 
 The input pinion drives a crown (face-tooth) ring on the A_L crank gear. The
-mesh is **representative** (straight-flank, coupon-tunable, like the spur gears)
-but it is a REAL interleave, not a tip graze — verified two ways:
-- **Engagement depth:** `CROWN_FACE_H = 2.8 mm` tall face teeth; the pinion tips
-  dip `MESH_DEPTH = 2.2 mm` into them, so a pinion tooth sits well down in the
-  crown valley with flank contact (not tip-on-tip). Static mesh overlap ≈ 16.5 mm³.
-- **Interleave test (the proof):** rotating the pinion ±½ tooth about its own axis
-  (without moving the crown) swings the overlap **0 → 16.5 → 124 mm³** — teeth
-  clear into the gaps one way and collide the other. A graze would stay ~flat; this
-  periodic swing is the signature of teeth actually sitting in valleys.
+mesh is **representative** (straight-flank, coupon-tunable, like the spur gears).
+
+> **Corrected design.** An earlier version built the crown ring at full Z-height
+> with the face teeth living *inside* it — the teeth added ~0.3 mm³ (swallowed),
+> so the crown was a smooth washer and the pinion just plunged into solid material.
+> `_crown_gear` now builds a thin base ring + PROUD teeth with open valleys, and
+> their Z-extents are computed from the pinion so the crown tips clear the spinning
+> pinion ROOT cylinder (`CROWN_MESH_CLEAR = 0.4 mm`) while the valley floor sits
+> below the pinion tip. Teeth now add ~270 mm³.
+
+Verified as a real interleave, not a tip graze nor a core clash:
+- **Engagement:** the pinion tip drops into the crown valley with 0.4 mm floor
+  clearance; the crown tooth tips reach into the pinion tooth-gaps with 0.4 mm
+  clearance to the pinion root cylinder (so the pinion spins free).
+- **Interleave test (the proof):** rotating the pinion about its own axis (crown
+  fixed) swings the static overlap **3.0 mm³ (mesh phase) → 6.6 mm³ (¼ tooth) →
+  3.0 mm³** — phase-periodic. A graze or a core clash would stay flat; this swing
+  is the signature of teeth sitting in valleys and clearing into the gaps.
 Pitches match (crown 2π·8/24 = pinion 2π·3/9 = 2.09 mm), so rotation transmits.
 Tune backlash with a coupon print like the other gears.
 

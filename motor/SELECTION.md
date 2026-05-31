@@ -145,6 +145,33 @@ same torque ceiling, a per-servo current limit). The ratio stays 2.667:1 (anchor
 on the STS3215 rock-bottom torque floor). Sensing (`SENSING.md`)
 builds the current→force model on this drivetrain.
 
+### Selection holds across the self-similar scale (1.0× / 1.5× / 2.0×)
+
+`gripper.py`'s global `GRIPPER_SCALE` re-checked the gear ceiling against the
+selected servos at 1.0×, 1.5× and 2.0× (full study + power-law derivation in
+`DRIVETRAIN.md §9`; per-scale JSONs in `variants/scale_<k>x/fea/`). Self-similar
+scaling gives **`T_safe ~ k³`** (tooth root-bending capacity) and **deliverable
+tip force `~ k²`**, with `i_g` and `η` scale-invariant (counts + angles held).
+
+| `GRIPPER_SCALE` | `T_safe` (radial 2D) | per-finger force band | XW540 (9.5 N·m) | STS3250 (4.9 N·m) | STS3215 (2.94 N·m) |
+|---|---|---|---|---|---|
+| 1.0× | 0.0131 N·m | 0.14 – 0.28 N | ~725× | ~374× | ~224× |
+| 1.5× | 0.0442 N·m | 0.31 – 0.64 N | ~215× | ~111× | ~67× |
+| 2.0× | 0.1048 N·m | 0.55 – 1.13 N | ~91× | ~47× | ~28× |
+
+Because `T_safe ~ k³` outruns the **fixed** servo stall torque, the stall ÷ T_safe
+ratio *shrinks* with size — but that ratio is the **over-torque danger** (how hard a
+servo would smash the gears on a fault), not comfort headroom, so a shrinking ratio
+is *safer*, and even at 2.0× the weakest servo (STS3215) still over-torques by ~28×.
+**The drivetrain stays gear-limited at every scale in [1.0, 2.0], so the
+current-limit remains the mandatory protection on all three servos** — the
+*selection and the sensing pivot are scale-invariant*; only the per-scale `T_safe`
+current setpoint changes. The selected servos clear the load with large margin at
+every scale; none is the binding element. (Caveat: the 3D crown FEA does **not**
+scale self-similarly as configured — hardcoded `DISK_T` + absolute mesh — so the
+radial 2D bound is the scaling basis; an MSI self-similar 3D re-run is the
+high-fidelity follow-up, per `DRIVETRAIN.md §9.3`.)
+
 > **Rank-only caveat (carried from `grip/GRIP_MODEL.md`).** This selection ranks
 > actuators on sourced specs + judged scores; it does not certify an absolute
 > grip force or a depth rating for the built tool. Those come from the bench/

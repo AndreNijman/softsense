@@ -18,3 +18,9 @@ attic/
 
 # Render-frame scratch produced by scripts/render_full_system.sh
 motor/cad/output/frame_*.step
+
+# scaled-variant build logs (regenerable)
+variants/**/_*.log
+
+# Claude Code scratch worktrees (the workflow scripts under .claude/ are kept)
+.claude/worktrees/

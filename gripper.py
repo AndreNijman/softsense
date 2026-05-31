@@ -78,17 +78,48 @@ OPEN_NORM = _env_float("GRIPPER_OPEN", 0.5, 0.0, 1.0)
 FINGER_SCALE = _env_float("GRIPPER_FINGER_SCALE", 1.0, 0.6, 2.5)
 
 # --------------------------------------------------------------------------
+# GLOBAL SELF-SIMILAR SCALE (GRIPPER_SCALE env var). Multiplies EVERY linear
+# design dimension below -- lengths, radii, thicknesses, positions, walls,
+# gear pitch radii / tooth heights / face widths -- so the WHOLE gripper grows
+# geometrically (true mechanical similitude), NOT the old blade-only FINGER_SCALE.
+# This is the fix flagged in fea/SCALABILITY.md: scaling the blade alone left the
+# walls fixed (relatively thinner -> floppy >1.1x); scaling self-similarly keeps
+# the wall/blade ratio constant so a 1.5x / 2x finger stays as stiff as the 1x.
+#
+# DELIBERATELY HELD (NOT scaled by SCALE) -- these are NOT part-size functions:
+#   * print/tolerance process constants (PRINT_CLEAR, DFM_EDGE, CROWN_MESH_CLEAR,
+#     SNAP_CB_* clearances, SNAP_GAP/CLEAR, the running-fit gaps): set by the
+#     0.4 mm FDM nozzle, not the part. Pattern: scale the NOMINAL at its
+#     definition (e.g. PIN_R*=SCALE) and leave the additive clearance literal,
+#     so AXLE_BORE_R = PIN_R + PRINT_CLEAR holds the gap at every scale.
+#   * gear/rib COUNTS (GEAR_TEETH, CROWN_TEETH, PINION_TEETH, FR_N_RIBS): fixed
+#     counts + scaled radii => the gear MODULE scales and the mesh RATIO is intact.
+#   * ANGLES (THETA_CLOSED, OPEN_TRAVEL, *_DEG, slants): similitude preserves angles.
+#   * FASTENER sizes (BOLT_R / tap / clearance): an M4 is M4 at any scale; only the
+#     bolt-pattern POSITIONS scale. (Higher loads at >1x -> consider M5/M6 manually.)
+#   * flood/drain/vent hole RADII (DRAIN_R, COVER_VENT_R, AXLE_FLOOD_R): sized by
+#     absolute bubble/surface-tension + FDM floor physics, not part size; positions scale.
+#   * grip MICRO-TEXTURE (FR_GRIP_*): a LOCKED, separately-validated wet-grip optimum
+#     whose drainage is set by water-film physics (absolute), not part size -> a
+#     bigger finger simply carries MORE posts of the same size.
+#   * finish chamfers/fillets (DFM_EDGE, CHAM_*, R_VERT, R_TOP, FR_*_FILLET/CHAMFER):
+#     edge-break / anti-elephant-foot finishes; held (also keeps fillet ops robust).
+# Note: the mounting flange + D-coupler DO scale (must transmit ~k^2 torque), so the
+# separate motor/cad/adapters subsystem needs re-scaling downstream to re-mate.
+SCALE = _env_float("GRIPPER_SCALE", 1.0, 0.5, 3.0)
+
+# --------------------------------------------------------------------------
 # Kinematic parameters (mm, deg)  -- locked
 # --------------------------------------------------------------------------
-R_GEAR = 12.0                 # sector-gear pitch radius -> sets pivot spacing
+R_GEAR = 12.0 * SCALE         # sector-gear pitch radius -> sets pivot spacing
 PIVOT_SPACING = 2.0 * R_GEAR  # |A_L A_R| so the gears mesh on the centerline
 
 A_R = (PIVOT_SPACING / 2.0, 0.0)     # crank / gear pivot  = (12, 0)
-B_R = (26.0, 10.0)                   # follower pivot, outboard & low
+B_R = (26.0 * SCALE, 10.0 * SCALE)   # follower pivot, outboard & low
 
-R_CRANK = 34.0    # |A->C|  crank (gear arm) length
-R_FOLLOW = 32.0   # |B->D|  follower length
-R_COUPLER = 20.0  # |C->D|  coupler length (finger base bracket span)
+R_CRANK = 34.0 * SCALE    # |A->C|  crank (gear arm) length
+R_FOLLOW = 32.0 * SCALE   # |B->D|  follower length
+R_COUPLER = 20.0 * SCALE  # |C->D|  coupler length (finger base bracket span)
 
 THETA_CLOSED = 102.0   # crank up & slightly inward: jaws nearly touch closed
                        # (was 104.0; lowered 2deg so the closed C/D mount pins
@@ -102,21 +133,21 @@ OPEN_TRAVEL = 46.0     # crank rotates this many deg from closed to full open
 # Geometry parameters (mm)
 # --------------------------------------------------------------------------
 # Z layers (back -> front) so moving parts never share a plane
-T_CRANK = 5.0
-Z_CRANK0 = 1.0                        # crank + gear layer
-T_FOLLOW = 5.0
-Z_FOLLOW0 = 7.0                       # follower layer
-T_FINGER = 10.0                      # Fin Ray finger depth in Z (z 13..23)
-Z_FINGER0 = 13.0                      # finger layer
-LINK_W = 7.0          # link bar half-lobe width
-PIN_R = 2.3           # pivot pin radius
-PIN_HEAD_R = 3.6      # socket-head cap radius
-PIN_HEAD_T = 1.2      # cap height (sits ~flush in a counterbore)
+T_CRANK = 5.0 * SCALE
+Z_CRANK0 = 1.0 * SCALE                # crank + gear layer
+T_FOLLOW = 5.0 * SCALE
+Z_FOLLOW0 = 7.0 * SCALE                # follower layer
+T_FINGER = 10.0 * SCALE              # Fin Ray finger depth in Z (z 13..23)
+Z_FINGER0 = 13.0 * SCALE              # finger layer
+LINK_W = 7.0 * SCALE  # link bar half-lobe width
+PIN_R = 2.3 * SCALE   # pivot pin radius
+PIN_HEAD_R = 3.6 * SCALE  # socket-head cap radius
+PIN_HEAD_T = 1.2 * SCALE  # cap height (sits ~flush in a counterbore)
 
-# production / printability (FDM design-for-AM standards)
+# production / printability (FDM design-for-AM standards) -- HELD (process, not scaled)
 PRINT_CLEAR = 0.3     # mating clearance per side (FDM standard ~0.3 mm)
 DFM_EDGE = 0.4        # universal edge-break chamfer: no sharp edges
-AXLE_BORE_R = PIN_R + PRINT_CLEAR   # link/arm rides on its axle with clearance
+AXLE_BORE_R = PIN_R + PRINT_CLEAR   # link/arm rides on its axle with clearance (scaled pin + held gap)
 
 # --------------------------------------------------------------------------
 # RIGHT-ANGLE INPUT DRIVE (vertical input shaft + crown/pinion stage)
@@ -132,7 +163,7 @@ AXLE_BORE_R = PIN_R + PRINT_CLEAR   # link/arm rides on its axle with clearance
 # REPRESENTATIVE geometry (involute-free straight flanks, nominal pitch) meant
 # to be coupon-tuned for backlash/contact on the target printer -- NOT a final
 # tooth form. A_L keeps its spur rim teeth meshing A_R (drive is unbroken).
-SHAFT_R = 4.0         # vertical input-shaft radius
+SHAFT_R = 4.0 * SCALE # vertical input-shaft radius
 # --- crown / face-gear stage geometry (genuine shallow face mesh) -----------
 # This is a RADIAL-PINION FACE-GEAR mesh, NOT two interpenetrating bodies:
 #   * the CROWN is a thin FACE RING on the A_L gear's +Z face. Its teeth are
@@ -146,28 +177,32 @@ SHAFT_R = 4.0         # vertical input-shaft radius
 # tooth-tip overlap then collapses to ~0, proving this is a real tooth mesh and
 # not buried bodies. Representative straight-flank form (coupon-tunable), like
 # the spur gears elsewhere in this model.
-CROWN_RC = 8.0        # crown-gear pitch radius on the A_L gear face
-CROWN_Z = (6.0, 9.0)  # crown ring model-Z span (sits on the A_L gear +Z face)
-CROWN_TOOTH_H = 3.0   # crown tooth RADIAL band half-width about the pitch circle
+CROWN_RC = 8.0 * SCALE  # crown-gear pitch radius on the A_L gear face
+CROWN_Z = (6.0 * SCALE, 9.0 * SCALE)  # crown ring model-Z span (sits on the A_L gear +Z face)
+CROWN_TOOTH_H = 3.0 * SCALE  # crown tooth RADIAL band half-width about the pitch circle
                       # (raised 1.6->3.0 in the Phase-4 drivetrain restructure: the
                       # radial band IS the crown tooth's load-bearing FACE WIDTH in
                       # bending, so widening it ~halves root stress. See motor/DRIVETRAIN.md
                       # gear FEA. Pitch radius CROWN_RC is unchanged -> mesh ratio intact.)
-CROWN_FACE_H = 2.8    # crown tooth AXIAL proud height (teeth stand this far in +Z
-                      # from CROWN_Z[1] downward; the rest of the band is solid base).
-                      # Tall teeth + deep MESH_DEPTH -> the pinion tips sit well down
-                      # in the crown valleys (real interleave, not a tip graze).
+CROWN_FACE_H = 2.8 * SCALE  # crown tooth AXIAL proud height -- the gear-FEA REFERENCE
+                      # height (motor/scripts/gear_fea*.py model the root-bending
+                      # cantilever at this height -> a taller-than-actual tooth =
+                      # CONSERVATIVE T_safe). The ACTUAL meshing teeth are SHORTER:
+                      # _crown_gear computes their top/floor from the pinion so the
+                      # crown tips clear the spinning pinion ROOT cylinder (no bind)
+                      # and the valley floor sits below the pinion tip (real mesh).
+CROWN_MESH_CLEAR = 0.4  # radial clearance crown-tip<->pinion-root and floor<->pinion-tip
 CROWN_TEETH = 24      # crown face-tooth count (representative)
-PINION_RP = 3.0       # input-pinion pitch radius
-PINION_TEETH = 9      # pinion tooth count (representative; ratio CROWN/PINION)
-PINION_TOOTH_H = 1.6
-PINION_T = 8.0        # pinion thickness along its axis (model Y)
+PINION_RP = 3.0 * SCALE  # input-pinion pitch radius
+PINION_TEETH = 9      # pinion tooth count (representative; ratio CROWN/PINION) -- COUNT held
+PINION_TOOTH_H = 1.6 * SCALE
+PINION_T = 8.0 * SCALE  # pinion thickness along its axis (model Y)
                       # (raised 4.0->8.0 in the Phase-4 restructure: pinion face width
                       # is the safe strength lever -- root bending stress scales 1/face.
                       # Pitch radius PINION_RP unchanged -> mesh ratio intact. See
                       # motor/DRIVETRAIN.md; clearance re-verified by the interference check.)
 PINION_TIP = PINION_RP + 0.45 * PINION_TOOTH_H   # pinion tooth-tip radius
-MESH_DEPTH = 2.2      # how far the pinion tips dip into the crown teeth (deep enough
+MESH_DEPTH = 2.2 * SCALE  # how far the pinion tips dip into the crown teeth (deep enough
                       # that the tip sits in the valley with flank contact, not a graze)
 DRIVE_X = -A_R[0]                    # shaft/pinion model-X = A_L x = -12
 # Shaft/pinion axis model-Z: raise it so the pinion sits ABOVE the crown face and
@@ -179,50 +214,49 @@ DRIVE_Z = CROWN_Z[1] - MESH_DEPTH + PINION_TIP    # = 9 - 1 + 3.72 = 11.72
 PINION_YC = -CROWN_RC                 # pinion centre model-Y = -8 (the mesh azimuth)
 PINION_Y = (PINION_YC - PINION_T / 2.0, PINION_YC + PINION_T / 2.0)  # -10 .. -6
 SHAFT_R_BORE = SHAFT_R + PRINT_CLEAR  # journal-bore radius (running clearance)
-# TWO JOURNAL BEARINGS along model -Y, with a CAPTURED-COLLAR POCKET between them
-# (the same head+step-shoulder idea as the captured axle dowels). Stack (model-Y,
-# +Y up/cavity, -Y down/exit), bore radius SHAFT_R_BORE throughout:
-#   UPPER bore  : DRIVE_UBORE_Y  (in the boss)         -- alignment guide
-#   POCKET      : DRIVE_POCKET_Y (widened, straddles the cavity floor) -- holds collar
-#   LOWER bore  : DRIVE_LBORE_Y  (wall + flange)       -- the long load-bearing exit
-DRIVE_UBORE_Y = (-15.5, -13.5)       # upper journal bore: len 2.0
-DRIVE_POCKET_Y = (-18.0, -15.5)      # collar pocket: height 2.5 (straddles floor -17)
-DRIVE_LBORE_Y = (-25.0, -18.0)       # lower journal bore: len 7.0
-# AXIAL CAPTURE (the known failure point): a single integral SHAFT COLLAR (OD >
-# bore -> cannot pass either bore) sits in the pocket and is trapped between the
-# two bore-mouth shoulders -> NO pull-out (-Y), NO push-in (+Y), NO wobble. This
-# replaces depending on the pinion as a stop (pinion tip < bore, so it would slip
-# straight through). Plus a bottom SHOULDER under the flange for redundant +Y
-# capture and a clean coupler land.
-SHAFT_COLLAR_R = SHAFT_R + 1.8       # captured collar OD (5.8 > bore 4.3 -> 1.5 mm seat)
-SHAFT_COLLAR_T = 2.0                 # collar axial length (model Y); 0.25 mm play each side
-SHAFT_COLLAR_YC = (DRIVE_POCKET_Y[0] + DRIVE_POCKET_Y[1]) / 2.0   # -16.75 (pocket centre)
-SHAFT_COLLAR_Y = (SHAFT_COLLAR_YC - SHAFT_COLLAR_T / 2.0,
-                  SHAFT_COLLAR_YC + SHAFT_COLLAR_T / 2.0)          # -17.75 .. -15.75
-POCKET_R = SHAFT_COLLAR_R + 0.2      # pocket radius (collar spins free inside)
-SHAFT_SHOULDER_R = SHAFT_R + 1.8     # redundant bottom shoulder OD (> bore -> can't pass)
-SHAFT_SHOULDER_T = 2.0               # shoulder axial length (model Y)
-SHAFT_COUPLER_R = 5.0 # bottom coupler radius (D-profile for a servo/motor)
-SHAFT_COUPLER_LEN = 12.0
-SHAFT_DFLAT = 1.4     # D-flat depth on the coupler
+# TWO JOURNAL BEARINGS along model -Y, now a CONTINUOUS running bore (no mid
+# pocket -> one uninterrupted bearing length). Stack (model-Y, +Y up/cavity, -Y
+# down/exit), bore radius SHAFT_R_BORE throughout:
+#   UPPER bore : DRIVE_UBORE_Y  (in the boss)        -- alignment guide near pinion
+#   MID  bore  : DRIVE_MBORE_Y  (straddles the cavity floor)
+#   LOWER bore : DRIVE_LBORE_Y  (wall + flange)      -- the long load-bearing exit
+DRIVE_UBORE_Y = (-15.5 * SCALE, -13.5 * SCALE)  # upper journal bore: len 2.0
+DRIVE_MBORE_Y = (-18.0 * SCALE, -15.5 * SCALE)  # mid journal bore (straddles floor -17)
+DRIVE_LBORE_Y = (-25.0 * SCALE, -18.0 * SCALE)  # lower journal bore: len 7.0
+# AXIAL CAPTURE (revised so the one-piece shaft is actually INSTALLABLE). The old
+# design trapped a mid-shaft COLLAR (OD > both bores) in a pocket -- geometrically
+# captured but with NO assembly path: the collar could not pass either journal, so
+# the part could never be fitted. The collar is GONE. The shaft is now a plain
+# cylinder through the journals: everything from the pinion down is <= SHAFT_R <
+# bore, so the part installs FROM BELOW (-Y) -- pinion-first up into the cavity
+# (pinion tip < bore -> it passes the journals) until the bottom shoulder lands.
+# Capture:
+#   +Y push-in : the bottom SHOULDER (OD > bore) bottoms on the flange outer face.
+#   -Y pull-out: the D-coupler is engaged in the actuator horn-adapter / wet D-socket
+#                bolted under the flange -> geometric retention once the servo is on.
+SHAFT_SHOULDER_R = SHAFT_R + 1.8 * SCALE  # bottom shoulder OD (> bore -> +Y push-in stop)
+SHAFT_SHOULDER_T = 2.0 * SCALE       # shoulder axial length (model Y)
+SHAFT_COUPLER_R = 5.0 * SCALE  # bottom coupler radius (D-profile for a servo/motor)
+SHAFT_COUPLER_LEN = 12.0 * SCALE
+SHAFT_DFLAT = 1.4 * SCALE  # D-flat depth on the coupler
 
 # --- 3D-printed snap-pin geometry (replaces ALL metal pivot pins) ---
-SNAP_HEAD_R = PIN_R + 1.6        # flange that stops pull-through
-SNAP_HEAD_T = 1.8                # flange thickness (sits OUTSIDE the near face)
-SNAP_BARB_PROUD = 0.9            # lip sticks this far past PIN_R (-> r 3.2);
+SNAP_HEAD_R = PIN_R + 1.6 * SCALE  # flange that stops pull-through
+SNAP_HEAD_T = 1.8 * SCALE        # flange thickness (sits OUTSIDE the near face)
+SNAP_BARB_PROUD = 0.9 * SCALE    # lip sticks this far past PIN_R (-> r 3.2);
                                  # raised 0.7->0.9 so the lip catches 0.6 mm of
                                  # rigid counterbore shoulder (was 0.4 mm) while
                                  # keeping insertion strain in PETG's elastic band
-SNAP_BARB_LIP_T = 1.0            # axial length of the flat locking-lip face
+SNAP_BARB_LIP_T = 1.0 * SCALE    # axial length of the flat locking-lip face
                                  # (FLOOR: 2.5 perimeters @0.4 nozzle -- do NOT
                                  # reduce; the only marginal wall in the design)
-SNAP_BARB_LEAD = 3.0             # length of the tapered lead-in cone
-SNAP_TIP_R = 1.0                 # small flat at the very tip (printable)
-SNAP_SLOT_W = 1.0                # split-slot width (lets the tip flex)
-SNAP_SLOT_LEN = 9.0             # slot depth back from tip; lengthened 7->9 so the
+SNAP_BARB_LEAD = 3.0 * SCALE     # length of the tapered lead-in cone
+SNAP_TIP_R = 1.0 * SCALE         # small flat at the very tip (printable)
+SNAP_SLOT_W = 1.0 * SCALE        # split-slot width (lets the tip flex)
+SNAP_SLOT_LEN = 9.0 * SCALE     # slot depth back from tip; lengthened 7->9 so the
                                  # split cantilever is long enough that the larger
                                  # SEAT+PROUD insertion deflection stays <~3% strain
-SNAP_BARB_SEAT = 1.2           # catch-face axial overlap PAST the far face;
+SNAP_BARB_SEAT = 1.2 * SCALE   # catch-face axial overlap PAST the far face;
                                  # raised 0.30->1.2 (audit floor >=1.0) so the lip
                                  # has real axial capture vs creep + hygroscopic drift
 
@@ -239,19 +273,19 @@ SNAP_CB_RCLEAR = 0.45           # radial gap pocket-wall to lip; 0.45 keeps the
                                 # still grows 1.05 mm wide (robust axial bearing)
 SNAP_CB_FLOOR_CLEAR = 0.30      # axial gap lip-front-face to pocket floor
 
-GEAR_TEETH = 16
-GEAR_TOOTH_H = 3.0    # radial tooth height
-GEAR_SECTOR_DEG = 150.0   # gears are sectors, not full discs
+GEAR_TEETH = 16       # COUNT held (scaled radius + fixed count -> module scales, ratio intact)
+GEAR_TOOTH_H = 3.0 * SCALE  # radial tooth height
+GEAR_SECTOR_DEG = 150.0   # gears are sectors, not full discs -- ANGLE held
 
 # --- Fin Ray finger (TPU compliant jaw) parameters ---
-FR_BRACKET_W = 13.0    # mounting-bracket eye diameter
-FR_BLADE_LEN = 90.0    # contact beam length, base -> tip
-FR_BASE_WIDTH = 22.0   # triangle base width in X
-FR_CONTACT_OFFSET = 1.0  # contact face sits this far inboard of the centreline
-FR_BASE_DROP = 9.0     # triangle base sits this far below the top pin
-FR_WALL = 2.8          # beam / rib wall thickness (uniform default)
-FR_TIP_WIDTH = 2.0     # blade width at the blunt tip (sharp compliant taper)
-FR_N_RIBS = 14         # number of internal ribs (all same-direction slant)
+FR_BRACKET_W = 13.0 * SCALE  # mounting-bracket eye diameter
+FR_BLADE_LEN = 90.0 * SCALE  # contact beam length, base -> tip
+FR_BASE_WIDTH = 22.0 * SCALE  # triangle base width in X
+FR_CONTACT_OFFSET = 1.0 * SCALE  # contact face sits this far inboard of the centreline
+FR_BASE_DROP = 9.0 * SCALE  # triangle base sits this far below the top pin
+FR_WALL = 2.8 * SCALE  # beam / rib wall thickness (uniform default)
+FR_TIP_WIDTH = 2.0 * SCALE  # blade width at the blunt tip (sharp compliant taper)
+FR_N_RIBS = 14         # number of internal ribs (all same-direction slant) -- COUNT held
 FR_RIB_SLANT_DEG = 38.0
 FR_RIB_DIR = -1        # rib slant direction (+1 = up-toward-spine; -1 = reversed)
 # Directional / graded wall thickness. None -> fall back to FR_WALL (the original
@@ -265,14 +299,16 @@ FR_RIB_DIR = -1        # rib slant direction (+1 = up-toward-spine; -1 = reverse
 # BOTH square sizes (88 deg, old finger wrapped only the one it was tuned for), and
 # grips every size a consistent safe ~12 N (old finger swung 7x). Universal score
 # 0.65 vs 0.56 (old). All walls >= the ~1.0 mm / 2.5-perimeter FDM-TPU floor.
-FR_CONTACT_WALL = 1.2       # contact-beam wall (thin -> conforms, even pressure)
-FR_CONTACT_WALL_TIP = 1.2   # contact-beam wall at tip
-FR_SPINE_WALL = 1.8         # spine-beam wall at base
-FR_SPINE_WALL_TIP = 1.8     # spine-beam wall at tip
-FR_RIB_WALL = 1.6           # rib wall at base
-FR_RIB_WALL_TIP = 1.6       # rib wall at tip
-FR_INSET_BASE = 4.0    # solid floor across the bottom
-FR_INSET_TIP = 3.0     # solid cap at the apex
+# SELF-SIMILAR walls: these scale with SCALE (the SCALABILITY.md fix -- walls grow
+# with the blade so the wall/blade ratio is constant and the big finger stays stiff).
+FR_CONTACT_WALL = 1.2 * SCALE  # contact-beam wall (thin -> conforms, even pressure)
+FR_CONTACT_WALL_TIP = 1.2 * SCALE  # contact-beam wall at tip
+FR_SPINE_WALL = 1.8 * SCALE  # spine-beam wall at base
+FR_SPINE_WALL_TIP = 1.8 * SCALE  # spine-beam wall at tip
+FR_RIB_WALL = 1.6 * SCALE   # rib wall at base
+FR_RIB_WALL_TIP = 1.6 * SCALE  # rib wall at tip
+FR_INSET_BASE = 4.0 * SCALE  # solid floor across the bottom
+FR_INSET_TIP = 3.0 * SCALE  # solid cap at the apex
 MOUNT_HOLE_R = PIN_R + PRINT_CLEAR   # finger pin bore (FDM clearance)
 # grip texture: CROSSHATCH micro-posts on the contact face (so objects don't slip).
 # Optimised by a dedicated grip-texture FEA/swarm campaign (see grip/GRIP_TEXTURE.md):
@@ -282,22 +318,26 @@ MOUNT_HOLE_R = PIN_R + PRINT_CLEAR   # finger pin bore (FDM clearance)
 # crossing 0.54 mm channels squeeze the water film out (tyre-tread / tree-frog
 # mechanism) and the post edges break the glossy printed-TPU skin. Conservative
 # (>= 0.5 mm channel) variant: universal grip score 0.75 vs the smooth-face 0.25.
-FR_GRIP_DEPTH = 0.6     # post height proud of the contact face (mm); grip-neutral
-                        # above ~0.3 (drainage saturates) so kept at 0.6 for the
-                        # safe closed-pose finger-finger gap and a low post aspect
-FR_GRIP_PITCH = 1.8     # post pitch along the blade length Y (mm); land = pitch-FLAT
-FR_GRIP_Y0_FRAC = 0.15  # texture starts at this fraction of the blade length
-FR_GRIP_Y1_FRAC = 0.95  # texture ends at this fraction of the blade length
-FR_GRIP_ROOT_IN = 0.2   # post root sits this far INTO the body (fuses cleanly)
-FR_GRIP_FLAT = 0.54     # channel width between posts along Y (mm) -> land 1.26 mm
+# Grip micro-texture SCALES self-similarly with the gripper (×SCALE). The wet-grip
+# campaign found grip is grip-NEUTRAL above a ~0.3 mm channel (drainage saturates), and
+# the scaled channels stay above that at every scale (0.54 -> 0.81 -> 1.08 mm), so scaling
+# the cell is grip-safe (coarser channels drain at least as well) AND keeps the post COUNT
+# constant -- holding it absolute quadrupled the post count at 2x and made the finger build
+# ~10x slower. The closed-pose finger-finger gap also scales proportionally (no collision).
+FR_GRIP_DEPTH = 0.6 * SCALE  # post height proud of the contact face (mm)
+FR_GRIP_PITCH = 1.8 * SCALE  # post pitch along the blade length Y (mm); land = pitch-FLAT
+FR_GRIP_Y0_FRAC = 0.15  # texture starts at this fraction of the blade length -- FRACTION held
+FR_GRIP_Y1_FRAC = 0.95  # texture ends at this fraction of the blade length -- FRACTION held
+FR_GRIP_ROOT_IN = 0.2 * SCALE  # post root sits this far INTO the body (fuses cleanly)
+FR_GRIP_FLAT = 0.54 * SCALE  # channel width between posts along Y (mm) -> land 1.26 mm
 FR_GRIP_CROSS = True    # crosshatch: chop the Y-ridges into posts with Z-channels
-FR_GRIP_CROSS_PITCH = 1.8  # post pitch across the finger depth Z (mm)
-FR_GRIP_CROSS_GAP = 0.54   # channel width between posts along Z (mm)
+FR_GRIP_CROSS_PITCH = 1.8 * SCALE  # post pitch across the finger depth Z (mm)
+FR_GRIP_CROSS_GAP = 0.54 * SCALE   # channel width between posts along Z (mm)
 # print-friendly rounding (FDM TPU, prints flat on the z0 face)
 FR_BASE_CHAMFER = 0.5    # bottom-edge (bed face) chamfer: kills elephant-foot
 FR_CELL_FILLET = 0.8     # fillet radius on internal rib-cell / spar corners
 FR_TIP_FILLET = 1.5      # round the blade tip apex
-FR_GRIP_TIP_FLAT = 0.5   # half-width of the flat at each post tip (slight draft)
+FR_GRIP_TIP_FLAT = 0.5 * SCALE  # half-width of the flat at each post tip (slight draft)
 
 # --------------------------------------------------------------------------
 # Colours (clean industrial: dark slate body, matte-black TPU jaws, steel)
@@ -492,26 +532,37 @@ def gear(center, phase_deg, z0, thickness, label, color, bore=True):
 
 
 def _crown_gear(center, z_lo, z_hi, label, color):
-    """CROWN gear: a ring at `center` (axis model-Z) carrying RADIAL FACE TEETH on
-    its +Z face -- axial-proud blocks repeating around the pitch circle. It meshes
-    a spur pinion whose axis is perpendicular (model -Y), giving the 90deg turn.
-    Representative tooth form (coupon-tunable), like the spur gears in this model.
-    The ring sits ON the A_L gear's +Z face (z_lo..z_hi) and fuses into it; its
-    bore is left to drive_arm (it shares the A_L axle bore)."""
-    thickness = z_hi - z_lo
+    """CROWN gear: a thin BASE RING at `center` (axis model-Z) carrying RADIAL FACE
+    TEETH that stand PROUD in +Z -- axial blocks repeating around the pitch circle.
+    It meshes a spur pinion whose axis is perpendicular (model -Y), giving the 90deg
+    turn. Representative tooth form (coupon-tunable), like the spur gears in this
+    model. The ring sits ON the A_L gear's +Z face (z_lo..) and fuses into it; its
+    bore is left to drive_arm (it shares the A_L axle bore).
+
+    NOTE: the base ring is only (thickness - CROWN_FACE_H) tall; the teeth stand
+    CROWN_FACE_H PROUD above it with OPEN VALLEYS between them, so the input pinion's
+    tips drop into real tooth gaps. (Previously the ring was built full-height and
+    the teeth lived entirely inside it -> they added ~0 volume and the crown rendered
+    as a smooth washer with nothing for the pinion to mesh.)"""
     ro = CROWN_RC + CROWN_TOOTH_H        # outer radius of the toothed band
     ri = CROWN_RC - CROWN_TOOTH_H        # inner radius of the toothed band
-    ring = Cylinder(radius=ro, height=thickness).moved(
-        Location((0, 0, z_lo + thickness / 2.0)))
-    ring -= Cylinder(radius=ri, height=thickness * 3).moved(
-        Location((0, 0, z_lo + thickness / 2.0)))
-    # axial face teeth: short proud blocks standing CROWN_FACE_H in +Z off the top
-    # of the band. The lower (thickness - CROWN_FACE_H) of the band is a solid base
-    # fused to the A_L gear face. Only these short teeth stick up to mesh the
-    # pinion's bottom tooth tips -> a thin face ring, not a thick disc.
-    tooth_z = CROWN_FACE_H               # axial proud height of the face teeth
+    # Tooth Z extents set from the PINION so the mesh is real but does not bind:
+    #   valley floor sits CROWN_MESH_CLEAR below the pinion tip (the tip drops into
+    #   the gap); tooth top sits CROWN_MESH_CLEAR below the pinion ROOT cylinder, so
+    #   the proud crown tips clear the spinning pinion core (no interference bind).
+    pin_tip_z = DRIVE_Z - PINION_TIP
+    pin_root_z = DRIVE_Z - (PINION_RP - 0.55 * PINION_TOOTH_H)
+    valley_top = max(z_lo + 0.3, pin_tip_z - CROWN_MESH_CLEAR)   # base-ring top / floor
+    tooth_top = pin_root_z - CROWN_MESH_CLEAR                    # proud tooth tip
+    base_h = valley_top - z_lo
+    ring = Cylinder(radius=ro, height=base_h).moved(
+        Location((0, 0, z_lo + base_h / 2.0)))
+    ring -= Cylinder(radius=ri, height=base_h * 3).moved(
+        Location((0, 0, z_lo + base_h / 2.0)))
+    # proud face teeth standing from the base-ring top (valley_top) up to tooth_top,
+    # with OPEN valleys between them down to valley_top -> a real face mesh.
     step = 2 * math.pi / CROWN_TEETH
-    teeth = []
+    crown = ring
     for k in range(CROWN_TEETH):
         c = k * step
         # wedge tooth between two radii, half a pitch wide
@@ -519,13 +570,7 @@ def _crown_gear(center, z_lo, z_hi, label, color):
         for frac, r in ((-0.25, ri), (-0.12, ro), (0.12, ro), (0.25, ri)):
             aa = c + frac * step
             pts.append((r * math.cos(aa), r * math.sin(aa)))
-        teeth.append(_poly_solid(pts, z_hi - tooth_z, tooth_z))
-    if teeth:
-        crown = ring
-        for t in teeth:
-            crown = crown + t
-    else:
-        crown = ring
+        crown = crown + _poly_solid(pts, valley_top, tooth_top - valley_top)
     crown = crown.moved(Location((center[0], center[1], 0)))
     crown.label = label
     crown.color = color
@@ -937,21 +982,21 @@ def finger(side_pose, ref_pose, inner_dir, color, label):
 # through round through-holes (no trapped air -> no buoyancy / pressure
 # problems). Slot x-ranges come from the measured link sweep at the top wall.
 # --------------------------------------------------------------------------
-ENC_X = (-48.0, 48.0)        # outer width
-ENC_Y = (-20.0, 16.0)        # bottom -> top of top wall (top LOWERED to 16)
-ENC_Z = (-6.0, 24.0)         # back -> front (back wall slimmed 10->4 mm: the old
+ENC_X = (-48.0 * SCALE, 48.0 * SCALE)  # outer width
+ENC_Y = (-20.0 * SCALE, 16.0 * SCALE)  # bottom -> top of top wall (top LOWERED to 16)
+ENC_Z = (-6.0 * SCALE, 24.0 * SCALE)   # back -> front (back wall slimmed 10->4 mm: the old
                              # 10 mm back wall was legacy from the removed horizontal
                              # shaft; the vertical drive needs no depth there. Cuts
                              # the housing depth 36->30 mm for a slimmer profile. The
                              # stepped axle flood hole (nz0 = ENC_Z[0]-3) still exits.
-WALL = 3.0
-TOP_WALL_Y0 = 14.5           # inside face of the thin top wall (y 14.5..16)
-CAV_X = (-45.0, 45.0)        # interior clear cavity (holds the mechanism)
-CAV_Y = (-17.0, 14.5)
-CAV_Z = (-2.0, 22.0)
-SLOT_Z = (0.0, 22.0)         # slots cut the full cavity depth in Z
-SLOT_R = (2.5, 41.0)         # right top slot x-span (WIDENED so arms clear)
-SLOT_L = (-41.0, -2.5)       # left top slot x-span  (WIDENED so arms clear)
+WALL = 3.0 * SCALE
+TOP_WALL_Y0 = 14.5 * SCALE   # inside face of the thin top wall (y 14.5..16)
+CAV_X = (-45.0 * SCALE, 45.0 * SCALE)  # interior clear cavity (holds the mechanism)
+CAV_Y = (-17.0 * SCALE, 14.5 * SCALE)
+CAV_Z = (-2.0 * SCALE, 22.0 * SCALE)
+SLOT_Z = (0.0, 22.0 * SCALE)  # slots cut the full cavity depth in Z
+SLOT_R = (2.5 * SCALE, 41.0 * SCALE)  # right top slot x-span (WIDENED so arms clear)
+SLOT_L = (-41.0 * SCALE, -2.5 * SCALE)  # left top slot x-span  (WIDENED so arms clear)
 # --- VERTICAL input-shaft journals through the model -Y BOTTOM wall ---------
 # World-down = model -Y. The shaft runs along model -Y at (x=DRIVE_X, z=DRIVE_Z),
 # through the bottom wall (y in [-20,-17]), and exits into a bottom mounting
@@ -960,32 +1005,33 @@ SLOT_L = (-41.0, -2.5)       # left top slot x-span  (WIDENED so arms clear)
 #     the cavity, bored SHAFT_R_BORE; carries the load near the pinion.
 #   LOWER journal: the bottom wall itself + the flange thickness, bored
 #     SHAFT_R_BORE; the long exit bearing.
-# Between them the shaft's captured SHOULDER (OD > bore) sits in the gap and is
-# trapped against both bore mouths -> no pull-out, no wobble (axial capture).
+# The two bores are continuous (no mid pocket). Axial capture is at the ends: the
+# bottom SHOULDER bottoms on the flange (+Y), the coupler-in-servo takes -Y.
 # Upper journal boss: stand it up off the cavity floor toward the pinion, but cap
 # its top so it CLEARS the A_L crank-gear teeth tips. With the pinion stage raised
 # (PINION higher in -Y), the boss can no longer reach to 0.3 mm below the pinion --
 # that would drive the boss radius into the gear teeth (radius R_GEAR+tip from A_L,
 # i.e. straight down to model-Y = -(R_GEAR + 0.45*GEAR_TOOTH_H)). So cap the boss
 # top at that gear-tip Y minus 0.3 mm running clearance. The shaft simply spans the
-# short gap from the boss top up to the pinion (it is captured by the collar + the
-# long lower bore; this upper boss is only the alignment journal).
+# short gap from the boss top up to the pinion (this upper boss is the alignment
+# journal; the long lower bore carries the load).
 _GEAR_TIP_Y = -(R_GEAR + 0.45 * GEAR_TOOTH_H)            # -13.35 (gear teeth reach here)
 DRIVE_BOSS_Y = (CAV_Y[0], min(PINION_Y[0] - 0.3, _GEAR_TIP_Y - 0.3))  # -17 .. -13.65
-DRIVE_BOSS_R = SHAFT_R + 2.4                 # boss OD -> >=2 mm wall around bore
-BOT_FLANGE_Y = (-25.0, ENC_Y[0])            # bottom mounting flange: y -25 .. -20
+DRIVE_BOSS_R = SHAFT_R + 2.4 * SCALE         # boss OD -> >=2 mm wall around bore
+BOT_FLANGE_Y = (-25.0 * SCALE, ENC_Y[0])    # bottom mounting flange: y -25 .. -20
 BOT_FLANGE_X = ENC_X                          # flush with the body sides: the base is
                                              # a seamless continuation of the shell
                                              # (no tacked-on narrower lip, and no
                                              # downward side-overhang to support)
-BOT_FLANGE_Z = (ENC_Z[0], 22.0)              # back flush with the body; front stops at
+BOT_FLANGE_Z = (ENC_Z[0], 22.0 * SCALE)      # back flush with the body; front stops at
                                              # the cavity (front frame + cover above)
 FLANGE_TY = (BOT_FLANGE_Y[1] - BOT_FLANGE_Y[0])   # flange thickness in Y (5)
 BOLT_R = 2.25                # M4 clearance
 # bolt holes on the bottom flange: a clean symmetric 4 at the flange corners, clear
 # of the shaft exit (x=-12, z=10.52), its lower bore, and the drains (was an
 # asymmetric 5 that read as random).
-BOLT_XZ = [(-38.0, 2.0), (38.0, 2.0), (-38.0, 18.0), (38.0, 18.0)]
+BOLT_XZ = [(-38.0 * SCALE, 2.0 * SCALE), (38.0 * SCALE, 2.0 * SCALE),
+           (-38.0 * SCALE, 18.0 * SCALE), (38.0 * SCALE, 18.0 * SCALE)]
 R_VERT = 6.0                 # vertical corner radius (4->6: rounder uprights read
                              # as a designed enclosure, not a brick; still clears the
                              # cavity wall at the slim back corners)
@@ -999,20 +1045,20 @@ CHAM_COVER = 1.2            # matching chamfer on the front-cover outer perimete
 # With model -Y now WORLD-DOWN, the model -Y bottom wall is the low point. Drains
 # there let water in/out; the +Y top slots are the high vent (no trapped pocket).
 DRAIN_R = 2.5
-DRAIN_BOTTOM_X = [-30.0, 0.0, 16.0, 30.0]   # bottom-wall rows (clear of shaft x=-12
+DRAIN_BOTTOM_X = [-30.0 * SCALE, 0.0, 16.0 * SCALE, 30.0 * SCALE]  # bottom-wall rows (clear of shaft x=-12
                                             # and of the corner bolts at x=+-38)
-DRAIN_SIDE_YZ = [(-14.0, 4.0), (-14.0, 16.0)]      # low side-wall holes (along X)
+DRAIN_SIDE_YZ = [(-14.0 * SCALE, 4.0 * SCALE), (-14.0 * SCALE, 16.0 * SCALE)]  # low side-wall holes (along X)
 
 # --- assembly split: open-front body + bolt-on front cover ---------------
 COVER_COLOR = Color(0.33, 0.35, 0.40)   # cover: slightly lighter than ENC
-FRONT_WALL_Z = (22.0, 24.0)             # old solid front wall, now removed
+FRONT_WALL_Z = (22.0 * SCALE, 24.0 * SCALE)  # old solid front wall, now removed
 AXLE_PIVOTS = [A_R, B_R, mirror_x(B_R), mirror_x(A_R)]  # captured-axle pivots
 # (A_L now rides on its OWN snap-pin axle too: the old integral input shaft is
 #  gone -- A_L is driven by the crown gear, so it needs a normal pivot axle.)
 AXLE_SCREW_R = AXLE_BORE_R              # snap-pin shank clearance (was M3)
-BOSS_OD_R = AXLE_SCREW_R + 2.0          # axle boss OD -> 2 mm wall around bore (DFM min)
-BACK_BOSS_Z = (-2.0, 1.0)              # back-wall boss into cavity
-COVER_BOSS_Z = (20.0, 22.0)            # cover inner-face boss into cavity
+BOSS_OD_R = AXLE_SCREW_R + 2.0 * SCALE  # axle boss OD -> 2 mm wall around bore (DFM min)
+BACK_BOSS_Z = (-2.0 * SCALE, 1.0 * SCALE)  # back-wall boss into cavity
+COVER_BOSS_Z = (20.0 * SCALE, 22.0 * SCALE)  # cover inner-face boss into cavity
 # --- axle dowel axial sandwich (geometric capture, no barb) ---
 # The plain axle dowel is trapped between the BACK boss and the COVER boss with no
 # slop: its head (SNAP_HEAD_R, wider than the AXLE_SCREW_R bore) cannot pass the
@@ -1039,20 +1085,20 @@ CORNER_BOSS_R = 3.0                     # screw-boss outer radius
 CORNER_TAP_R = 1.35                    # M3 tap (self-tap into body column)
 CORNER_CLEAR_R = 1.7                   # M3 clearance hole in the cover
 CORNER_BOSS_Z = (-2.0, 22.0)           # (legacy; replaced by snap clips)
-COVER_Z = (22.0, 25.0)                 # bolt-on cover plate
+COVER_Z = (22.0 * SCALE, 25.0 * SCALE)  # bolt-on cover plate
 
 # --- front-cover vent holes (underwater audit C-6): let trapped air escape when
 # the gripper is front-up. Placed over the OPEN cavity (Y in [-17,14.5], X in
 # [-45,45]), biased +Y so they are the high point fingers-up, one near each side
 # to cover roll, clear of the 3 cover axle bosses and the snap-clip windows. ---
 COVER_VENT_R = 0.9                      # 1.8 mm dia (> 1.5 mm bubble/FDM floor)
-COVER_VENT_XY = [(-34.0, 12.0), (0.0, 12.0), (34.0, 12.0)]   # clean symmetric row,
+COVER_VENT_XY = [(-34.0 * SCALE, 12.0 * SCALE), (0.0, 12.0 * SCALE), (34.0 * SCALE, 12.0 * SCALE)]   # clean symmetric row,
                                         # >=8 mm from any boss centre
 
 # --- snap-clip front cover (tool-free, zero hardware) -------------------
-SNAP_Y = [-9.0, 7.0]                 # clip y-centres on each side wall
-SNAP_ARM_W = 9.0                     # clip width along Y (flexing beam width)
-SNAP_ARM_T = 2.0                     # arm radial thickness (X) -- thinned 2.8->2.0:
+SNAP_Y = [-9.0 * SCALE, 7.0 * SCALE]  # clip y-centres on each side wall
+SNAP_ARM_W = 9.0 * SCALE             # clip width along Y (flexing beam width)
+SNAP_ARM_T = 2.0 * SCALE             # arm radial thickness (X) -- thinned 2.8->2.0:
                                      # cuts outward protrusion 3.2->2.4 mm (sleeker,
                                      # blade-like tab) AND, since bending strain is
                                      # LINEAR in thickness (eps = 3*t*d/(2*L^2)),
@@ -1064,17 +1110,17 @@ SNAP_TIP_CHAM = 1.0                  # bevel on the free-tip proud edge so the t
                                      # reads as an intentional blade, not a nub
                                      # (free tip = print-top -> self-supporting)
 SNAP_GAP = 0.40                      # standoff: arm inner face clears wall outer
-SNAP_Z0 = 1.5                        # arm root region near hook (back end)
+SNAP_Z0 = 1.5 * SCALE                # arm root region near hook (back end)
                                      # (was 6.5; lowered to lengthen the clip
                                      # cantilever -> bending strain drops from
                                      # ~3.32% to ~1.9% so PA12-GF (brittle,
                                      # allowable ~1.5-2.0%) survives insertion.)
-SNAP_HOOK_Z = (7.0, 10.0)            # hook lip Z-span
-SNAP_HOOK_ENGAGE = 1.5               # how far the hook reaches inward into wall
-SNAP_CLEAR = 0.35                    # engagement clearance
-SNAP_LEADIN = 2.0                    # lead-in chamfer run at the hook back end
+SNAP_HOOK_Z = (7.0 * SCALE, 10.0 * SCALE)  # hook lip Z-span
+SNAP_HOOK_ENGAGE = 1.5 * SCALE       # how far the hook reaches inward into wall
+SNAP_CLEAR = 0.35                    # engagement clearance -- HELD (process)
+SNAP_LEADIN = 2.0 * SCALE            # lead-in chamfer run at the hook back end
 SNAP_WIN_Z = (SNAP_HOOK_Z[0] - SNAP_CLEAR, SNAP_HOOK_Z[1] + SNAP_CLEAR)
-SNAP_WIN_DY = 11.0                   # window length along Y (clears arm width)
+SNAP_WIN_DY = 11.0 * SCALE           # window length along Y (clears arm width)
 _WALL_OUT_R = ENC_X[1]               # +48 outer face of right wall
 _ARM_IN_R = _WALL_OUT_R + SNAP_GAP   # inner face of the arm
 _ARM_OUT_R = _ARM_IN_R + SNAP_ARM_T  # outer face of the arm
@@ -1201,15 +1247,15 @@ def build_enclosure():
             except Exception:
                 pass
 
-    # VERTICAL input-shaft journal: UPPER bore + COLLAR POCKET + LOWER bore, all
-    # at (x=DRIVE_X, z=DRIVE_Z), axis model -Y. The pocket (POCKET_R > bore) sits
-    # between the two bores; its two bore-mouth shoulders are the rigid axial stops
-    # that trap the shaft collar (geometric capture, like the axle dowels' step).
+    # VERTICAL input-shaft journal: one CONTINUOUS running bore (SHAFT_R_BORE) from
+    # the flange bottom up through the wall and the boss, all at (x=DRIVE_X,
+    # z=DRIVE_Z), axis model -Y. No pocket (the old collar is gone): an uninterrupted
+    # bearing the shaft slides up into from below.
     def _bore_y(r, y0, y1):
         return Cylinder(radius=r, height=(y1 - y0)).moved(
             Location((DRIVE_X, (y0 + y1) / 2.0, DRIVE_Z), (1, 0, 0), -90.0))
     body -= _bore_y(SHAFT_R_BORE, DRIVE_UBORE_Y[0], DRIVE_BOSS_Y[1] + 0.02)  # upper bore
-    body -= _bore_y(POCKET_R, DRIVE_POCKET_Y[0], DRIVE_POCKET_Y[1])          # collar pocket
+    body -= _bore_y(SHAFT_R_BORE, DRIVE_MBORE_Y[0], DRIVE_MBORE_Y[1])        # mid bore
     body -= _bore_y(SHAFT_R_BORE, BOT_FLANGE_Y[0] - 1.0, DRIVE_LBORE_Y[1])   # lower bore
 
     # STEPPED back axle bore: wide running bore (AXLE_SCREW_R) from the cavity down
@@ -1248,7 +1294,7 @@ def build_enclosure():
     d_y0 = BOT_FLANGE_Y[0] - 2.0
     d_y1 = CAV_Y[0] + 0.5
     for dx in DRAIN_BOTTOM_X:
-        for dz in (4.0, 16.0):
+        for dz in (4.0 * SCALE, 16.0 * SCALE):
             body -= Cylinder(radius=DRAIN_R, height=(d_y1 - d_y0)).moved(
                 Location((dx, (d_y0 + d_y1) / 2.0, dz), (1, 0, 0), -90.0))
     for (sy, sz) in DRAIN_SIDE_YZ:
@@ -1337,21 +1383,21 @@ def _pinion_spin_deg(open_norm):
 
 
 def build_input_drive(open_norm):
-    """ONE printed part: input PINION integral with the vertical input SHAFT,
-    captured collar + coupler. Axis = model -Y (-> world DOWN after +90X reorient).
+    """ONE printed part: input PINION integral with the vertical input SHAFT +
+    coupler. Axis = model -Y (-> world DOWN after +90X reorient).
     Stack (model-Y, +Y is up/cavity, -Y is down/exit):
-        pinion        y in PINION_Y          (-9 .. -13)   meshes the crown
-        upper journal y in DRIVE_UBORE_Y     (-13.5 .. -15.5)  rides UPPER bore
-        CAPTURE COLLAR y in SHAFT_COLLAR_Y   (-15.75 .. -17.75) trapped in POCKET
-        lower journal y in DRIVE_LBORE_Y     (-18 .. -25)  rides LOWER bore (load)
-        shoulder      y just below the flange (-25 .. -27)  redundant +Y stop
+        pinion        y in PINION_Y          (-4 .. -12)   meshes the crown
+        journal shaft y -12 .. -25 (SHAFT_R)  rides the continuous UPPER+LOWER bore
+        shoulder      y just below the flange (-25 .. -27)  +Y push-in stop
         D-coupler     y below the shoulder    (-27 .. -39)  servo/motor interface
-    AXIAL CAPTURE (the known failure point, now solved geometrically): the COLLAR
-    (OD SHAFT_COLLAR_R > bore) sits in the housing POCKET between the two journal
-    bores and is trapped by both bore-mouth shoulders -> stops BOTH -Y pull-out
-    AND +Y push-in, no wobble. (Same head+step idea as the captured axle dowels;
-    the pinion itself is too small to act as a stop.) Printed, zero hardware.
-    Material PA12-GF (stiff, low-creep) so the journals stay round."""
+    INSTALLABLE one-piece shaft: every feature from the pinion down is <= SHAFT_R <
+    bore, so the part drops IN FROM BELOW (-Y), pinion-first up through the journals
+    into the cavity, until the bottom SHOULDER (OD > bore) bottoms on the flange
+    outer face (the +Y push-in stop). -Y pull-out is taken by the D-coupler engaged
+    in the actuator horn-adapter bolted under the flange. (The old mid-shaft collar
+    was geometrically captured but un-installable -- it could not pass either bore;
+    it is gone, which also gives a longer uninterrupted journal.) Printed, zero
+    hardware. Material PA12-GF (stiff, low-creep) so the journals stay round."""
     # --- pinion (axis model -Y) ---
     pin_t = PINION_T
     pinion = _spur_pinion(pin_t, "pinion", color=DARK)
@@ -1369,10 +1415,7 @@ def build_input_drive(open_norm):
     # flange bottom (BOT_FLANGE_Y[0]); journals are the boss + flange bore spans.
     shaft = _cyl_y(SHAFT_R, BOT_FLANGE_Y[0], PINION_Y[0] + 0.01)
 
-    # --- captured COLLAR in the housing pocket (the primary axial capture) ---
-    collar = _cyl_y(SHAFT_COLLAR_R, SHAFT_COLLAR_Y[0], SHAFT_COLLAR_Y[1])
-
-    # --- captured shoulder just below the flange bottom face (+Y push-in stop) ---
+    # --- shoulder just below the flange bottom face (the +Y push-in stop) ---
     sh_y0 = BOT_FLANGE_Y[0] - SHAFT_SHOULDER_T
     shoulder = _cyl_y(SHAFT_SHOULDER_R, sh_y0, BOT_FLANGE_Y[0] + 0.01)
 
@@ -1384,7 +1427,7 @@ def build_input_drive(open_norm):
     coupler -= Box(SHAFT_DFLAT * 2, SHAFT_COUPLER_LEN + 2, 4 * SHAFT_COUPLER_R).moved(
         Location((SHAFT_COUPLER_R, (cp_y0 + cp_y1) / 2.0, 0)))
 
-    part = pinion + shaft + collar + shoulder + coupler
+    part = pinion + shaft + shoulder + coupler
     part = part.moved(Location((0, 0, 0), (0, 1, 0), _pinion_spin_deg(open_norm)))
     part = part.moved(Location((DRIVE_X, 0.0, DRIVE_Z)))
     part.label = "input_pinion_shaft"
@@ -1451,7 +1494,8 @@ def gen_step():
                 # (was far + SNAP_CB_DEPTH + SNAP_BARB_SEAT, which left 0 gap.)
                 far = Z_CRANK0 if j == "C" else Z_FOLLOW0
                 pin_z0 = far + SNAP_BARB_LIP_T + SNAP_BARB_SEAT
-                parts.append(snap_pin(pose[j], pin_z0, 23.0, head_at="z1", label=lbl))
+                parts.append(snap_pin(pose[j], pin_z0, Z_FINGER0 + T_FINGER,
+                                      head_at="z1", label=lbl))
             else:                  # axles: plain dowels dropped in from the front,
                                    # SANDWICHED with no slop between the back boss
                                    # (head too wide to pass its bore -> -Z stop) and

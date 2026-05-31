@@ -8,6 +8,15 @@ gear/linkage drive is housed in a clean **flooded enclosure** designed for
 **underwater** use (drain/flood holes, corrosion-resistant material choices —
 see `UNDERWATER.md`).
 
+> **📐 Scaled-up variants for underwater archaeology — see [`SCALE_UP.md`](SCALE_UP.md).**
+> The base model is small (jaw opens to ~118 mm at the tips). A global self-similar
+> `GRIPPER_SCALE` env var scales the **whole** gripper (walls included), with **1.5×** and
+> **2.0×** variants generated and fully re-simulated: jaw opens to **186 mm / 248 mm** at the
+> tips, finger 135 mm / 180 mm, ~0.23 kg / ~0.54 kg, all parts still fit the 256 mm P1S bed.
+> Print-ready parts + plates in `variants/scale_1.5x/` and `variants/scale_2.0x/`. The
+> self-similar finger keeps its grasp score where the old blade-only scaling went floppy
+> (FEA: `fea/SCALABILITY.md`).
+
 ## Mechanism (one DOF)
 
 - Two equal **spur gears** mesh on the centreline. The **left gear (A_L) is
