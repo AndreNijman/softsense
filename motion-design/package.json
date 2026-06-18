@@ -1,0 +1,26 @@
+{
+  "name": "softsense-motion-design",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Motion-design field film for the underwater geared four-bar gripper (Remotion)",
+  "scripts": {
+    "dev": "remotion studio",
+    "render": "remotion render InTheField out/softsense-in-the-field.mp4 --browser-executable=/usr/bin/chromium",
+    "render:preview": "remotion render InTheField out/preview.mp4 --browser-executable=/usr/bin/chromium --scale=0.5",
+    "still": "remotion still InTheField out/still.png --browser-executable=/usr/bin/chromium",
+    "smoke": "remotion render Smoke out/smoke.mp4 --browser-executable=/usr/bin/chromium"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.474",
+    "@remotion/gif": "4.0.474",
+    "@remotion/shapes": "4.0.474",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "remotion": "4.0.474"
+  },
+  "devDependencies": {
+    "@types/react": "18.3.12",
+    "@types/react-dom": "18.3.1",
+    "typescript": "5.6.3"
+  }
+}
