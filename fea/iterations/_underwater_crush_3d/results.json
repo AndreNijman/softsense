@@ -1,11 +1,11 @@
 {
   "mesh": {
-    "n_nodes_2d": 1434,
-    "n_tris": 2225,
-    "n_nodes_3d": 8604,
-    "n_tets": 33375,
+    "n_nodes_2d": 1441,
+    "n_tris": 2239,
+    "n_nodes_3d": 8646,
+    "n_tets": 33585,
     "n_layers": 5,
-    "ndof": 25812
+    "ndof": 25938
   },
   "material": {
     "E_TPU": 7.4,
@@ -27,51 +27,51 @@
     {
       "depth_m": 10.0,
       "P_MPa": 0.1005525,
-      "peak_vM_MPa": 1.2580740301572038,
-      "median_vM_MPa": 0.23053192297568795,
-      "peak_disp_um": 9492.223851136627,
-      "contact_wall_disp_um": 8677.80345691499,
-      "margin_to_yield": 17.725506977688337,
+      "peak_vM_MPa": 1.2583380340234995,
+      "median_vM_MPa": 0.22889673533546342,
+      "peak_disp_um": 9485.965700519278,
+      "contact_wall_disp_um": 8667.510138627493,
+      "margin_to_yield": 17.721788102276776,
       "survives": true
     },
     {
       "depth_m": 30.0,
       "P_MPa": 0.3016575,
-      "peak_vM_MPa": 3.774222090471617,
-      "median_vM_MPa": 0.6915957689270629,
-      "peak_disp_um": 28476.671553409833,
-      "contact_wall_disp_um": 26033.410370744947,
-      "margin_to_yield": 5.908502325896103,
+      "peak_vM_MPa": 3.7750141020703953,
+      "median_vM_MPa": 0.6866902060063885,
+      "peak_disp_um": 28457.897101557694,
+      "contact_wall_disp_um": 26002.530415882386,
+      "margin_to_yield": 5.9072627007590865,
       "survives": true
     },
     {
       "depth_m": 100.0,
       "P_MPa": 1.005525,
-      "peak_vM_MPa": 12.58074030157216,
-      "median_vM_MPa": 2.30531922975687,
-      "peak_disp_um": 94922.2385113663,
-      "contact_wall_disp_um": 86778.03456914997,
-      "margin_to_yield": 1.7725506977688164,
+      "peak_vM_MPa": 12.58338034023466,
+      "median_vM_MPa": 2.28896735335463,
+      "peak_disp_um": 94859.65700519273,
+      "contact_wall_disp_um": 86675.101386275,
+      "margin_to_yield": 1.7721788102277247,
       "survives": true
     },
     {
       "depth_m": 200.0,
       "P_MPa": 2.01105,
-      "peak_vM_MPa": 25.16148060314432,
-      "median_vM_MPa": 4.61063845951374,
-      "peak_disp_um": 189844.4770227326,
-      "contact_wall_disp_um": 173556.06913829994,
-      "margin_to_yield": 0.8862753488844082,
+      "peak_vM_MPa": 25.16676068046932,
+      "median_vM_MPa": 4.57793470670926,
+      "peak_disp_um": 189719.31401038545,
+      "contact_wall_disp_um": 173350.20277255,
+      "margin_to_yield": 0.8860894051138624,
       "survives": false
     },
     {
       "depth_m": 300.0,
       "P_MPa": 3.016575,
-      "peak_vM_MPa": 37.742220904716206,
-      "median_vM_MPa": 6.915957689270631,
-      "peak_disp_um": 284766.7155340986,
-      "contact_wall_disp_um": 260334.10370744922,
-      "margin_to_yield": 0.5908502325896098,
+      "peak_vM_MPa": 37.75014102070415,
+      "median_vM_MPa": 6.866902060063892,
+      "peak_disp_um": 284578.97101557755,
+      "contact_wall_disp_um": 260025.30415882415,
+      "margin_to_yield": 0.5907262700759056,
       "survives": false
     }
   ]
