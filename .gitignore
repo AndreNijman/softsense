@@ -24,3 +24,14 @@ variants/**/_*.log
 
 # Claude Code scratch worktrees (the workflow scripts under .claude/ are kept)
 .claude/worktrees/
+
+# Assembly-animation scratch: ~2 GB of per-frame STEP/GLB/PNG + logs.
+# The finished assembly mp4/gif are checked in under renders/.
+anim/
+
+# Intermediate per-frame PNG sequences from render scripts (regenerable;
+# the composed gifs/mp4s and summary stills are kept).
+renders/**/_frames_*/
+
+# Dated .docx backups (the live document is tracked).
+*.backup-*.docx
