@@ -146,8 +146,13 @@ PIN_HEAD_T = 1.2 * SCALE  # cap height (sits ~flush in a counterbore)
 
 # production / printability (FDM design-for-AM standards) -- HELD (process, not scaled)
 PRINT_CLEAR = 0.3     # mating clearance per side (FDM standard ~0.3 mm)
+PIN_FIT_CLEAR = 0.15  # TIGHTER running-fit per side for printed PIVOTS (was 0.30):
+                      # the four-bar bores rode 0.6 mm loose diametral -> visible
+                      # wobble. 0.15/side is a snug printed running fit. HELD (process).
 DFM_EDGE = 0.4        # universal edge-break chamfer: no sharp edges
-AXLE_BORE_R = PIN_R + PRINT_CLEAR   # link/arm rides on its axle with clearance (scaled pin + held gap)
+AXLE_BORE_R = PIN_R + PIN_FIT_CLEAR   # link/arm/gear runs on its axle pin: snug running fit
+                                      # (scaled pin + held gap). NOTE: the FINGER bore stays
+                                      # MOUNT_HOLE_R = PIN_R+PRINT_CLEAR (already-printed TPU).
 
 # --------------------------------------------------------------------------
 # RIGHT-ANGLE INPUT DRIVE (vertical input shaft + crown/pinion stage)
@@ -310,6 +315,52 @@ FR_RIB_WALL_TIP = 1.6 * SCALE  # rib wall at tip
 FR_INSET_BASE = 4.0 * SCALE  # solid floor across the bottom
 FR_INSET_TIP = 3.0 * SCALE  # solid cap at the apex
 MOUNT_HOLE_R = PIN_R + PRINT_CLEAR   # finger pin bore (FDM clearance)
+# !!! FIXED GEOMETRY: the TPU fingers are ALREADY PRINTED. MOUNT_HOLE_R (r 2.6 at
+# SCALE 1, a 10 mm-deep through-bore in stiff 100%-dense TPU) MUST NOT CHANGE -- the
+# pin redesign below works WITHIN this bore, never against it. Do not "fix" wobble or
+# the snap by re-boring the finger; fix it on the pin / the rigid arm+follower eyes.
+
+# --------------------------------------------------------------------------
+# FINGER PIVOT PINS (C, D) -- redesigned 2026-06 to (1) stop the barb breaking
+# in the stiff already-printed TPU finger and (2) kill the pivot wobble, WITHOUT
+# touching the finger. Principle (the discriminator): SEPARATE the two jobs the
+# old barb did badly at once -- gentle transit of the TPU bore, AND a strong
+# catch. The new pin:
+#   * transits the fixed TPU finger bore at ~ZERO interference (barb free radius
+#     <= bore so the sprung tip never strains in the stiff TPU -> cannot break),
+#   * does ALL its snapping in the RIGID arm/follower eye, which is RE-BORED
+#     narrower so the slim barb springs onto a real shoulder there (PETG-on-PETG,
+#     the regime the snap was always tuned for),
+#   * carries a FAT bearing neck (close running fit in the fixed 2.6 finger bore +
+#     stiff across the support gap) to remove radial slop and tilt wobble.
+# (PIN_FIT_CLEAR is defined up with PRINT_CLEAR; the finger NECK uses it for a snug
+#  running fit in the fixed 2.6 finger bore.)
+FP_TRANSIT_GAP = 0.40    # barb-free-radius gap UNDER the finger bore -> the barb
+                         # passes the TPU with margin even at worst-case FDM tol,
+                         # so it never compresses (hence never breaks) in the TPU
+FP_CATCH = 0.60          # how far the barb springs PROUD of the re-bored rigid eye
+                         # -> the axial pull-out shoulder in rigid material
+FP_NECK_R = MOUNT_HOLE_R - PIN_FIT_CLEAR      # fat finger-bearing neck (2.45): close
+                                              # running fit in the FIXED 2.6 finger bore
+FP_BARB_FREE_R = MOUNT_HOLE_R - FP_TRANSIT_GAP  # sprung-lip free radius (2.20) <= bore
+FP_ARM_BORE_R = FP_BARB_FREE_R - FP_CATCH      # RE-BORED rigid C/D eye (1.60): the
+                                               # narrow bore whose shoulder the barb catches
+FP_ARM_LAND_R = FP_ARM_BORE_R - 0.10           # pin's snug land in the rigid eye (1.50)
+FP_CB_R = FP_BARB_FREE_R + SNAP_CB_RCLEAR      # confined counterbore pocket radius (2.65)
+FP_CB_DEPTH = SNAP_BARB_LIP_T + SNAP_CB_FLOOR_CLEAR  # pocket depth (1.30), as before
+FP_EYE_BOSS_R = FP_CB_R + 1.0                  # local boss so a >=1 mm confining ring +
+                                               # shoulder survives around the pocket (3.65)
+FP_SLOT_LEN = 11.0 * SCALE   # split-cantilever length: LONGER than the old 9.0 so the
+                             # 0.6 mm catch-deflection is a gentler, reliably-elastic
+                             # bend (the old barb "did not bend, then broke")
+FP_SLOT_W = 1.1 * SCALE      # split width (a touch wider -> lower bending stiffness)
+# Hard guards (advisor's two inequalities), checked at the +/-0.15 design tolerance.
+# barb must clear the TPU bore (survive) AND overlap the rigid shoulder (catch):
+assert (FP_BARB_FREE_R + 0.15) <= (MOUNT_HOLE_R - 0.15) + 1e-9, \
+    "finger pin barb would strain the already-printed TPU finger bore"
+assert (FP_BARB_FREE_R - 0.15) - (FP_ARM_BORE_R + 0.15) >= 0.30 - 1e-9, \
+    "finger pin barb would not catch the rigid arm/follower shoulder"
+assert (FP_NECK_R + 0.15) <= MOUNT_HOLE_R + 1e-9, "fat neck won't pass the finger bore"
 # grip texture: CROSSHATCH micro-posts on the contact face (so objects don't slip).
 # Optimised by a dedicated grip-texture FEA/swarm campaign (see grip/GRIP_TEXTURE.md):
 # a square-post array out-drains and out-grips the old single-axis ridges on WET
@@ -438,9 +489,9 @@ SNAP_CB_DEPTH = SNAP_BARB_LIP_T + SNAP_CB_FLOOR_CLEAR   # 1.0 + 0.30 = 1.30 mm
 SNAP_CB_R = (PIN_R + SNAP_BARB_PROUD) + SNAP_CB_RCLEAR  # pocket radius (3.2 + 0.45 = 3.65)
 
 
-def _counterbore_cut(p, z_face, depth, into_plus_z):
+def _counterbore_cut(p, z_face, depth, into_plus_z, pocket_r):
     """Solid to subtract from a receiving eye so the snap-pin lip drops into a
-    rigid confining pocket. The pocket is the eye bore WIDENED to SNAP_CB_R over
+    rigid confining pocket. The pocket is the eye bore WIDENED to pocket_r over
     `depth` of the eye thickness measured from `z_face` (the eye's EXIT face).
     into_plus_z=True cuts upward into the eye (exit face is the eye bottom);
     False cuts downward. The remaining ring of eye material at radius
@@ -451,7 +502,7 @@ def _counterbore_cut(p, z_face, depth, into_plus_z):
         zc = z_face + depth / 2.0
     else:
         zc = z_face - depth / 2.0
-    return Cylinder(radius=SNAP_CB_R, height=depth).moved(
+    return Cylinder(radius=pocket_r, height=depth).moved(
         Location((p[0], p[1], zc)))
 
 
@@ -463,12 +514,19 @@ def _counterbore_cut(p, z_face, depth, into_plus_z):
 SNAP_EYE_BOSS_R = SNAP_CB_R + 1.0
 
 
-def link_bar(p0, p1, width, z0, thickness, label, color, counterbores=None):
-    """Rounded-end link bar from p0 to p1 (eyes at both ends). `counterbores` is
-    an optional list of (point, z_face, depth, into_plus_z) specs cut into the
-    eye exit face to confine a snap-pin lip (see _counterbore_cut). Each
-    counterbored eye gets a local SNAP_EYE_BOSS_R boss so a solid confining ring
-    + axial shoulder survives around the widened pocket."""
+def link_bar(p0, p1, width, z0, thickness, label, color, counterbores=None,
+             bore0_r=None, bore1_r=None):
+    """Rounded-end link bar from p0 to p1 (eyes at both ends). Each eye is bored
+    at bore0_r (p0) / bore1_r (p1), defaulting to AXLE_BORE_R; a finger-pin eye
+    passes bore=FP_ARM_BORE_R so the slim barb catches its re-bored shoulder.
+    `counterbores` is an optional list of (point, z_face, depth, into_plus_z,
+    pocket_r, boss_r) specs cut into the eye exit face to confine a snap-pin lip
+    (see _counterbore_cut); each gets a local boss_r boss so a solid confining
+    ring + axial shoulder survives around the widened pocket."""
+    if bore0_r is None:
+        bore0_r = AXLE_BORE_R
+    if bore1_r is None:
+        bore1_r = AXLE_BORE_R
     dx = p1[0] - p0[0]
     dy = p1[1] - p0[1]
     L = math.hypot(dx, dy)
@@ -482,18 +540,18 @@ def link_bar(p0, p1, width, z0, thickness, label, color, counterbores=None):
     bar = bar.moved(Location((p0[0], p0[1], 0), (0, 0, 1), ang))
     # local bosses around counterbored eyes (so the pocket has a solid wall ring)
     if counterbores:
-        for (cp, zf, depth, into_pz) in counterbores:
-            bar += Cylinder(radius=SNAP_EYE_BOSS_R, height=thickness).moved(
+        for (cp, zf, depth, into_pz, pocket_r, boss_r) in counterbores:
+            bar += Cylinder(radius=boss_r, height=thickness).moved(
                 Location((cp[0], cp[1], z0 + thickness / 2.0)))
-    # bore the pin holes (FDM clearance fit)
-    bar -= Cylinder(radius=AXLE_BORE_R, height=thickness * 3).moved(
+    # bore the pin holes (per-eye fit radius)
+    bar -= Cylinder(radius=bore0_r, height=thickness * 3).moved(
         Location((p0[0], p0[1], z0 + thickness / 2.0)))
-    bar -= Cylinder(radius=AXLE_BORE_R, height=thickness * 3).moved(
+    bar -= Cylinder(radius=bore1_r, height=thickness * 3).moved(
         Location((p1[0], p1[1], z0 + thickness / 2.0)))
     # lip-confining counterbores (the geometric snap-pin capture pockets)
     if counterbores:
-        for (cp, zf, depth, into_pz) in counterbores:
-            bar -= _counterbore_cut(cp, zf, depth, into_pz)
+        for (cp, zf, depth, into_pz, pocket_r, boss_r) in counterbores:
+            bar -= _counterbore_cut(cp, zf, depth, into_pz, pocket_r)
     # DFM: break the top & bottom face edges (no sharp edges; bore lead-ins).
     # Use _safe_round so one unchamferable edge can't abort the whole bar.
     zf = bar.edges().group_by(Axis.Z)
@@ -585,10 +643,13 @@ def drive_arm(A, C, spin_deg, z0, thickness, label, color, with_crown=False):
     the input pinion can drive it via the right-angle stage. The crown is rigid
     with the crank gear -> the proven spur mesh A_L<->A_R is unchanged."""
     g = gear(A, spin_deg, z0, thickness, label + "_gear", color, bore=True)
-    # Counterbore the C-eye exit (bottom) face so the finger pin (pin_C) lip drops
-    # into a rigid confining pocket -> geometric, creep-proof capture.
-    cb = [(C, z0, SNAP_CB_DEPTH, True)]
-    arm = link_bar(A, C, LINK_W, z0, thickness, label + "_arm", color, counterbores=cb)
+    # C-eye = the FINGER PIN's rigid catch: bore it NARROW (FP_ARM_BORE_R) and
+    # counterbore the exit (bottom) face so the slim barb springs onto a real
+    # shoulder here (in rigid material), not against the TPU finger. A-eye keeps
+    # the axle running fit.
+    cb = [(C, z0, FP_CB_DEPTH, True, FP_CB_R, FP_EYE_BOSS_R)]
+    arm = link_bar(A, C, LINK_W, z0, thickness, label + "_arm", color,
+                   counterbores=cb, bore0_r=AXLE_BORE_R, bore1_r=FP_ARM_BORE_R)
     part = g + arm
     if with_crown:
         part += _crown_gear(A, CROWN_Z[0], CROWN_Z[1], label + "_crown", color)
@@ -685,6 +746,81 @@ def snap_pin(p, z0, z1, head_at="z0", label="snap_pin", color=PIN_COLOR,
     else:
         body = body.moved(Location((0, 0, 0), (1, 0, 0), 180.0))
         body = body.moved(Location((0, 0, z1)))
+    body = body.moved(Location((x, y, 0)))
+    body.label = label
+    body.color = color
+    return body
+
+
+def finger_pin(p, pin_z0, z1, arm_eye_top_z, label="finger_pin", color=PIN_COLOR):
+    """Redesigned C/D finger pivot pin (printed, single piece, top-down install).
+
+    Built in the authored frame, head flange at z1 (the finger TOP), shank +Z down
+    to the barb in the rigid arm/follower eye at pin_z0. Profile, head->tip:
+
+        HEAD  (SNAP_HEAD_R)                              -- seats on finger top
+        NECK  (FP_NECK_R, fat)   z: arm_eye_top_z .. z1  -- close running fit in the
+                                                            FIXED 2.6 TPU finger bore
+                                                            + stiff across the gap (tilt)
+        ARM-LAND (FP_ARM_LAND_R, slim) pin_z0..arm_eye_top_z -- snug in the RE-BORED
+                                                            rigid eye (pin fixed here)
+        BARB  (free FP_BARB_FREE_R)  below pin_z0        -- slim split-sprung lip that
+                                                            PASSES the TPU bore free and
+                                                            snaps onto the rigid eye's
+                                                            re-bored shoulder
+
+    The neck->arm-land STEP (fat->slim) at arm_eye_top_z lands on the rigid eye top
+    face = the pin's axial down-stop; the barb lip on the counterbore shoulder is the
+    pull-out stop. The split runs up into the arm-land (NOT the neck) so the finger
+    bearing stays solid while the barb is a long, gentle, reliably-elastic cantilever.
+    """
+    x, y = p
+    L = z1 - pin_z0                       # head(0) .. arm-land end (local +Z = down)
+    neck_len = z1 - arm_eye_top_z         # fat neck length (finger bore + support gap)
+    arm_land_len = arm_eye_top_z - pin_z0  # slim land inside the rigid eye
+
+    head = Cylinder(radius=SNAP_HEAD_R, height=SNAP_HEAD_T).moved(
+        Location((0, 0, -SNAP_HEAD_T / 2.0)))
+    neck = Cylinder(radius=FP_NECK_R, height=neck_len).moved(
+        Location((0, 0, neck_len / 2.0)))
+    arm_land = Cylinder(radius=FP_ARM_LAND_R, height=arm_land_len + 0.01).moved(
+        Location((0, 0, neck_len + arm_land_len / 2.0)))
+
+    # split-sprung barb beyond local L (same placement math as snap_pin so it lands
+    # in the rigid eye counterbore), but slim (FP_BARB_FREE_R) so it never touches
+    # the TPU on the way through.
+    lip_back_z = L + SNAP_BARB_SEAT
+    lip_front_z = lip_back_z + SNAP_BARB_LIP_T
+    tip_z = lip_front_z + SNAP_BARB_LEAD
+    stub = Cylinder(radius=FP_ARM_LAND_R, height=(lip_back_z - L) + 0.01).moved(
+        Location((0, 0, (L + lip_back_z) / 2.0)))
+    lip = Cylinder(radius=FP_BARB_FREE_R, height=SNAP_BARB_LIP_T).moved(
+        Location((0, 0, (lip_back_z + lip_front_z) / 2.0)))
+    lead = Cone(bottom_radius=FP_BARB_FREE_R, top_radius=SNAP_TIP_R,
+                height=SNAP_BARB_LEAD).moved(
+        Location((0, 0, (lip_front_z + tip_z) / 2.0)))
+    body = head + neck + arm_land + stub + lip + lead
+
+    # '+' split: long cantilever (up into the arm-land, NOT the neck bearing) so the
+    # 0.6 mm catch deflection is gentle and elastic -> the barb bends instead of breaks.
+    slot_root_z = max(tip_z - FP_SLOT_LEN, neck_len + 0.6)
+    slot_h = (tip_z - slot_root_z) + 1.0
+    slot_zc = (slot_root_z + tip_z + 1.0) / 2.0
+    bm = FP_BARB_FREE_R
+    slot_a = Box(FP_SLOT_W, 4 * bm, slot_h).moved(Location((0, 0, slot_zc)))
+    slot_b = Box(4 * bm, FP_SLOT_W, slot_h).moved(Location((0, 0, slot_zc)))
+    relief = Cylinder(radius=FP_SLOT_W * 0.7, height=FP_SLOT_W * 2).moved(
+        Location((0, 0, slot_root_z)))
+    body = body - slot_a - slot_b - relief
+
+    # soften the head rim (handled on insertion); leave the barb catch face crisp.
+    hd = [e for e in body.edges().filter_by(GeomType.CIRCLE)
+          if abs(e.center().Z) < 0.05]
+    body = _safe_round(body, hd, min(DFM_EDGE, SNAP_HEAD_T * 0.5), chamfer)
+
+    # place: head at z1 (finger top), barb pointing down to the rigid eye
+    body = body.moved(Location((0, 0, 0), (1, 0, 0), 180.0))
+    body = body.moved(Location((0, 0, z1)))
     body = body.moved(Location((x, y, 0)))
     body.label = label
     body.color = color
@@ -1460,10 +1596,14 @@ def gen_step():
 
     # followers B->D. Counterbore the D-eye exit (bottom) face so the finger pin
     # (pin_D) lip drops into a rigid confining pocket (geometric capture).
+    # D-eye = the finger pin's rigid catch: bore NARROW (FP_ARM_BORE_R) + finger-pin
+    # counterbore; B-eye keeps the axle running fit.
     parts.append(link_bar(R["B"], R["D"], LINK_W, Z_FOLLOW0, T_FOLLOW, "follower_R", STEEL_R,
-                          counterbores=[(R["D"], Z_FOLLOW0, SNAP_CB_DEPTH, True)]))
+                          counterbores=[(R["D"], Z_FOLLOW0, FP_CB_DEPTH, True, FP_CB_R, FP_EYE_BOSS_R)],
+                          bore0_r=AXLE_BORE_R, bore1_r=FP_ARM_BORE_R))
     parts.append(link_bar(L["B"], L["D"], LINK_W, Z_FOLLOW0, T_FOLLOW, "follower_L", STEEL_L,
-                          counterbores=[(L["D"], Z_FOLLOW0, SNAP_CB_DEPTH, True)]))
+                          counterbores=[(L["D"], Z_FOLLOW0, FP_CB_DEPTH, True, FP_CB_R, FP_EYE_BOSS_R)],
+                          bore0_r=AXLE_BORE_R, bore1_r=FP_ARM_BORE_R))
 
     # Fin Ray fingers (TPU) rigid with coupler CD
     parts.append(finger(R, refR, -1, TPU, "finger_R"))
@@ -1477,25 +1617,19 @@ def gen_step():
                               ("L", L, ("A", "B", "C", "D"))):
         for j in joints:
             lbl = f"pin_{j}_{tag}"
-            if j in ("C", "D"):    # finger pins: barbed, head caps above finger.
-                # The locking lip drops into the rigid confining counterbore cut
-                # into the receiving eye's EXIT (bottom) face (C -> crank eye
-                # @Z_CRANK0; D -> follower @Z_FOLLOW0). Place the pin so the lip
-                # BACK (pull-out) face seats SNAP_CB_FLOOR_CLEAR (0.30 mm) BELOW
-                # the pocket shoulder (the wide->narrow step at far+SNAP_CB_DEPTH)
-                # -- a real breathing gap so the lip does not bottom out on the
-                # shoulder before the shank seats, while the lip still overlaps
-                # the shoulder ring (SNAP_CB_R - AXLE_BORE_R wide) for capture.
-                #   lip_back(world) = pin_z1 - (L + SEAT) = z1 - ((z1-pin_z0)+SEAT)
-                #                   = pin_z0 - SEAT
-                #   want lip_back = shoulder - FLOOR_CLEAR = (far+CB_DEPTH) - FLOOR_CLEAR
-                #   CB_DEPTH = LIP_T + FLOOR_CLEAR  =>  lip_back = far + LIP_T
-                #   so pin_z0 = lip_back + SEAT = far + SNAP_BARB_LIP_T + SNAP_BARB_SEAT
-                # (was far + SNAP_CB_DEPTH + SNAP_BARB_SEAT, which left 0 gap.)
+            if j in ("C", "D"):    # finger pins: REDESIGNED stepped pin (finger_pin).
+                # Slim split barb passes the already-printed TPU finger bore FREE
+                # and snaps onto the re-bored rigid eye shoulder; fat neck removes
+                # the pivot wobble. far = the rigid eye EXIT (bottom) face
+                # (C -> crank eye @Z_CRANK0; D -> follower @Z_FOLLOW0); the eye TOP
+                # (far + thickness) is where the neck->arm-land step seats. Lip
+                # placement (pin_z0) is unchanged so the barb still lands in the
+                # counterbore with the SNAP_CB_FLOOR_CLEAR breathing gap.
                 far = Z_CRANK0 if j == "C" else Z_FOLLOW0
+                eye_t = T_CRANK if j == "C" else T_FOLLOW
                 pin_z0 = far + SNAP_BARB_LIP_T + SNAP_BARB_SEAT
-                parts.append(snap_pin(pose[j], pin_z0, Z_FINGER0 + T_FINGER,
-                                      head_at="z1", label=lbl))
+                parts.append(finger_pin(pose[j], pin_z0, Z_FINGER0 + T_FINGER,
+                                        far + eye_t, label=lbl))
             else:                  # axles: plain dowels dropped in from the front,
                                    # SANDWICHED with no slop between the back boss
                                    # (head too wide to pass its bore -> -Z stop) and
