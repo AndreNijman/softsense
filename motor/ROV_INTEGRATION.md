@@ -373,7 +373,7 @@ Before mounting the gripper to an ROV arm for a T2 dive:
 - [ ] Weigh and displacement-test full assembly (gripper + actuator + canister + partial cable); confirm net buoyancy within ±30 g of target.
 - [ ] Trim as needed (foam/ballast, §5d) with cable attached and arm at operating attitude.
 - [ ] Run full open↔close cycle on the surface; confirm telemetry and `present_current` readable at ≥ 50 Hz.
-- [ ] Run pre-dive checklist from `../docs/UNDERWATER.md` (snap pins, drain clear, cavity flood, cover clips).
+- [ ] Run pre-dive checklist from `../docs/UNDERWATER.md` (pivot pins + melt caps, drain clear, cavity flood, cover clips).
 
 ---
 

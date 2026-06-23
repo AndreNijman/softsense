@@ -41,7 +41,6 @@ from build123d import (
     Box,
     Color,
     Compound,
-    Cone,
     Cylinder,
     GeomType,
     Location,
@@ -245,38 +244,39 @@ SHAFT_COUPLER_R = 5.0 * SCALE  # bottom coupler radius (D-profile for a servo/mo
 SHAFT_COUPLER_LEN = 12.0 * SCALE
 SHAFT_DFLAT = 1.4 * SCALE  # D-flat depth on the coupler
 
-# --- 3D-printed snap-pin geometry (replaces ALL metal pivot pins) ---
-SNAP_HEAD_R = PIN_R + 1.6 * SCALE  # flange that stops pull-through
-SNAP_HEAD_T = 1.8 * SCALE        # flange thickness (sits OUTSIDE the near face)
-SNAP_BARB_PROUD = 0.9 * SCALE    # lip sticks this far past PIN_R (-> r 3.2);
-                                 # raised 0.7->0.9 so the lip catches 0.6 mm of
-                                 # rigid counterbore shoulder (was 0.4 mm) while
-                                 # keeping insertion strain in PETG's elastic band
-SNAP_BARB_LIP_T = 1.0 * SCALE    # axial length of the flat locking-lip face
-                                 # (FLOOR: 2.5 perimeters @0.4 nozzle -- do NOT
-                                 # reduce; the only marginal wall in the design)
-SNAP_BARB_LEAD = 3.0 * SCALE     # length of the tapered lead-in cone
-SNAP_TIP_R = 1.0 * SCALE         # small flat at the very tip (printable)
-SNAP_SLOT_W = 1.0 * SCALE        # split-slot width (lets the tip flex)
-SNAP_SLOT_LEN = 9.0 * SCALE     # slot depth back from tip; lengthened 7->9 so the
-                                 # split cantilever is long enough that the larger
-                                 # SEAT+PROUD insertion deflection stays <~3% strain
-SNAP_BARB_SEAT = 1.2 * SCALE   # catch-face axial overlap PAST the far face;
-                                 # raised 0.30->1.2 (audit floor >=1.0) so the lip
-                                 # has real axial capture vs creep + hygroscopic drift
+# --- 3D-printed HEAT-STAKE (melt-rivet) pin geometry ------------------------
+# Replaces BOTH the old barbed snap pins (which kept snapping -- the split
+# cantilever broke instead of flexing) AND the loose axle dowels (which slid and
+# wobbled out of their bores). Every pivot is now a plain printed JOURNAL pin
+# retained by a SEPARATE printed CAP: the user slips the cap over the pin's
+# protruding melt-STUD and fuses it with a soldering iron -> a thermal-rivet head
+# wider than the bore. Retention is GEOMETRIC (a formed head larger than the
+# hole), NOT an elastic snap (nothing flexes -> nothing breaks) and NOT a press
+# fit (nothing relies on friction -> nothing slides out). The formed head is also
+# creep-proof: it is a solid shape larger than the hole, not a held preload.
+# PETG-HF for the pins AND the caps -- it mushrooms cleanly under a hot iron and
+# resists creep at the loaded shank.
+SNAP_HEAD_R = PIN_R + 1.6 * SCALE  # pre-formed flange (insertion stop / one axial stop)
+SNAP_HEAD_T = 1.8 * SCALE          # flange thickness (sits OUTSIDE the near face)
 
-# --- confined counterbore: the GEOMETRIC capture for the barbed finger pins ---
-# The expanded lip drops into a rigid counterbore pocket cut into the EXIT face
-# of the receiving eye. The pocket wall RADIALLY confines the lip (it cannot
-# creep-relax inward to re-enter the bore and escape) and the pocket SHOULDER
-# (step from bore radius up to pocket radius) takes the axial pull-out load in
-# rigid material -- so retention no longer depends on the sprung tip staying
-# expanded. This is the creep-proof fix per UNDERWATER audit C-items 1-3.
-SNAP_CB_RCLEAR = 0.45           # radial gap pocket-wall to lip; 0.45 keeps the
-                                # worst-case-TIGHT gap (+/-0.2 FDM) non-negative so
-                                # the lip never jams on assembly, while the shoulder
-                                # still grows 1.05 mm wide (robust axial bearing)
-SNAP_CB_FLOOR_CLEAR = 0.30      # axial gap lip-front-face to pocket floor
+# Melt-stud (on the pin) + cap (separate printed part melted onto the stud):
+MELT_STUD_R     = 1.3 * SCALE  # reduced tip-stud the cap melts onto (also threads the
+                               # back-wall flood hole on the axle pins)
+MELT_STUD_PROUD = 1.0 * SCALE  # stud tip sits this far PAST the retaining face (inside the cap)
+MELT_CAP_OR   = 2.6 * SCALE    # cap outer radius -- wider than every bore it retains so it
+                               # cannot pull through (finger eye 1.60 -> 1.0 mm shoulder;
+                               # axle flood hole 1.5 -> 1.1 mm shoulder)
+MELT_CAP_H    = 2.6 * SCALE    # cap (cup) height
+MELT_CAP_HOLE_R = MELT_STUD_R + 0.20   # blind-pocket radius: slip fit over the stud (1.5)
+MELT_CAP_HOLE_H = 2.2 * SCALE          # blind-pocket depth (the cup swallows the stud; the
+                                       # closed crown above it is the soldering-iron melt zone)
+MELT_RECESS_R = MELT_CAP_OR + 0.30     # recess in the retaining face that nests + radially
+                                       # confines the cap rim (creep-proof, ends ~flush)
+MELT_RECESS_DEPTH = 1.0 * SCALE        # recess depth cut into the retaining face
+# cap self-consistency (a future edit that breaks the rivet fails loudly here):
+assert MELT_CAP_HOLE_R > MELT_STUD_R, "melt cap blind hole must clear the stud"
+assert MELT_CAP_H - MELT_CAP_HOLE_H >= 0.3, "melt cap crown wall too thin to print/melt"
+assert MELT_RECESS_R >= MELT_CAP_OR, "melt recess must nest the cap"
 
 GEAR_TEETH = 16       # COUNT held (scaled radius + fixed count -> module scales, ratio intact)
 GEAR_TOOTH_H = 3.0 * SCALE  # radial tooth height
@@ -321,46 +321,37 @@ MOUNT_HOLE_R = PIN_R + PRINT_CLEAR   # finger pin bore (FDM clearance)
 # the snap by re-boring the finger; fix it on the pin / the rigid arm+follower eyes.
 
 # --------------------------------------------------------------------------
-# FINGER PIVOT PINS (C, D) -- redesigned 2026-06 to (1) stop the barb breaking
-# in the stiff already-printed TPU finger and (2) kill the pivot wobble, WITHOUT
-# touching the finger. Principle (the discriminator): SEPARATE the two jobs the
-# old barb did badly at once -- gentle transit of the TPU bore, AND a strong
-# catch. The new pin:
-#   * transits the fixed TPU finger bore at ~ZERO interference (barb free radius
-#     <= bore so the sprung tip never strains in the stiff TPU -> cannot break),
-#   * does ALL its snapping in the RIGID arm/follower eye, which is RE-BORED
-#     narrower so the slim barb springs onto a real shoulder there (PETG-on-PETG,
-#     the regime the snap was always tuned for),
-#   * carries a FAT bearing neck (close running fit in the fixed 2.6 finger bore +
-#     stiff across the support gap) to remove radial slop and tilt wobble.
-# (PIN_FIT_CLEAR is defined up with PRINT_CLEAR; the finger NECK uses it for a snug
-#  running fit in the fixed 2.6 finger bore.)
-FP_TRANSIT_GAP = 0.40    # barb-free-radius gap UNDER the finger bore -> the barb
-                         # passes the TPU with margin even at worst-case FDM tol,
-                         # so it never compresses (hence never breaks) in the TPU
-FP_CATCH = 0.60          # how far the barb springs PROUD of the re-bored rigid eye
-                         # -> the axial pull-out shoulder in rigid material
-FP_NECK_R = MOUNT_HOLE_R - PIN_FIT_CLEAR      # fat finger-bearing neck (2.45): close
-                                              # running fit in the FIXED 2.6 finger bore
-FP_BARB_FREE_R = MOUNT_HOLE_R - FP_TRANSIT_GAP  # sprung-lip free radius (2.20) <= bore
-FP_ARM_BORE_R = FP_BARB_FREE_R - FP_CATCH      # RE-BORED rigid C/D eye (1.60): the
-                                               # narrow bore whose shoulder the barb catches
-FP_ARM_LAND_R = FP_ARM_BORE_R - 0.10           # pin's snug land in the rigid eye (1.50)
-FP_CB_R = FP_BARB_FREE_R + SNAP_CB_RCLEAR      # confined counterbore pocket radius (2.65)
-FP_CB_DEPTH = SNAP_BARB_LIP_T + SNAP_CB_FLOOR_CLEAR  # pocket depth (1.30), as before
-FP_EYE_BOSS_R = FP_CB_R + 1.0                  # local boss so a >=1 mm confining ring +
-                                               # shoulder survives around the pocket (3.65)
-FP_SLOT_LEN = 11.0 * SCALE   # split-cantilever length: LONGER than the old 9.0 so the
-                             # 0.6 mm catch-deflection is a gentler, reliably-elastic
-                             # bend (the old barb "did not bend, then broke")
-FP_SLOT_W = 1.1 * SCALE      # split width (a touch wider -> lower bending stiffness)
-# Hard guards (advisor's two inequalities), checked at the +/-0.15 design tolerance.
-# barb must clear the TPU bore (survive) AND overlap the rigid shoulder (catch):
-assert (FP_BARB_FREE_R + 0.15) <= (MOUNT_HOLE_R - 0.15) + 1e-9, \
-    "finger pin barb would strain the already-printed TPU finger bore"
-assert (FP_BARB_FREE_R - 0.15) - (FP_ARM_BORE_R + 0.15) >= 0.30 - 1e-9, \
-    "finger pin barb would not catch the rigid arm/follower shoulder"
+# FINGER PIVOT PINS (C, D) -- HEAT-STAKE redesign (2026-06). The barbed snap pin
+# kept SNAPPING: the split cantilever broke instead of flexing (twice -- the
+# 2026-06 "gentle-transit" barb was a partial fix that still failed in the
+# field). It is replaced by a plain stepped JOURNAL pin + a melted cap. The two
+# jobs the barb did badly are now separate rigid features:
+#   * HEAD (pre-formed) seats on the finger TOP -- the clean visible far stop.
+#   * FAT NECK runs a close fit in the FIXED 2.6 TPU finger bore + bridges the
+#     support gap -> kills the pivot wobble (the part the 2026-06 pass got right;
+#     it stays).
+#   * SLIM LAND journals in the rigid arm/follower eye (PETG-on-PETG).
+#   * a reduced MELT-STUD protrudes past the eye's exit (bottom) face; a separate
+#     printed cap is slipped on and fused -> the geometric pull-out stop, formed
+#     (not sprung) in rigid PETG so it cannot creep-relax OR break.
+# The cap is melted at the arm/follower-eye BOTTOM, so {finger + crank-arm +
+# follower + the two C/D pins + caps} is staked as a BENCH SUB-ASSEMBLY (both pin
+# ends reachable) and then dropped into the housing -- see docs/ASSEMBLY.md.
+# The already-printed TPU finger bore (MOUNT_HOLE_R) is NEVER touched.
+FP_NECK_R = MOUNT_HOLE_R - PIN_FIT_CLEAR   # fat finger-bearing neck (2.45): close
+                                           # running fit in the FIXED 2.6 finger bore
+FP_ARM_BORE_R = 1.60 * SCALE   # rigid C/D eye bore: kept NARROW so the cap (MELT_CAP_OR)
+                               # catches a fat ~1.0 mm pull-out shoulder around it
+FP_ARM_LAND_R = FP_ARM_BORE_R - 0.10   # pin's snug journal land in the rigid eye (1.50)
+# the cap recess reuses link_bar's counterbore plumbing, cut into the eye exit face:
+FP_CB_R = MELT_RECESS_R           # eye-exit recess radius that nests the cap (2.9)
+FP_CB_DEPTH = MELT_RECESS_DEPTH   # recess depth (1.0)
+FP_EYE_BOSS_R = MELT_RECESS_R + 1.0   # local boss so a >=1 mm confining ring survives (3.9)
+# Hard guards, checked at the +/-0.15 design tolerance:
 assert (FP_NECK_R + 0.15) <= MOUNT_HOLE_R + 1e-9, "fat neck won't pass the finger bore"
+assert (MELT_STUD_R + 0.15) <= FP_ARM_BORE_R + 1e-9, "melt stud won't pass the rigid eye"
+assert (MELT_CAP_OR - 0.15) - (FP_ARM_BORE_R + 0.15) >= 0.5 - 1e-9, \
+    "melt cap would not catch a solid pull-out shoulder on the rigid arm/follower eye"
 # grip texture: CROSSHATCH micro-posts on the contact face (so objects don't slip).
 # Optimised by a dedicated grip-texture FEA/swarm campaign (see grip/GRIP_TEXTURE.md):
 # a square-post array out-drains and out-grips the old single-axis ridges on WET
@@ -396,6 +387,7 @@ FR_GRIP_TIP_FLAT = 0.5 * SCALE  # half-width of the flat at each post tip (sligh
 STEEL_L = Color(0.55, 0.58, 0.62)   # internal links / gears (hidden in housing)
 STEEL_R = Color(0.58, 0.61, 0.65)
 PIN_COLOR = Color(0.74, 0.76, 0.79)  # pivot pins (bright steel)
+CAP_COLOR = Color(0.85, 0.55, 0.25)  # melt-on retaining caps (amber PETG -> visible)
 DARK = Color(0.20, 0.21, 0.24)       # drive shaft
 TPU = Color(0.12, 0.13, 0.15)        # Fin Ray fingers (matte black TPU)
 ENC = Color(0.27, 0.29, 0.33)        # enclosure body (dark slate)
@@ -483,21 +475,14 @@ def _poly_solid(pts, z0, thickness):
     return sol.moved(Location((0, 0, z0)))
 
 
-# Pocket depth of the lip-confining counterbore (rigid, cut into the eye exit
-# face). Deep enough to swallow the full locking lip plus a small floor gap:
-SNAP_CB_DEPTH = SNAP_BARB_LIP_T + SNAP_CB_FLOOR_CLEAR   # 1.0 + 0.30 = 1.30 mm
-SNAP_CB_R = (PIN_R + SNAP_BARB_PROUD) + SNAP_CB_RCLEAR  # pocket radius (3.2 + 0.45 = 3.65)
-
-
 def _counterbore_cut(p, z_face, depth, into_plus_z, pocket_r):
-    """Solid to subtract from a receiving eye so the snap-pin lip drops into a
-    rigid confining pocket. The pocket is the eye bore WIDENED to pocket_r over
-    `depth` of the eye thickness measured from `z_face` (the eye's EXIT face).
-    into_plus_z=True cuts upward into the eye (exit face is the eye bottom);
-    False cuts downward. The remaining ring of eye material at radius
-    SNAP_CB_R..outer (a) radially confines the expanded lip so it cannot
-    creep-relax inward and escape, and (b) the step where the bore narrows back
-    to AXLE_BORE_R is the rigid SHOULDER that takes the axial pull-out load."""
+    """Solid to subtract from a receiving eye so a MELT CAP nests in a recess cut
+    into the eye's EXIT face. The bore is WIDENED to pocket_r over `depth` of the
+    eye thickness measured from `z_face`. into_plus_z=True cuts upward into the
+    eye (exit face is the eye bottom); False cuts downward. The remaining ring of
+    eye material at radius pocket_r..outer (a) radially confines the cap so the
+    rivet cannot creep out, and (b) the step where the bore narrows back to the
+    pin bore is the rigid SHOULDER the cap rim bears on (the axial pull-out load)."""
     if into_plus_z:
         zc = z_face + depth / 2.0
     else:
@@ -506,21 +491,13 @@ def _counterbore_cut(p, z_face, depth, into_plus_z, pocket_r):
         Location((p[0], p[1], zc)))
 
 
-# Local eye boss OD so a counterbored eye keeps a solid ring OUTSIDE the pocket:
-# pocket radius + a >=1 mm confining/shoulder wall. The plain LINK_W eye (r 3.5)
-# is too small for the SNAP_CB_R (3.65) pocket -- without this boss the pocket
-# would blow through the eye wall and lose both the radial confinement and the
-# axial shoulder. Same idea as the housing's BOSS_OD_R around its axle bores.
-SNAP_EYE_BOSS_R = SNAP_CB_R + 1.0
-
-
 def link_bar(p0, p1, width, z0, thickness, label, color, counterbores=None,
              bore0_r=None, bore1_r=None):
     """Rounded-end link bar from p0 to p1 (eyes at both ends). Each eye is bored
     at bore0_r (p0) / bore1_r (p1), defaulting to AXLE_BORE_R; a finger-pin eye
-    passes bore=FP_ARM_BORE_R so the slim barb catches its re-bored shoulder.
+    passes bore=FP_ARM_BORE_R so the melt cap catches a fat shoulder around it.
     `counterbores` is an optional list of (point, z_face, depth, into_plus_z,
-    pocket_r, boss_r) specs cut into the eye exit face to confine a snap-pin lip
+    pocket_r, boss_r) specs cut into the eye exit face to nest a melt cap
     (see _counterbore_cut); each gets a local boss_r boss so a solid confining
     ring + axial shoulder survives around the widened pocket."""
     if bore0_r is None:
@@ -548,7 +525,7 @@ def link_bar(p0, p1, width, z0, thickness, label, color, counterbores=None,
         Location((p0[0], p0[1], z0 + thickness / 2.0)))
     bar -= Cylinder(radius=bore1_r, height=thickness * 3).moved(
         Location((p1[0], p1[1], z0 + thickness / 2.0)))
-    # lip-confining counterbores (the geometric snap-pin capture pockets)
+    # cap-nesting recesses (the geometric melt-cap capture pockets)
     if counterbores:
         for (cp, zf, depth, into_pz, pocket_r, boss_r) in counterbores:
             bar -= _counterbore_cut(cp, zf, depth, into_pz, pocket_r)
@@ -644,7 +621,7 @@ def drive_arm(A, C, spin_deg, z0, thickness, label, color, with_crown=False):
     with the crank gear -> the proven spur mesh A_L<->A_R is unchanged."""
     g = gear(A, spin_deg, z0, thickness, label + "_gear", color, bore=True)
     # C-eye = the FINGER PIN's rigid catch: bore it NARROW (FP_ARM_BORE_R) and
-    # counterbore the exit (bottom) face so the slim barb springs onto a real
+    # recess the exit (bottom) face so the melted cap rim bears on a fat rigid
     # shoulder here (in rigid material), not against the TPU finger. A-eye keeps
     # the axle running fit.
     cb = [(C, z0, FP_CB_DEPTH, True, FP_CB_R, FP_EYE_BOSS_R)]
@@ -686,142 +663,103 @@ def pin(p, label, visible):
     return c
 
 
-def snap_pin(p, z0, z1, head_at="z0", label="snap_pin", color=PIN_COLOR,
-             shank_r=PIN_R, barb=True):
-    """Fully 3D-printed pivot pin (no fasteners). Built in the authored frame at
-    XY point p, shank +Z from z0..z1, head flange at the head_at end.
-    barb=True : the far end is a SPLIT BARBED tip that squeezes in and springs
-                out PAST the far bore face to self-lock (finger pins -> the far
-                end exits into free space).
-    barb=False: a plain headed DOWEL with a small lead tip (axle pins -> the
-                dowel is captured between the back-wall socket and the cover
-                boss, so it needs no barb and nothing has to expand in a bore)."""
+def axle_pin(p, head_inner_z, shank_end_z, stud_tip_z, label="axle_pin",
+             color=PIN_COLOR):
+    """Axle pivot pin (A/B) -- HEAT-STAKE, replaces the loose dowel that slid and
+    wobbled out. Built directly in world coords at XY p. Inserted from the FRONT
+    (open cavity), stud-first:
+        HEAD  (SNAP_HEAD_R)  inner face at head_inner_z   -- seats under the cover
+                                                             boss = the +Z stop
+        SHANK (PIN_R)        head_inner_z .. shank_end_z   -- journals the gear/arm;
+                                                             flat end bottoms on the
+                                                             back-bore step
+        MELT-STUD (MELT_STUD_R) shank_end_z .. stud_tip_z  -- threads the back-wall
+                                                             flood hole and protrudes
+                                                             past the exterior back face
+    A separate cap is melted onto the stud from OUTSIDE the back wall -> the pin is
+    riveted to the wall = a fixed pivot post the gear/arm runs on. No more wobble,
+    cannot fall out."""
     x, y = p
-    L = z1 - z0
-    barb_max_r = shank_r + SNAP_BARB_PROUD
-
     head = Cylinder(radius=SNAP_HEAD_R, height=SNAP_HEAD_T).moved(
-        Location((0, 0, -SNAP_HEAD_T / 2.0)))
-    shank = Cylinder(radius=shank_r, height=L).moved(Location((0, 0, L / 2.0)))
-
-    if barb:
-        lip_back_z = L + SNAP_BARB_SEAT
-        lip_front_z = lip_back_z + SNAP_BARB_LIP_T
-        tip_z = lip_front_z + SNAP_BARB_LEAD
-        stub = Cylinder(radius=shank_r, height=(lip_back_z - L) + 0.01).moved(
-            Location((0, 0, (L + lip_back_z) / 2.0)))
-        lip = Cylinder(radius=barb_max_r, height=SNAP_BARB_LIP_T).moved(
-            Location((0, 0, (lip_back_z + lip_front_z) / 2.0)))
-        lead = Cone(bottom_radius=barb_max_r, top_radius=SNAP_TIP_R,
-                    height=SNAP_BARB_LEAD).moved(
-            Location((0, 0, (lip_front_z + tip_z) / 2.0)))
-        body = head + shank + stub + lip + lead
-        # '+' cross slot confined to the barb end (bearing shank stays solid)
-        slot_root_z = max(tip_z - SNAP_SLOT_LEN, L + 0.6)
-        slot_h = (tip_z - slot_root_z) + 1.0
-        slot_zc = (slot_root_z + tip_z + 1.0) / 2.0
-        slot_a = Box(SNAP_SLOT_W, 4 * barb_max_r, slot_h).moved(Location((0, 0, slot_zc)))
-        slot_b = Box(4 * barb_max_r, SNAP_SLOT_W, slot_h).moved(Location((0, 0, slot_zc)))
-        relief = Cylinder(radius=SNAP_SLOT_W * 0.7, height=SNAP_SLOT_W * 2).moved(
-            Location((0, 0, slot_root_z)))
-        body = body - slot_a - slot_b - relief
-    else:
-        # plain dowel: head + shank + a NARROW pilot tip that fits the back flood
-        # hole, so the FLAT shank-end shoulder (r=shank_r) bottoms cleanly on the
-        # stepped-bore shoulder (the geometric -Z stop) while the pilot self-centres
-        # in the flood hole. Pilot radius < AXLE_FLOOD_R so it never jams.
-        pilot_r = min(shank_r * 0.55, AXLE_FLOOD_R - 0.25)
-        tip = Cone(bottom_radius=pilot_r, top_radius=pilot_r * 0.7,
-                   height=1.0).moved(Location((0, 0, L + 0.5)))
-        body = head + shank + tip
-
-    # DFM edge-break: soften the head-flange rim (handled during insertion). The
-    # barb catch face is deliberately left crisp so the lock stays positive.
-    hd = [e for e in body.edges().filter_by(GeomType.CIRCLE)
-          if abs(e.center().Z) < 0.05]
-    body = _safe_round(body, hd, min(DFM_EDGE, SNAP_HEAD_T * 0.5), chamfer)
-
-    if head_at == "z0":
-        body = body.moved(Location((0, 0, z0)))
-    else:
-        body = body.moved(Location((0, 0, 0), (1, 0, 0), 180.0))
-        body = body.moved(Location((0, 0, z1)))
-    body = body.moved(Location((x, y, 0)))
+        Location((x, y, head_inner_z + SNAP_HEAD_T / 2.0)))
+    shank = Cylinder(radius=PIN_R, height=(head_inner_z - shank_end_z)).moved(
+        Location((x, y, (head_inner_z + shank_end_z) / 2.0)))
+    stud = Cylinder(radius=MELT_STUD_R, height=(shank_end_z - stud_tip_z)).moved(
+        Location((x, y, (shank_end_z + stud_tip_z) / 2.0)))
+    body = head + shank + stud
+    # DFM: break the head rim (eased on insertion) and the stud tip (eases the cap on).
+    rim = [e for e in body.edges().filter_by(GeomType.CIRCLE)
+           if abs(e.center().Z - (head_inner_z + SNAP_HEAD_T)) < 0.2
+           or abs(e.center().Z - stud_tip_z) < 0.2]
+    body = _safe_round(body, rim, min(DFM_EDGE, SNAP_HEAD_T * 0.5), chamfer)
     body.label = label
     body.color = color
     return body
 
 
-def finger_pin(p, pin_z0, z1, arm_eye_top_z, label="finger_pin", color=PIN_COLOR):
-    """Redesigned C/D finger pivot pin (printed, single piece, top-down install).
-
-    Built in the authored frame, head flange at z1 (the finger TOP), shank +Z down
-    to the barb in the rigid arm/follower eye at pin_z0. Profile, head->tip:
-
-        HEAD  (SNAP_HEAD_R)                              -- seats on finger top
-        NECK  (FP_NECK_R, fat)   z: arm_eye_top_z .. z1  -- close running fit in the
-                                                            FIXED 2.6 TPU finger bore
-                                                            + stiff across the gap (tilt)
-        ARM-LAND (FP_ARM_LAND_R, slim) pin_z0..arm_eye_top_z -- snug in the RE-BORED
-                                                            rigid eye (pin fixed here)
-        BARB  (free FP_BARB_FREE_R)  below pin_z0        -- slim split-sprung lip that
-                                                            PASSES the TPU bore free and
-                                                            snaps onto the rigid eye's
-                                                            re-bored shoulder
-
-    The neck->arm-land STEP (fat->slim) at arm_eye_top_z lands on the rigid eye top
-    face = the pin's axial down-stop; the barb lip on the counterbore shoulder is the
-    pull-out stop. The split runs up into the arm-land (NOT the neck) so the finger
-    bearing stays solid while the barb is a long, gentle, reliably-elastic cantilever.
-    """
+def melt_cap(p, z_face, label="melt_cap", color=CAP_COLOR):
+    """Separate printed retaining cap (the SAME part for every pin -> qty 8). The
+    user slips it over a pin's protruding melt-stud (open end toward the part) and
+    fuses it with a soldering iron: the cup welds to the stud and forms a head
+    wider than the bore = geometric, creep-proof retention (replaces the barb that
+    broke and the dowel sandwich that slid). Built seated in the retaining-face
+    recess: rim at z_face + MELT_RECESS_DEPTH, cup body extending -Z (outward,
+    toward the iron). z_face is the eye-exit (bottom) face for finger pins, or the
+    exterior back-wall face for axle pins."""
     x, y = p
-    L = z1 - pin_z0                       # head(0) .. arm-land end (local +Z = down)
-    neck_len = z1 - arm_eye_top_z         # fat neck length (finger bore + support gap)
-    arm_land_len = arm_eye_top_z - pin_z0  # slim land inside the rigid eye
+    rim_z = z_face + MELT_RECESS_DEPTH
+    cup = Cylinder(radius=MELT_CAP_OR, height=MELT_CAP_H).moved(
+        Location((x, y, rim_z - MELT_CAP_H / 2.0)))        # rim (+Z top) at rim_z
+    pocket = Cylinder(radius=MELT_CAP_HOLE_R, height=MELT_CAP_HOLE_H).moved(
+        Location((x, y, rim_z - MELT_CAP_HOLE_H / 2.0)))   # blind, opens at the rim
+    body = cup - pocket
+    # break the exposed outer (-Z) rim; leave the pocket mouth crisp for the stud.
+    outer = [e for e in body.edges().filter_by(GeomType.CIRCLE)
+             if abs(e.center().Z - (rim_z - MELT_CAP_H)) < 0.25]
+    body = _safe_round(body, outer, DFM_EDGE, chamfer)
+    body.label = label
+    body.color = color
+    return body
 
+
+def finger_pin(p, eye_bottom_z, eye_top_z, finger_top_z, label="finger_pin",
+               color=PIN_COLOR):
+    """C/D finger pivot pin (printed, single piece) -- HEAT-STAKE. Built directly
+    in world coords at XY p, axis +Z = toward the finger top. Profile, finger-top
+    HEAD down to the melt-stud (top -> bottom in world +Z -> -Z):
+
+        HEAD  (SNAP_HEAD_R)   at finger_top_z              -- seats on the finger top
+        NECK  (FP_NECK_R, fat) eye_top_z .. finger_top_z   -- close fit in the FIXED
+                                                              2.6 TPU finger bore +
+                                                              bridges the support gap
+                                                              (this kills the wobble)
+        LAND  (FP_ARM_LAND_R, slim) recess_floor .. eye_top_z -- journals the rigid
+                                                              arm/follower eye
+        MELT-STUD (MELT_STUD_R) recess_floor .. eye_bottom_z - MELT_STUD_PROUD
+                                                           -- protrudes past the eye
+                                                              exit face for the cap
+
+    The neck->land step seats on the rigid eye TOP face (a down-stop); the HEAD on
+    the finger top is the visible far stop; a separate cap melted onto the stud at
+    the eye BOTTOM is the pull-out stop. recess_floor = eye_bottom_z +
+    MELT_RECESS_DEPTH (the cap recess occupies the bottom of the eye)."""
+    x, y = p
+    recess_floor = eye_bottom_z + MELT_RECESS_DEPTH
     head = Cylinder(radius=SNAP_HEAD_R, height=SNAP_HEAD_T).moved(
-        Location((0, 0, -SNAP_HEAD_T / 2.0)))
-    neck = Cylinder(radius=FP_NECK_R, height=neck_len).moved(
-        Location((0, 0, neck_len / 2.0)))
-    arm_land = Cylinder(radius=FP_ARM_LAND_R, height=arm_land_len + 0.01).moved(
-        Location((0, 0, neck_len + arm_land_len / 2.0)))
-
-    # split-sprung barb beyond local L (same placement math as snap_pin so it lands
-    # in the rigid eye counterbore), but slim (FP_BARB_FREE_R) so it never touches
-    # the TPU on the way through.
-    lip_back_z = L + SNAP_BARB_SEAT
-    lip_front_z = lip_back_z + SNAP_BARB_LIP_T
-    tip_z = lip_front_z + SNAP_BARB_LEAD
-    stub = Cylinder(radius=FP_ARM_LAND_R, height=(lip_back_z - L) + 0.01).moved(
-        Location((0, 0, (L + lip_back_z) / 2.0)))
-    lip = Cylinder(radius=FP_BARB_FREE_R, height=SNAP_BARB_LIP_T).moved(
-        Location((0, 0, (lip_back_z + lip_front_z) / 2.0)))
-    lead = Cone(bottom_radius=FP_BARB_FREE_R, top_radius=SNAP_TIP_R,
-                height=SNAP_BARB_LEAD).moved(
-        Location((0, 0, (lip_front_z + tip_z) / 2.0)))
-    body = head + neck + arm_land + stub + lip + lead
-
-    # '+' split: long cantilever (up into the arm-land, NOT the neck bearing) so the
-    # 0.6 mm catch deflection is gentle and elastic -> the barb bends instead of breaks.
-    slot_root_z = max(tip_z - FP_SLOT_LEN, neck_len + 0.6)
-    slot_h = (tip_z - slot_root_z) + 1.0
-    slot_zc = (slot_root_z + tip_z + 1.0) / 2.0
-    bm = FP_BARB_FREE_R
-    slot_a = Box(FP_SLOT_W, 4 * bm, slot_h).moved(Location((0, 0, slot_zc)))
-    slot_b = Box(4 * bm, FP_SLOT_W, slot_h).moved(Location((0, 0, slot_zc)))
-    relief = Cylinder(radius=FP_SLOT_W * 0.7, height=FP_SLOT_W * 2).moved(
-        Location((0, 0, slot_root_z)))
-    body = body - slot_a - slot_b - relief
-
-    # soften the head rim (handled on insertion); leave the barb catch face crisp.
-    hd = [e for e in body.edges().filter_by(GeomType.CIRCLE)
-          if abs(e.center().Z) < 0.05]
-    body = _safe_round(body, hd, min(DFM_EDGE, SNAP_HEAD_T * 0.5), chamfer)
-
-    # place: head at z1 (finger top), barb pointing down to the rigid eye
-    body = body.moved(Location((0, 0, 0), (1, 0, 0), 180.0))
-    body = body.moved(Location((0, 0, z1)))
-    body = body.moved(Location((x, y, 0)))
+        Location((x, y, finger_top_z + SNAP_HEAD_T / 2.0)))   # seats ON the finger top
+    neck = Cylinder(radius=FP_NECK_R, height=(finger_top_z - eye_top_z)).moved(
+        Location((x, y, (eye_top_z + finger_top_z) / 2.0)))
+    land = Cylinder(radius=FP_ARM_LAND_R, height=(eye_top_z - recess_floor) + 0.01).moved(
+        Location((x, y, (recess_floor + eye_top_z) / 2.0)))
+    stud_tip_z = eye_bottom_z - MELT_STUD_PROUD
+    stud = Cylinder(radius=MELT_STUD_R, height=(recess_floor - stud_tip_z)).moved(
+        Location((x, y, (recess_floor + stud_tip_z) / 2.0)))
+    body = head + neck + land + stud
+    # DFM: break the head rim and the stud tip; bearing surfaces stay crisp.
+    rim = [e for e in body.edges().filter_by(GeomType.CIRCLE)
+           if abs(e.center().Z - (finger_top_z + SNAP_HEAD_T)) < 0.2
+           or abs(e.center().Z - stud_tip_z) < 0.2]
+    body = _safe_round(body, rim, min(DFM_EDGE, SNAP_HEAD_T * 0.5), chamfer)
     body.label = label
     body.color = color
     return body
@@ -1195,24 +1133,29 @@ AXLE_SCREW_R = AXLE_BORE_R              # snap-pin shank clearance (was M3)
 BOSS_OD_R = AXLE_SCREW_R + 2.0 * SCALE  # axle boss OD -> 2 mm wall around bore (DFM min)
 BACK_BOSS_Z = (-2.0 * SCALE, 1.0 * SCALE)  # back-wall boss into cavity
 COVER_BOSS_Z = (20.0 * SCALE, 22.0 * SCALE)  # cover inner-face boss into cavity
-# --- axle dowel axial sandwich (geometric capture, no barb) ---
-# The plain axle dowel is trapped between the BACK boss and the COVER boss with no
-# slop: its head (SNAP_HEAD_R, wider than the AXLE_SCREW_R bore) cannot pass the
-# back boss bore (=> cannot fall out the back, -Z stop) and its head top face
-# seats against the cover boss inner face (=> +Z stop). Sizing puts the head top
-# just clear of the cover boss and the tip just into the back boss bore.
+# --- axle pin HEAT-STAKE capture (replaces the old loose dowel sandwich) -----
+# The plain dowel was meant to be trapped between the back boss and the cover boss,
+# but the running-fit bores + the 0.20 mm seating gap left real slop -> it wobbled
+# and slid out (worst before the cover was on). Now the axle pin is RIVETED to the
+# back wall: a pre-formed HEAD seats just under the cover boss (the +Z stop) and a
+# reduced MELT-STUD threads the back-wall flood hole and protrudes past the EXTERIOR
+# back face, where a separate cap is melted on (the -Z stop). The gear/arm runs on
+# the shank; the pin itself no longer moves -> no wobble, cannot fall out.
 AXLE_DOWEL_CLR = 0.20                       # head-to-cover-boss seating gap
-AXLE_DOWEL_Z1 = COVER_BOSS_Z[0] - AXLE_DOWEL_CLR - SNAP_HEAD_T   # 18.0 (shank top)
+AXLE_DOWEL_Z1 = COVER_BOSS_Z[0] - AXLE_DOWEL_CLR - SNAP_HEAD_T   # 18.0 (head inner face / shank top)
 # The back axle bore is STEPPED: a wide (AXLE_SCREW_R) running bore from the cavity
-# down to AXLE_STOP_Z, then a narrow flood hole (AXLE_FLOOD_R) on through the back
-# wall. The dowel's flat shank end (r=PIN_R) is too wide for the flood hole, so it
-# BOTTOMS on the rigid step (annular shoulder) -> the -Z stop. The narrow hole still
-# floods/drains (3 mm dia > 1.5 mm vent floor). With head_at='z1' the shank end is at
-# z0; set z0 = AXLE_STOP_Z so the shank end seats on the step with the head clamped
-# against the cover boss above -> the dowel is sandwiched with NO axial slop.
-AXLE_STOP_Z = 0.0                           # back-bore step (shank bottoms here)
-AXLE_FLOOD_R = 1.5                          # narrow flood hole below the step
+# down to AXLE_STOP_Z, then a flood hole (AXLE_FLOOD_R) on through the back wall. The
+# shank's flat end (r=PIN_R) is too wide for the flood hole, so it BOTTOMS on the
+# rigid step (the insertion depth stop); the MELT-STUD (MELT_STUD_R < flood) then
+# continues through the flood hole and out the back face. The hole still floods/drains.
+AXLE_STOP_Z = 0.0                           # back-bore step (shank flat end bottoms here)
+AXLE_FLOOD_R = 1.5                          # flood hole below the step; also the stud clearance
 AXLE_DOWEL_Z0 = AXLE_STOP_Z                 # shank flat end seats on the step
+# stud tip: ~0.2 mm shy of the cap-pocket bottom, the cap nested in the back-face recess.
+AXLE_STUD_TIP_Z = ENC_Z[0] + MELT_RECESS_DEPTH - MELT_CAP_HOLE_H + 0.2   # ~ -7.0
+assert (MELT_STUD_R + 0.15) <= AXLE_FLOOD_R + 1e-9, "melt stud won't pass the back flood hole"
+assert (MELT_CAP_OR - 0.15) - (AXLE_FLOOD_R + 0.15) >= 0.5 - 1e-9, \
+    "melt cap would not catch a solid shoulder on the exterior back face"
 # (the old back-wall A_L shaft bore + plain-bushing seat -- SHAFT_C/SHAFT_BORE_R/
 #  BUSH_* -- are REMOVED: A_L is now driven by the crown gear, not a coaxial
 #  horizontal shaft; the vertical input shaft journals through the bottom wall.)
@@ -1402,9 +1345,13 @@ def build_enclosure():
         wz0, wz1 = AXLE_STOP_Z, BACK_BOSS_Z[1] + 1.5    # wide bore: step -> cavity
         body -= Cylinder(radius=AXLE_SCREW_R, height=(wz1 - wz0)).moved(
             Location((px, py, (wz0 + wz1) / 2.0)))
-        nz0, nz1 = ENC_Z[0] - 3.0, AXLE_STOP_Z + 0.01   # narrow flood hole through back
+        nz0, nz1 = ENC_Z[0] - 3.0, AXLE_STOP_Z + 0.01   # flood hole + melt-stud clearance through back
         body -= Cylinder(radius=AXLE_FLOOD_R, height=(nz1 - nz0)).moved(
             Location((px, py, (nz0 + nz1) / 2.0)))
+        # exterior back-face recess that nests + radially confines the melt cap (so
+        # the riveted cap can't creep out and ends ~flush with the back face).
+        body -= Cylinder(radius=MELT_RECESS_R, height=MELT_RECESS_DEPTH + 0.02).moved(
+            Location((px, py, ENC_Z[0] + MELT_RECESS_DEPTH / 2.0)))
 
     # snap-clip catch windows: a through-window in each long side wall so the
     # cover's hook latches behind the window's top edge (also act as drains).
@@ -1594,10 +1541,10 @@ def gen_step():
     parts.append(drive_arm(L["A"], L["C"], -spin + half_tooth, Z_CRANK0, T_CRANK,
                            "drive_arm_L", STEEL_L, with_crown=True))
 
-    # followers B->D. Counterbore the D-eye exit (bottom) face so the finger pin
-    # (pin_D) lip drops into a rigid confining pocket (geometric capture).
-    # D-eye = the finger pin's rigid catch: bore NARROW (FP_ARM_BORE_R) + finger-pin
-    # counterbore; B-eye keeps the axle running fit.
+    # followers B->D. Recess the D-eye exit (bottom) face so the finger pin's
+    # (pin_D) melt cap nests in a rigid confining pocket (geometric capture).
+    # D-eye = the finger pin's rigid catch: bore NARROW (FP_ARM_BORE_R) + cap
+    # recess; B-eye keeps the axle running fit.
     parts.append(link_bar(R["B"], R["D"], LINK_W, Z_FOLLOW0, T_FOLLOW, "follower_R", STEEL_R,
                           counterbores=[(R["D"], Z_FOLLOW0, FP_CB_DEPTH, True, FP_CB_R, FP_EYE_BOSS_R)],
                           bore0_r=AXLE_BORE_R, bore1_r=FP_ARM_BORE_R))
@@ -1617,25 +1564,27 @@ def gen_step():
                               ("L", L, ("A", "B", "C", "D"))):
         for j in joints:
             lbl = f"pin_{j}_{tag}"
-            if j in ("C", "D"):    # finger pins: REDESIGNED stepped pin (finger_pin).
-                # Slim split barb passes the already-printed TPU finger bore FREE
-                # and snaps onto the re-bored rigid eye shoulder; fat neck removes
-                # the pivot wobble. far = the rigid eye EXIT (bottom) face
-                # (C -> crank eye @Z_CRANK0; D -> follower @Z_FOLLOW0); the eye TOP
-                # (far + thickness) is where the neck->arm-land step seats. Lip
-                # placement (pin_z0) is unchanged so the barb still lands in the
-                # counterbore with the SNAP_CB_FLOOR_CLEAR breathing gap.
+            cap_lbl = f"cap_{j}_{tag}"
+            if j in ("C", "D"):    # finger pins: HEAT-STAKE journal pin + melt cap.
+                # Fat neck = the anti-wobble bearing in the FIXED 2.6 TPU finger
+                # bore; slim land journals the rigid eye; a melt-stud past the eye
+                # EXIT (bottom) face takes a separate cap -> the pull-out stop.
+                # far = the rigid eye exit (bottom) face (C -> crank eye @Z_CRANK0;
+                # D -> follower @Z_FOLLOW0); far + thickness = the eye top. The cap
+                # is melted at this bottom face -> finger+arms+pins are a BENCH
+                # SUB-ASSEMBLY (see docs/ASSEMBLY.md).
                 far = Z_CRANK0 if j == "C" else Z_FOLLOW0
                 eye_t = T_CRANK if j == "C" else T_FOLLOW
-                pin_z0 = far + SNAP_BARB_LIP_T + SNAP_BARB_SEAT
-                parts.append(finger_pin(pose[j], pin_z0, Z_FINGER0 + T_FINGER,
-                                        far + eye_t, label=lbl))
-            else:                  # axles: plain dowels dropped in from the front,
-                                   # SANDWICHED with no slop between the back boss
-                                   # (head too wide to pass its bore -> -Z stop) and
-                                   # the cover boss (head seats on it -> +Z stop).
-                parts.append(snap_pin(pose[j], AXLE_DOWEL_Z0, AXLE_DOWEL_Z1,
-                                      head_at="z1", barb=False, label=lbl))
+                parts.append(finger_pin(pose[j], far, far + eye_t,
+                                        Z_FINGER0 + T_FINGER, label=lbl))
+                parts.append(melt_cap(pose[j], far, label=cap_lbl))
+            else:                  # axles: HEAT-STAKE pin riveted to the back wall.
+                # Dropped in from the front; head seats under the cover boss, the
+                # melt-stud exits the back-wall flood hole and a cap is melted on
+                # the EXTERIOR back face -> a fixed pivot post (no wobble/fall-out).
+                parts.append(axle_pin(pose[j], AXLE_DOWEL_Z1, AXLE_STOP_Z,
+                                      AXLE_STUD_TIP_Z, label=lbl))
+                parts.append(melt_cap(pose[j], ENC_Z[0], label=cap_lbl))
 
     # bolt-on front cover (keep existing occurrence ids stable up to here)
     parts.append(build_front_cover())

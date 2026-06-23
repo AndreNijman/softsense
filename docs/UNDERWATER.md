@@ -3,11 +3,12 @@
 Sustained-immersion durability + material-selection audit for the **fully
 3D-printed, zero-hardware** geared four-bar / Fin Ray gripper (see `gripper.py`,
 `BOM.md`, `DFM.md`). This is the production-readiness material/seawater gate:
-print it in the right polymers, accept the snap-fit constraints below, and dive
+print it in the right polymers, accept the pin-retention constraints below, and dive
 it **flooded** — there is nothing to seal inside the gripper itself.
 
 > **Scope note.** The gripper is all-polymer and fastener-free: Fin Ray fingers
-> in TPU; 8 printed snap pins (4 axle dowels + 4 barbed finger pins); a 4-clip
+> in TPU; 8 printed heat-stake (melt-rivet) pivot pins, each retained by a
+> separate printed melt cap (8 caps), all PETG-HF; a 4-clip
 > snap-on front cover; flooded enclosure with drain holes; a separate printed
 > `input_pinion_shaft` part (pinion + vertical shaft + collar + bottom D-coupler,
 > exits the housing bottom) driven via a right-angle crown + pinion stage.
@@ -27,10 +28,10 @@ decide *what to print it in* and how to run it wet here.
 | # | Check | Verdict | Evidence (measured from the model) |
 |---|---|---|---|
 | 1 | Material selection for sustained seawater | **RISK** | PETG/ASA/glass-nylon + ether-TPU are correct; **PLA must be rejected** (hydrolysis); untreated nylon swells; ester-TPU hydrolyzes. See §1. |
-| 2 | Creep at load-bearing snap interfaces | **RESOLVED** (was FAIL as drawn) | Fixed: finger-pin lips now snap into a **rigid counterbore pocket** that radially confines them (creep relaxes them *outward*) and bears load on a solid shoulder; `SNAP_BARB_SEAT` 0.30→1.2 mm. Axle dowels captured between a back-bore step and the cover boss. Capture is now **geometric**, not preload. Measured numbers in `ENGAGEMENT.md`. See §2 + CONSTRAINTS (now satisfied). |
+| 2 | Creep at load-bearing pin interfaces | **RESOLVED** (was FAIL as drawn) | Fixed: every pivot pin is now a plain printed journal pin retained by a **heat-staked melt cap** — a formed thermal-rivet head wider than the bore. Retention is **geometric** (a melted head), with no sprung barb to relax and no friction to slip, so the old creep/wobble-out mode is eliminated by mechanism, not by a `SNAP_BARB_SEAT` margin. Measured numbers in `ENGAGEMENT.md`. See §2 + CONSTRAINTS (now satisfied). |
 | 3 | Flooded-correctness (no trapped air) | **PASS** (1 RISK) | **Every part is a single solid, 1 shell each → no sealed internal pocket anywhere** (cells, cross-slots, sockets, shaft bore all vent to exterior). 5 bottom drains + 4 side drains + 4 snap windows + 2 top slots + back bores. Floods/drains fingers-up, fingers-down, back-up. **RISK:** front-up (+Z up) vents only via the slot/cover corner — add a cover vent (see §3). |
 | 4 | Net buoyancy | **PASS** | Solid vol **98.5 cm³**, dry mass ~**124 g** (PETG+TPU, 100% infill). Flooded → displaces solid vol only → **net ≈ +23 g in seawater (sinks gently, near-neutral)**. No ballast needed. See §4. |
-| 5 | Galvanic corrosion | **PASS** | **Zero metal in the gripper.** All 8 pins and `input_pinion_shaft` are printed, snap-clip cover, no fasteners. No dissimilar-metal pair exists. See §5. |
+| 5 | Galvanic corrosion | **PASS** | **Zero metal in the gripper.** All 8 pins, their 8 melt caps, and `input_pinion_shaft` are printed, snap-clip cover, no fasteners. No dissimilar-metal pair exists. See §5. |
 | 6 | Drive coupler / actuator | **SELECTED** (force-sensing) | Bottom D-flat coupler on `input_pinion_shaft` drives a **smart serial-bus servo (DYNAMIXEL XW540-T260)** that doubles as the **grip-force sensor** (motor current → tip force); magnetic-coupling dry-pod is the >30 m fallback. The motor current limit must be set to the gear ceiling `T_safe` (the printed crown/pinion is the structural limit). Full campaign in `motor/`. See §6. |
 | 7 | Hydrostatic pressure on TPU finger (FLOODED — design intent) | **PASS** | Flooded body sees σ = −P I → vM ≈ 0. Plane-strain UB confirms: 0.03 MPa at 30 m, 0.94 MPa at 600 m (29× margin vs 27.3 MPa even at 600 m). vM is load-controlled (modulus-independent — unchanged by the Bambu switch); only the benign uniform bulk shrink is larger on the softer measured modulus. See `fea/UNDERWATER_FEA.md §2`. |
 | 7b | Pressure-CRUSH on TPU finger (trapped-air, worst case, 3D) | **GEOMETRY CRUSHED at any depth ≥10 m if cells don't flood** | The Fin Ray finger blade is a closed-cell foam (E_foam ≈ 0.1 MPa vs the through-Z E_TPU = 7.4 MPa for Bambu TPU 95A HF). If cells fail to flood, external water collapses the cells globally. 3D FEA (vM modulus-independent; linear sag ∝ 1/E): peak vM 1.3 MPa @ 10 m, 3.8 MPa @ 30 m, 12.6 MPa @ 100 m — and the linear sag is ≈ or ≫ the finger thickness from 10 m up (cells close; gas/self-contact cap the real motion but the geometry is wrecked). Material doesn't yield until **~177 m** (measured through-Z strength 22.3 MPa / 0.1258 MPa·m⁻¹), but the geometry fails far shallower. **Mitigation: pre-dive cell flooding is LOAD-CRITICAL from depth zero**, not just deep dives. (An earlier 2D plane-strain analysis suggested 30 m was OK; that analysis was wrong — εz=0 hid the dominant foam-collapse mode.) See `fea/UNDERWATER_FEA.md §3`. |
@@ -51,7 +52,7 @@ Seawater is the hard case. The committed per-part picks (all printable on a
 | `input_pinion_shaft` (separate printed part) | **PA12-GF** | Vertical shaft, pinion, and D-coupler in one part. Runs in two flooded journal bores in the bottom wall (upper 2 mm alignment bore, lower 7 mm load bore) — no bushing, no seal. Integral collar geometrically trapped in housing pocket (creep-proof axial capture). PA12-GF's low creep keeps journals round. |
 | `follower` ×2 | PETG / ASA / PA-GF | Symmetric link, same part both sides. |
 | `finger_R` / `finger_L` (Fin Ray) | **TPU ~95A** — selected: **Bambu TPU 95A HF** (also NinjaFlex, BASF ether grades) | **Reject ester-based TPU** — it hydrolyzes in sustained/warm immersion and crumbles. TPU absorbs a little water and softens slightly (re-check grip if tuned tight). **Bambu TPU 95A HF:** ISO-tested density 1.22, low saturated water absorption **1.08 %**, listed as thermoplastic polyurethane "insoluble in water". Bambu does **not** state polyether vs polyester on its TDS, so the ether-vs-ester rule stands: for mission-critical sustained immersion, confirm a polyether grade with Bambu or soak-test first. (HF = high-flow: ~3× the print throughput of standard TPU 95A; external-spool only — Bambu rates it too soft for the AMS.) Profile + FEA: `PRINT_PROFILE_P1S_TPU.md`. |
-| 8 snap pins (4 axle dowels + 4 barbed finger pins) | **PA12-GF** (axle dowels); **PETG-HF** (finger pins) | Axle dowels are plain rigid sandwiched dowels. Finger pins must flex their barb — PETG-HF for ductility. **TPU is wrong for any pin** (creeps, wallows the bore). |
+| 8 heat-stake pins (PETG-HF) + 8 melt caps (PETG-HF) | **PETG-HF** (all 8 pins **and** all 8 caps) | All pins are plain printed journal pins (4× `melt_pin_axle`, 2× `melt_pin_finger_C`, 2× `melt_pin_finger_D`), each retained by a separate `melt_cap` heat-staked over its protruding stud. PETG-HF is used throughout because it heat-stakes cleanly under a soldering iron; glass-filled PA12-GF melts poorly and is not used for any pin. **TPU is wrong for any pin** (creeps, wallows the bore). |
 
 **Rejected picks (do not use underwater):**
 
@@ -71,17 +72,20 @@ dive and the flush path (drains + slots) clears it.
 
 ---
 
-## 2. Creep / stress-relaxation — the load-bearing snap interfaces (RESOLVED)
+## 2. Creep / stress-relaxation — the load-bearing pin interfaces (RESOLVED)
 
 > **RESOLUTION (implemented).** This was the production-blocking finding; it is
-> now fixed in `gripper.py`. Finger-pin lips snap into a **rigid counterbore
-> pocket** that radially confines the lip (creep can only relax it *outward*,
-> away from escape) and bears pull-out load on a solid annular shoulder;
-> `SNAP_BARB_SEAT` raised 0.30→1.2 mm. Axle dowels are sandwiched with zero
-> slop between a back-bore step (−Z) and the cover boss (+Z). Capture is now
-> **geometric, not preload-dependent**. Measured nominal + worst-case (±0.2 mm
-> FDM) numbers are in `ENGAGEMENT.md`. The analysis below is retained as the
-> rationale for the fix; the CONSTRAINTS block at the end is now satisfied.
+> now fixed in `gripper.py`. Every pivot pin is a plain printed journal pin
+> retained by a separate **heat-staked melt cap**: slip the cap over the pin's
+> protruding melt-stud and fuse it with a soldering iron, forming a thermal-rivet
+> head wider than the bore. Retention is purely **geometric** (a formed head) —
+> there is **no sprung barb to relax** (so no preload to lose) and **no friction
+> to slip** (nothing relies on a press fit). The old creep mode (a sprung barb
+> relaxing below its seat, or a sandwiched dowel wobbling out) is therefore
+> eliminated **by mechanism**, not by a `SNAP_BARB_SEAT` margin. Measured nominal
+> + worst-case (±0.2 mm FDM) numbers are in `ENGAGEMENT.md`. The analysis below
+> is retained as the rationale for the fix; the CONSTRAINTS block at the end is
+> now satisfied.
 
 **Why it mattered.** Polymers under *constant* load do
 not behave like metals: they creep, and any locking feature that depends on
@@ -90,26 +94,28 @@ plasticizes PETG/nylon (lowers modulus and Tg), and warm shallow water adds
 temperature. Over days-to-weeks submerged, a preload-held catch can relax below
 its engagement and release.
 
-### 2a. Barbed finger/axle pins — original failure mode (now fixed, see RESOLUTION above)
+### 2a. Barbed/snap pins — original failure mode (now superseded by heat-stake, see RESOLUTION above)
 
-Measured from the *original* `snap_pin()` (pre-fix):
+Measured from the *original, now-removed* `snap_pin()` (the pre-heat-stake design):
 
-- Shank radius `PIN_R = 2.3`; barb lip projects to `barb_max_r = PIN_R +
+- Shank radius `PIN_R = 2.3`; barb lip projected to `barb_max_r = PIN_R +
   SNAP_BARB_PROUD = 3.0 mm`.
-- The bore it passes through is `MOUNT_HOLE_R = 2.6 mm`, so the split tip must
+- The bore it passed through was `MOUNT_HOLE_R = 2.6 mm`, so the split tip had to
   flex **0.4 mm radially** and then spring back out.
-- The **entire positive-capture is `SNAP_BARB_SEAT = 0.30 mm`** of axial overlap
+- The **entire positive-capture was `SNAP_BARB_SEAT = 0.30 mm`** of axial overlap
   of the lip past the far bore face.
-- The split (`SNAP_SLOT_W = 1.0`, `SNAP_SLOT_LEN = 7.0`) makes the tip a sprung
-  cantilever — its outward projection is **held by elastic preload**.
+- The split (`SNAP_SLOT_W = 1.0`, `SNAP_SLOT_LEN = 7.0`) made the tip a sprung
+  cantilever — its outward projection was **held by elastic preload**.
 
 Failure path: under sustained side load on the pivot + the barb's standing
 preload, the split tip stress-relaxes inward. Once the relaxed lip projection
-falls below the 0.30 mm seat (plus hygroscopic dimensional drift, which can
+fell below the 0.30 mm seat (plus hygroscopic dimensional drift, which can
 itself be ~0.1–0.3 mm), the pin would **walk out and the joint release**. 0.30 mm
 was far too little margin for a creep-prone polymer holding a constant load for
-days underwater. **This drove the geometric-capture redesign** described in the
-RESOLUTION box above (confined counterbore + 1.2 mm seat).
+days underwater. **This drove the heat-stake redesign** described in the
+RESOLUTION box above: the sprung barb is gone entirely — each pin is now a plain
+journal pin held by a melted-cap rivet head, so there is no elastic preload left
+to relax.
 
 ### 2b. Front-cover snap clips — geometric, but watch arm relaxation → RISK
 
@@ -135,12 +141,14 @@ one of the 17 parts is a single solid with exactly 1 shell** — i.e. there is
 **no fully enclosed internal void anywhere in the model.** Every feature that
 could trap air is open to the exterior:
 
-- **Snap-pin cross-slot** — the `+` slot is cut through to the barb tip (open
-  end), not a blind pocket. Vents.
-- **Axle dowel sockets (A_R, B_R, B_L)** — the enclosure bore runs Z −15…+1
+- **Pin / melt-cap bores** — each pivot pin runs through an open through-bore,
+  and the melt-stud threads a through-hole (the back-wall flood hole for the axle
+  pins) where its cap is formed on the outside; nothing is a blind sealed pocket.
+  Vents.
+- **Axle pin sockets (A_R, B_R, B_L)** — the enclosure bore runs Z −15…+1
   (through to the **back exterior**, back face at −6) and the cover bore runs
   Z 20…25 (blind cavity-side pockets, not through front exterior), with a 0.3 mm annular gap around
-  the 2.3 mm dowel. Open cavity-side only → internal flood/drain.
+  the 2.3 mm pin. Open cavity-side only → internal flood/drain.
 - **Input-shaft journal bores** — upper bore (r 4.3, len 2 mm in the cavity
   boss) and lower bore (r 4.3, len 7 mm through the bottom wall) around the
   Ø8 mm shaft (0.3 mm radial gap). Both bores are open both ends → floods and
@@ -213,11 +221,12 @@ for them separately.
 
 ## 5. Galvanic corrosion
 
-**PASS — not applicable.** The gripper is **100 % polymer**: all 8 snap pins
-(4 axle dowels + 4 finger pins) are printed, `input_pinion_shaft` is printed PA12-GF,
-the front cover latches with 4 integral printed clips, and there are no screws, nuts,
-bushings, or inserts. With no dissimilar-metal contact there is **no galvanic cell,
-no anode to drive, nothing to pit or rust.**
+**PASS — not applicable.** The gripper is **100 % polymer**: all 8 heat-stake
+pins (4× `melt_pin_axle`, 2× `melt_pin_finger_C`, 2× `melt_pin_finger_D`) and
+their 8 `melt_cap` rivet caps are printed PETG-HF, `input_pinion_shaft` is printed
+PA12-GF, the front cover latches with 4 integral printed clips, and there are no
+screws, nuts, bushings, or inserts. With no dissimilar-metal contact there is
+**no galvanic cell, no anode to drive, nothing to pit or rust.**
 
 The only galvanic consideration is **external**: the M4 flange holes pass
 through to the user's robot arm. If that arm is metal, isolate the bolted joint
@@ -267,8 +276,9 @@ pod), not the gripper, sets the system depth limit.**
 **Pre-dive**
 
 - Confirm material: no PLA, no ester-TPU, no unfilled nylon anywhere.
-- Confirm snap pins meet the creep constraint (§2 / CONSTRAINTS) — geometric
-  capture, adequate seat. Tug-test every pin and the cover before diving.
+- Confirm pins meet the creep constraint (§2 / CONSTRAINTS) — geometric
+  capture via a properly-formed melt-cap head. Tug-test every pin and the cover
+  before diving.
 - Confirm all drains/slots/windows/journal bores are clear; confirm cavity floods
   (submerge, watch bubbles fully clear in your dive orientation; add the cover vent
   if you dive front-up).
@@ -291,8 +301,8 @@ pod), not the gripper, sets the system depth limit.**
 - **Rinse thoroughly with fresh water** (flush mesh, drains, slots) — salt
   crystallizes and abrades.
 - Cycle to flush grit; inspect teeth and pins for wear, the TPU for swelling.
-- Inspect every snap pin and the cover clips for any loss of engagement
-  (the creep failure mode) — replace pins that have loosened.
+- Inspect every pin (melt-cap head intact) and the cover clips for any loss of
+  engagement — re-stake or replace any pin whose cap has cracked or loosened.
 
 ---
 
@@ -305,17 +315,24 @@ parts (no sealed pockets), TPU Fin Ray fingers, the bottom D-flat coupler on
 
 **You choose at fabrication:** the per-part polymer (§1 — never PLA/ester-TPU/
 unfilled nylon), infill (≥40 % for predictable flooding/buoyancy), and the
-waterproof actuator (§6). And **the snap-fit agent must apply the creep fixes
-below before this is dive-ready.**
+waterproof actuator (§6). The creep fixes below are now satisfied by the
+heat-stake pin design — verify the constraints hold before this is dive-ready.
 
 ---
 
 === CONSTRAINTS FOR A (snap-fit/pin agent) ===
 
-Hard, quantified requirements the snap-fit / pin design must satisfy for
+Hard, quantified requirements the pin design must satisfy for
 sustained underwater (days–weeks) constant-load service. Rationale: polymers
 creep under constant load and water plasticizes PETG/nylon, so any preload-held
-catch relaxes and releases. Numbers are measured from the current `gripper.py`.
+catch relaxes and releases.
+
+> **Status:** the shipped design takes item 3's "preferred fix" path to its
+> conclusion — every pin is a plain journal pin retained by a separate
+> heat-staked **melt cap** (a formed rivet head wider than the bore), so item 1
+> is satisfied **by mechanism** and there is no sprung barb at all. Items 2 and
+> the barb-seat language below describe the *one-piece-barb alternative that was
+> NOT taken* and are retained only as the original requirement rationale.
 
 1. **Retention must be GEOMETRIC, not friction/elastic-preload.** The pin must
    be held by a positive mechanical step that exists in *rigid* material
@@ -363,9 +380,10 @@ catch relaxes and releases. Numbers are measured from the current `gripper.py`.
    Keep clear of the 3 cover axle bosses (at A_R/B_R/B_L) and the snap-clip
    windows. Min 1.5 mm dia for bubble release and FDM horizontal-hole minimum.
 
-8. **Material directive for all snap features:** PETG default; **do not** print
-   any snap pin or clip in **TPU** (creeps, wallows the bore) or **PLA**
-   (hydrolyzes wet). ASA or glass-filled nylon are acceptable stiffer
-   alternatives if insertion strain is re-checked.
+8. **Material directive for pins and clips:** all heat-stake pins and their melt
+   caps in **PETG-HF** (heat-stakes cleanly; glass-filled PA12-GF melts poorly);
+   cover clips in PETG. **Do not** print any pin or clip in **TPU** (creeps,
+   wallows the bore) or **PLA** (hydrolyzes wet). ASA or glass-filled nylon are
+   acceptable stiffer alternatives for the clips.
 
 === END CONSTRAINTS ===

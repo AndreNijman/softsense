@@ -6,8 +6,8 @@ its **supportless** print orientation, seated on Z=0, then shelf-packed onto
 build plates for a common bed.
 
 > **REGENERATE AFTER ANY GEOMETRY CHANGE.** These plates are a *derived*
-> artifact. When `gripper.py` geometry changes (e.g. the snap-fit / pin agent
-> finalizes the barb), the integrator MUST re-run **both** steps:
+> artifact. When `gripper.py` geometry changes (e.g. the pin / heat-stake-cap
+> geometry is retuned), the integrator MUST re-run **both** steps:
 > ```bash
 > source /home/andre/.cad-venv/bin/activate
 > python export_parts.py        # refresh parts/*.stl
@@ -21,11 +21,13 @@ build plates for a common bed.
 - `print_plates/oriented/<part>.stl` — every unique part, **already rotated** to
   its print orientation with min-Z on the bed. Drop a single one in if you only
   need that part.
-- `print_plates/plate_rigid_1.stl` — the 11 **PA12-GF** parts (body, cover, arms,
-  followers, 4 axle dowels, input pinion shaft), packed.
-- `print_plates/plate_petg_1.stl` — the 4 **PETG-HF** finger pins (`snap_pin_finger`),
-  on their own plate: the split snap barb needs ductility, so these print in
-  PETG-HF, not the brittle glass-filled nylon.
+- `print_plates/plate_rigid_1.stl` — the **PA12-GF** structural parts (body, cover,
+  arms, followers, input pinion shaft), packed.
+- `print_plates/plate_petg_1.stl` — the **PETG-HF** pins and caps on their own
+  plate: all 8 journal pins (`melt_pin_axle` ×4, `melt_pin_finger_C` ×2,
+  `melt_pin_finger_D` ×2) + 8 `melt_cap` retaining caps. These print in PETG-HF
+  because PETG-HF heat-stakes cleanly under a soldering iron; glass-filled PA12-GF
+  does not.
 - `print_plates/plate_tpu_1.stl` — the two **TPU** Fin Ray fingers, packed
   **separately** because they print in a different material.
 
@@ -48,7 +50,7 @@ At 220×220 everything still lands on the same 3 plates (rigid footprint is only
 
 ## Plate layout (256 × 256 mm, 5 mm spacing)
 
-### `plate_rigid_1.stl` — PA12-GF — **11 parts**, footprint ≈ 236 × 108 × 33 mm
+### `plate_rigid_1.stl` — PA12-GF — **7 parts**, footprint ≈ 236 × 108 × 33 mm
 
 | Part | Qty | Oriented bbox (mm) | Orientation |
 |---|---|---|---|
@@ -57,14 +59,16 @@ At 220×220 everything still lands on the same 3 plates (rigid footprint is only
 | `drive_arm_L` | 1 | 26.5 × 51.2 × 8.0 | flat plate face-down (as-exported); crown gear on +Z face; no integral shaft |
 | `drive_arm_R` | 1 | 26.6 × 51.2 × 5.0 | flat plate face-down (as-exported) |
 | `follower` | **2** | 11.2 × 40.0 × 5.0 | flat bar face-down (as-exported) |
-| `snap_pin_axle` | **4** | 7.8 × 7.8 × 20.8 | **flip 180° about X**: head on bed, barb up |
 | `input_pinion_shaft` | 1 | 11.6 × 11.6 × 33.0 | **rotate 90° about X**: shaft-axis vertical, D-coupler/shoulder end on bed, pinion teeth at top |
 
-### `plate_petg_1.stl` — PETG-HF — **4 parts**, footprint ≈ 51 × 13 × 27 mm
+### `plate_petg_1.stl` — PETG-HF — **16 parts** (8 pins + 8 caps), footprint ≈ 60 × 30 × 27 mm
 
 | Part | Qty | Oriented bbox (mm) | Orientation |
 |---|---|---|---|
-| `snap_pin_finger` | **4** | 7.8 × 7.8 × 26.8 | **flip 180° about X**: head on bed, barb up (lip bridge spans 1–2 layers) |
+| `melt_pin_axle` | **4** | 7.8 × 7.8 × 20.8 | **flip 180° about X**: head down on bed, melt-stud up; plain stepped cylinder, self-supporting |
+| `melt_pin_finger_C` | **2** | 7.8 × 7.8 × ~29 | **flip 180° about X**: LONG crank-layer pin; head down on bed, melt-stud up |
+| `melt_pin_finger_D` | **2** | 7.8 × 7.8 × ~24 | **flip 180° about X**: SHORT follower-layer pin; head down on bed, melt-stud up |
+| `melt_cap` | **8** | ~6 × 6 × ~3 | tiny retaining cap; disc face on bed, bore up; no supports |
 
 ### `plate_tpu_1.stl` — TPU 95A — **2 parts**, footprint ≈ 68 × 101 × 10 mm
 
@@ -73,32 +77,37 @@ At 220×220 everything still lands on the same 3 plates (rigid footprint is only
 | `finger_R` | 1 | 28.0 × 96.2 × 10.0 | flat on a 28×96 Z-face, build height 10 mm (as-exported) |
 | `finger_L` | 1 | 28.0 × 96.2 × 10.0 | flat on a 28×96 Z-face, build height 10 mm (as-exported) |
 
-## Part quantities (full assembly = 17 printed parts)
+## Part quantities (full assembly = 25 printed parts)
 
 | Part | Qty | Why |
 |---|---|---|
 | enclosure | 1 | one housing |
 | front_cover | 1 | one snap-on cover |
-| drive_arm_L | 1 | left arm (crown gear on +Z face); rides on `snap_pin_axle` |
-| drive_arm_R | 1 | right arm; rides on `snap_pin_axle` |
+| drive_arm_L | 1 | left arm (crown gear on +Z face); rides on `melt_pin_axle` |
+| drive_arm_R | 1 | right arm; rides on `melt_pin_axle` |
 | follower | 2 | one per side (L/R link bars are congruent → same file) |
-| snap_pin_axle | **4** | the 4 internal axle pivots (`pin_A_R`, `pin_A_L`, `pin_B_R`, `pin_B_L`) |
-| snap_pin_finger | **4** | the 4 finger-pivot pins (`pin_C_R`, `pin_D_R`, `pin_C_L`, `pin_D_L`) |
+| melt_pin_axle | **4** | the 4 internal axle pivots (`pin_A_R`, `pin_A_L`, `pin_B_R`, `pin_B_L`) |
+| melt_pin_finger_C | **2** | the 2 LONG crank-layer finger-pivot pins (`pin_C_R`, `pin_C_L`) |
+| melt_pin_finger_D | **2** | the 2 SHORT follower-layer finger-pivot pins (`pin_D_R`, `pin_D_L`) |
+| melt_cap | **8** | one heat-staked retaining cap per pivot pin (8 pins → 8 caps) |
 | finger_R | 1 | right Fin Ray finger (chiral) |
 | finger_L | 1 | left Fin Ray finger (chiral mirror) |
 | input_pinion_shaft | 1 | pinion + vertical shaft + capture collar + D-coupler (new right-angle drive) |
-| **Total** | **17** | **3 plates** (1 rigid PA12-GF + 1 PETG-HF + 1 TPU) |
+| **Total** | **25** | **3 plates** (1 rigid PA12-GF + 1 PETG-HF + 1 TPU) |
 
-`pin_A_L` is now a separate snap-pin axle (same geometry as `pin_A_R`) — the
-left arm no longer carries an integral horizontal shaft. The right-angle drive
-input shaft is `input_pinion_shaft`, a separate printed part. Zero bought hardware.
+`pin_A_L` is now a separate axle pin (`melt_pin_axle`, same geometry as `pin_A_R`)
+— the left arm no longer carries an integral horizontal shaft. The right-angle
+drive input shaft is `input_pinion_shaft`, a separate printed part. Zero bought
+hardware — every pin is a printed PETG-HF journal retained by a heat-staked
+`melt_cap` (slip the cap over the pin's melt-stud, fuse it with a soldering iron).
 
 ## Totals & estimates
 
 - **Plates: 3** (1 rigid PA12-GF, 1 PETG-HF, 1 TPU).
 - **Solid material volume: ≈ 103.1 cm³** (geometric solid volume, summed over all
-  17 parts, BEFORE walls/infill — actual filament will be lower for the
-  low-infill housing and higher only if you go 100 % on small parts).
+  25 parts, BEFORE walls/infill — the 8 tiny caps add little; actual filament will
+  be lower for the low-infill housing and higher only if you go 100 % on small
+  parts).
 - **Print-time estimate: not produced — no slicer CLI was found on PATH.** The
   script auto-detects `prusa-slicer`, `orca-slicer`, `superslicer`, `slic3r`,
   `CuraEngine`; install one and re-run `make_print_plates.py` to get per-plate
@@ -111,14 +120,13 @@ pose (mm² needing support, excluding the first layer):
 
 | Part | Support area | Verdict |
 |---|---|---|
-| drive_arm_R, follower, snap_pin_axle | 0 mm² | fully supportless |
+| drive_arm_R, follower, melt_pin_axle, melt_pin_finger_C/D, melt_cap | 0 mm² | fully supportless (plain stepped cylinders / tiny discs — no barb bridge) |
 | finger_R / finger_L | ~1 mm² (first-layer noise) | supportless |
-| snap_pin_finger | 12 mm² | supportless (barb lip is a 0.7 mm bridge) |
 | front_cover | 184 mm² | supportless (clip hook underlips bridge) |
 | drive_arm_L | 21 mm² | as-exported, flat plate on bed; crown gear on +Z face prints as concentric rings — supportless |
 | input_pinion_shaft | 89 mm² | shaft-axis vertical (90° X rot); collar mid-shaft is a ~1.8 mm radial bridge — supportless |
 | enclosure | 1259 mm² | mostly bridges (interior floor ceilings); the **back flange** is the one feature that may want a few support pillars / a skirt |
 
 See `PRINTING.md` → "Supportless orientation table" for the full per-part print
-recipe, and the CONSTRAINTS block at the end of this audit for what the snap-fit
-agent must preserve.
+recipe, and the CONSTRAINTS block at the end of this audit for the pin / heat-stake
+geometry that must be preserved.

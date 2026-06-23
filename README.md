@@ -141,11 +141,17 @@ EXPLORER_WORKSPACE_ROOT=/home/andre/gripper-cad EXPLORER_ROOT_DIR=. \
 
 ## Part count
 
-17 printed parts: `enclosure`, `front_cover`, `drive_arm_R`, `drive_arm_L`,
-`follower_R`, `follower_L`, `finger_R`, `finger_L`, **4 axle dowels**
-(`pin_A_R`, `pin_A_L`, `pin_B_R`, `pin_B_L`), **4 finger snap pins**
-(`pin_C_R`, `pin_C_L`, `pin_D_R`, `pin_D_L`), and the new **`input_pinion_shaft`**
-(pinion + vertical shaft + D-coupler + capture collar, one printed part, PA12-GF).
+25 printed parts (9 structural + 8 pins + 8 caps): `enclosure`, `front_cover`,
+`drive_arm_R`, `drive_arm_L`, `follower_R`, `follower_L`, `finger_R`, `finger_L`,
+the **`input_pinion_shaft`** (pinion + vertical shaft + D-coupler + capture collar,
+one printed part, PA12-GF), **4 heat-stake axle pins** (`melt_pin_axle` ×4),
+**4 heat-stake finger pins** (two SKUs: `melt_pin_finger_C` ×2 long crank-layer +
+`melt_pin_finger_D` ×2 short follower-layer), and **8 retaining caps** (`melt_cap` ×8).
+Every pin and cap prints in PETG-HF: each plain journal pin is retained by a
+separate PETG-HF cap melted over its stud with a soldering iron into a thermal-rivet
+head wider than the bore (geometric retention — nothing flexes, nothing slides out).
+The build needs **zero purchased hardware / zero fasteners**; the only tool required
+is a soldering iron to melt the 8 caps.
 
 ## Assumptions / caveats
 

@@ -68,6 +68,16 @@ EXPLODE = {
     "pin_C_L":            ((-0.3, 0.0, 1.0), 52.0),
     "pin_D_R":            ((0.5, 0.0, 1.0), 52.0),
     "pin_D_L":            ((-0.5, 0.0, 1.0), 52.0),
+    # Heat-stake retaining caps: each melts onto its matching pin's stud, so
+    # it travels in along the same insertion axis as the pin it caps.
+    "cap_A_R":            ((0.2, 0.0, 1.0), 48.0),
+    "cap_A_L":            ((-0.2, 0.0, 1.0), 48.0),
+    "cap_B_R":            ((0.35, 0.0, 1.0), 48.0),
+    "cap_B_L":            ((-0.35, 0.0, 1.0), 48.0),
+    "cap_C_R":            ((0.3, 0.0, 1.0), 52.0),
+    "cap_C_L":            ((-0.3, 0.0, 1.0), 52.0),
+    "cap_D_R":            ((0.5, 0.0, 1.0), 52.0),
+    "cap_D_L":            ((-0.5, 0.0, 1.0), 52.0),
     "enclosure":          ((0.0, -0.35, -1.0), 58.0),
     "front_cover":        ((0.0, -1.0, 0.25), 66.0),
 }
@@ -76,10 +86,12 @@ EXPLODE = {
 STAGES = [
     ("Input pinion + drive shaft",        ["input_pinion_shaft"]),
     ("Crown + spur drive arms",           ["drive_arm_L", "drive_arm_R"]),
-    ("Internal axle pins",                ["pin_A_R", "pin_A_L", "pin_B_R", "pin_B_L"]),
+    ("Internal axle pins + caps",         ["pin_A_R", "pin_A_L", "pin_B_R", "pin_B_L",
+                                           "cap_A_R", "cap_A_L", "cap_B_R", "cap_B_L"]),
     ("Coupler links (followers)",         ["follower_R", "follower_L"]),
     ("Fin-Ray compliant fingers",         ["finger_R", "finger_L"]),
-    ("Finger-pivot snap pins",            ["pin_C_R", "pin_C_L", "pin_D_R", "pin_D_L"]),
+    ("Finger-pivot pins + melt caps",     ["pin_C_R", "pin_C_L", "pin_D_R", "pin_D_L"]),
+    ("Heat-stake the caps on",            ["cap_C_R", "cap_C_L", "cap_D_R", "cap_D_L"]),
     ("Flooded enclosure (housing)",       ["enclosure"]),
     ("Front cover snaps on",              ["front_cover"]),
 ]

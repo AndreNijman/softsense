@@ -12,8 +12,9 @@ so the filename alone tells you what it is, how many to print, and what to print
 it in -- no need to open a BOM. Pure stdlib (no venv needed).
 
 The (qty, material) map below is the single source of truth and matches BOM.md §5
-(FINAL build materials): everything rigid is PA12-GF, the four finger snap pins
-are the lone PETG-HF exception, the two Fin Ray fingers are ether-based TPU ~95A.
+(FINAL build materials): the rigid body/gear parts are PA12-GF, ALL the pivot pins
+and caps are PETG-HF heat-stake parts (a cap is melted onto each pin's stud with a
+soldering iron), and the two Fin Ray fingers are ether-based TPU ~95A.
 
 Run:
     python3 make_print_set.py
@@ -41,8 +42,13 @@ PRINT_SET = {
     "follower":           (2, "PA12-GF"),
     "finger_R":           (1, "etherTPU-95A"),
     "finger_L":           (1, "etherTPU-95A"),
-    "snap_pin_axle":      (4, "PA12-GF"),
-    "snap_pin_finger":    (4, "PETG-HF"),
+    # heat-stake pins + caps: all PETG-HF (one pin material; mushrooms cleanly
+    # under a soldering iron). axle pins switched from PA12-GF (glass-filled, melts
+    # poorly) to PETG-HF. finger pins split C (long) / D (short) -- different lengths.
+    "melt_pin_axle":      (4, "PETG-HF"),
+    "melt_pin_finger_C":  (2, "PETG-HF"),
+    "melt_pin_finger_D":  (2, "PETG-HF"),
+    "melt_cap":           (8, "PETG-HF"),
 }
 
 
@@ -79,9 +85,10 @@ def main() -> int:
     idx += ["",
             f"**{len(rows)} unique parts, {total_prints} physical prints total.**",
             "",
-            "Materials: PA12-GF (all rigid parts), PETG-HF (the 4 finger snap "
-            "pins only -- they flex on insertion), ether-based TPU ~95A (the 2 "
-            "Fin Ray fingers -- never ester-TPU, it hydrolyzes underwater).",
+            "Materials: PA12-GF (rigid body/gear parts), PETG-HF (all 8 pivot "
+            "pins + 8 melt-on caps -- heat-staked with a soldering iron), "
+            "ether-based TPU ~95A (the 2 Fin Ray fingers -- never ester-TPU, it "
+            "hydrolyzes underwater).",
             ""]
     (OUT / "README.md").write_text("\n".join(idx))
 

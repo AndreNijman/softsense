@@ -120,15 +120,15 @@ ORIENT = {
              "small first-layer bevel (no support needed; trims a little elephant "
              "foot). Supportless.",
     ),
-    "snap_pin_axle": dict(
-        # Exported pose: head disc at +Z (top), barb/lead-in tip at -Z (bottom).
-        # Flip 180 about X => head flange on the bed (anchors the print), barb
-        # tip points +Z up so the lead-in cone narrows as it rises (printable).
-        rot=[("x", 180)], qty=4, group="rigid",
-        note="flip 180 about X: head flange on bed, barb tip up. Lead-in cone "
-             "narrows going up (self-supporting); '+' split slot is vertical. "
-             "Supportless. PETG, slow + low cooling at the barb. "
-             "Qty 4: pin_A_R, pin_A_L, pin_B_R, pin_B_L.",
+    "melt_pin_axle": dict(
+        # Plain stepped cylinder (head + shank + melt-stud). Exported head at +Z,
+        # stud at -Z. Flip 180 about X => head flange on the bed (anchors the
+        # print), stud points +Z up (self-supporting cylinder, no slot/barb).
+        rot=[("x", 180)], qty=4, group="petg",
+        note="flip 180 about X: head flange on bed, melt-stud up. Plain stepped "
+             "cylinder -- self-supporting, no slot. Supportless. PETG-HF. "
+             "Qty 4: pin_A_R, pin_A_L, pin_B_R, pin_B_L. After install, melt a "
+             "cap on the back-protruding stud.",
     ),
     "input_pinion_shaft": dict(
         # The part is a vertical shaft (model-Y axis in the assembly) with a pinion
@@ -154,21 +154,35 @@ ORIENT = {
              "~1.8mm radial bridge (1-2 layers). SUPPORTLESS. PA12-GF. "
              "100% infill + 4+ perimeters for torsional shaft strength.",
     ),
-    "snap_pin_finger": dict(
-        # PETG-HF (final material): the split snap barb needs ductility; PA12-GF
-        # is too brittle and would crack on insertion. Pull-out load is carried
-        # by the PA12-GF counterbore shoulder, not the pin -> separate PETG plate.
-        rot=[("x", 180)], qty=4, group="petg",
-        note="flip 180 about X: head flange on bed, barb tip up. Locking lip is "
-             "a ~0.7 mm bridge the printer spans in 1-2 layers. Supportless. "
-             "PETG-HF (NOT PA12-GF -- barb must flex), slow + low cooling at the barb.",
+    "melt_pin_finger_C": dict(
+        # Plain stepped journal pin, LONG (reaches the crank layer). Head +Z,
+        # stud -Z exported. Flip 180 => head flange on bed, stud up.
+        rot=[("x", 180)], qty=2, group="petg",
+        note="flip 180 about X: head flange on bed, melt-stud up. Plain stepped "
+             "cylinder, supportless. PETG-HF. Qty 2: pin_C_R, pin_C_L (the LONG "
+             "finger pin -- reaches the crank layer).",
+    ),
+    "melt_pin_finger_D": dict(
+        rot=[("x", 180)], qty=2, group="petg",
+        note="flip 180 about X: head flange on bed, melt-stud up. Plain stepped "
+             "cylinder, supportless. PETG-HF. Qty 2: pin_D_R, pin_D_L (the SHORT "
+             "finger pin -- reaches the follower layer).",
+    ),
+    "melt_cap": dict(
+        # Tiny cup with a blind centre pocket. Print OPEN-END UP (closed crown on
+        # the bed) so the pocket needs no bridging; no rotation needed.
+        rot=[], qty=8, group="petg",
+        note="print OPEN-END UP (closed crown on the bed): the blind stud-pocket "
+             "opens upward so it needs no bridging. Supportless. PETG-HF. Qty 8 "
+             "(one per pin). Slip over a pin's stud and fuse the crown with a "
+             "soldering iron.",
     ),
 }
 
 # print order within a group (so the summary / plate reads logically)
 RIGID_ORDER = ["enclosure", "front_cover", "drive_arm_L", "drive_arm_R",
-               "follower", "snap_pin_axle", "input_pinion_shaft"]
-PETG_ORDER = ["snap_pin_finger"]
+               "follower", "input_pinion_shaft"]
+PETG_ORDER = ["melt_pin_axle", "melt_pin_finger_C", "melt_pin_finger_D", "melt_cap"]
 TPU_ORDER = ["finger_R", "finger_L"]
 
 

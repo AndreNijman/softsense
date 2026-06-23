@@ -11,19 +11,20 @@ Tooling: build123d 0.10.0, trimesh 4.12.2, venv `/home/andre/.cad-venv`.
 
 ## TOP-LINE VERDICT: ✅ Production-ready
 
-All checks pass. **Finger pins must be printed in PETG-HF** (the rest of the
-rigid parts — including `input_pinion_shaft` — in PA12-GF; fingers in TPU).
-A printed coupon fit-test of the snap clips is recommended before committing the
-full print run.
+All checks pass. **All 8 pivot pins and 8 retaining caps must be printed in
+PETG-HF** (the rest of the rigid parts — including `input_pinion_shaft` — in
+PA12-GF; fingers in TPU). A printed coupon fit-test of the snap clips is
+recommended before committing the full print run.
 
 **Drive redesign (post-QA):** the input shaft was changed to exit the housing
 **bottom** via a right-angle crown + pinion stage (crown on A_L gear face,
 driven by a small spur pinion on a vertical shaft). `drive_arm_L` no longer has
-an integral horizontal shaft; it rides on a new axle dowel `pin_A_L`. A new part
-`input_pinion_shaft` (pinion + shaft + collar + D-coupler) brings the total to
-**17 printed parts**. Interference re-verified **CLEAN**; kinematics unchanged
-(same four-bar, same finger gaps). Axial capture of the input shaft uses the
-same geometric collar-in-pocket principle as the axle dowels — no new creep risk.
+an integral horizontal shaft; it rides on a new heat-stake axle pin `pin_A_L`. A
+new part `input_pinion_shaft` (pinion + shaft + collar + D-coupler), together with
+the 8 heat-stake pins and 8 melt caps, brings the total to **25 printed parts**
+(9 structural + 8 pins + 8 caps). Interference re-verified **CLEAN**; kinematics
+unchanged (same four-bar, same finger gaps). Axial capture of the input shaft uses
+the same geometric collar-in-pocket principle as the heat-stake pins — no new creep risk.
 
 ---
 
@@ -35,12 +36,12 @@ same geometric collar-in-pocket principle as the axle dowels — no new creep ri
 | 2 | Interference across motion (project recipe) | ✅ PASS | 0 flagged pairs >0.5 mm³ at open 0/.25/.5/.75/1.0 |
 | 3 | Pin vs non-receiving part | ✅ **PASS** | open=0: all intersection volumes 0.000 mm³; CLEAN at open 0/0.5/1.0 |
 | 4 | Finger–finger at closed | ✅ PASS | (finger_R ∩ finger_L) = 0.000000 mm³ at open=0 |
-| 5 | Retention geometry present | ✅ PASS | counterbore shoulder 1.05 mm + lip catch 0.6 mm; dowel −Z 0.8 / +Z 1.3 mm; 4 clips, 1.15 mm engage |
+| 5 | Retention geometry present | ✅ PASS | melt-cap formed head bears pull-out (geometric, wider than bore); pocket shoulder 1.05 mm seat; 4 clips, 1.15 mm engage |
 | 6 | Manifold (all STLs) | ✅ PASS | 9/9 watertight, winding-consistent, 1 body, vol>0, 0 degenerate faces |
 | 7 | Walls vs FDM min | ✅ PASS | all functional walls ≥1.0 mm; none <0.8 mm absolute; marginals by-design |
 | 8 | Vents / flood / no enclosed void | ✅ PASS | Bottom drains (4 × 2) + 2 side drains + 4 windows + 4 axle-flood + journal-bore clearance + 3 cover vents; every part single shell |
 | 9 | Finger-scale param 0.7 / 1.6 | ✅ PASS | builds clean, finger-vs-rest CLEAN; C-D span=20.0, mount r=2.6, bolts fixed at all scales |
-| 10 | Assembly order feasibility | ✅ PASS | dowels-before-cover required & possible; C/D pivots above housing → fingers after |
+| 10 | Assembly order feasibility | ✅ PASS | axle pins inserted & capped before cover; C/D pivots above housing → finger sub-assemblies (pin staked to arm/follower) drop in after |
 
 ---
 
@@ -104,13 +105,15 @@ boss verified to physically materialise in the solid (drive_arm_R C-eye:
 exit-face annulus empty = pocket, top annulus solid 6.92 mm³ = shoulder, boss
 ring solid 8.40 mm³).
 
-- **[A] Finger-pin counterbore (C/D):** lip r 3.20 vs bore r 2.60 → catches
-  0.60 mm radially past the bore wall; rigid pocket SHOULDER 1.05 mm (axial
-  pull-out bearing); barb axial SEAT 1.20 mm past far face; eye-boss confining
-  ring wall 1.00 mm.
-- **[B] Axle-dowel sandwich (A_R/B_R/B_L):** −Z stop = flat shank shoulder 0.80 mm
-  over the flood-hole step; +Z stop = head 1.30 mm over the cover-boss bore;
-  back boss Z(−2,1) + cover boss Z(20,22) trap the shank with 0.20 mm seat gap.
+- **[A] Finger-pin heat-stake cap (C/D):** the melted PETG-HF `melt_cap` head,
+  wider than the bore at the arm/follower-eye bottom, bears the axial pull-out (a
+  geometric formed head, not an elastic barb lip); the cap seats on the rigid eye
+  bottom face (≥1.0 mm bearing ring) — staked as a bench sub-assembly.
+- **[B] Axle-pin heat-stake cap (A_R/A_L/B_R/B_L):** the `melt_pin_axle` journal
+  pin inserts from the front through the back-boss / cover-boss bores and is
+  retained by a melted PETG-HF `melt_cap` head outside the back wall (geometric
+  formed head, wider than the flood hole); back boss Z(−2,1) + cover boss
+  Z(20,22) locate the shank — capped from outside after the mechanism is in.
 - **[C] Cover snap clips:** 4 cantilever clips; hook reach 1.5 mm − 0.35 clear =
   **1.15 mm net engagement**; arm thk 2.0 mm; window Z(6.65,10.35) over hook
   Z(7.0,10.0); 2.0 mm Y slack.
@@ -127,13 +130,15 @@ All 9 `parts/*.stl` loaded with vertex merge (`process=True` + `merge_vertices`)
 | finger_R | ✓ | ✓ | 1 | 9070.9 | 0 |
 | follower | ✓ | ✓ | 1 | 1150.6 | 0 |
 | front_cover | ✓ | ✓ | 1 | 12352.8 | 0 |
-| snap_pin_axle | ✓ | ✓ | 1 | 384.8 | 0 |
-| snap_pin_finger | ✓ | ✓ | 1 | 463.5 | 0 |
+| melt_pin_axle | ✓ | ✓ | 1 | 384.8 | 0 |
+| melt_pin_finger_C | ✓ | ✓ | 1 | 463.5 | 0 |
+| melt_pin_finger_D | ✓ | ✓ | 1 | 463.5 | 0 |
+| melt_cap | ✓ | ✓ | 1 | — | 0 |
 
-STL set is the intentional de-duped print set (follower ×2, snap_pin_axle ×4,
-snap_pin_finger ×4; chiral fingers + L/R arms kept separate; `input_pinion_shaft`
-×1). All solids in `gen_step()` (17 children) are also single solid / single
-shell each.
+STL set is the intentional de-duped print set (follower ×2, melt_pin_axle ×4,
+melt_pin_finger_C ×2, melt_pin_finger_D ×2, melt_cap ×8; chiral fingers + L/R arms
+kept separate; `input_pinion_shaft` ×1). All solids in `gen_step()` (25 children)
+are also single solid / single shell each.
 
 ### 7 — Walls ✅
 | wall | mm | note |
@@ -144,10 +149,9 @@ shell each.
 | finger spine / ribs | 1.8 / 1.6 | ✓ |
 | SNAP_ARM_T (clip arm) | 2.000 | ✓ |
 | axle-boss wall (BOSS_OD_R−AXLE_SCREW_R) | 2.000 | ✓ |
-| snap-pin head flange T | 1.800 | ✓ |
+| melt_cap formed-head flange T | 1.800 | ✓ melted thermal-rivet head bearing |
 | BUSH boss wall | 1.600 | ✓ |
-| AXLE_DOWEL head over boss bore | 1.300 | info: tight but >1.0 mm bearing |
-| SNAP_BARB_LIP_T (locking lip) | 1.000 | RISK-by-design: 2.5 perimeters @0.4 nozzle floor |
+| melt_cap head over boss bore | 1.300 | info: tight but >1.0 mm bearing |
 | SNAP_EYE_BOSS confining ring | 1.000 | by-design confinement ring |
 | journal-boss wall (DRIVE_BOSS_R−SHAFT_R_BORE) | 2.000 | upper journal boss wall; structural back/bottom wall is the full 3.0 mm WALL |
 
@@ -180,21 +184,23 @@ Built at GRIPPER_FINGER_SCALE = 0.7 and 1.6 (also 1.0 baseline), open 0 and 1:
   (usable band ≈ 0.6–1.1×; walls are fixed, so up-scaling past ~1.5× goes floppy).
 
 ### 10 — Assembly feasibility ✅
-ASSEMBLY.md order (mesh arms → drop in housing → drop `input_pinion_shaft` into
-bottom journals → 4 axle dowels → snap cover → fingers → 4 finger pins) is
+ASSEMBLY.md order (bench-stake the finger sub-assemblies → mesh arms → drop in
+housing → drop `input_pinion_shaft` into bottom journals → insert 4 axle pins from
+the front + melt their caps outside the back wall → snap cover) is
 geometrically valid:
 - Enclosure is open-front (front wall **fully** removed — cavity *and* perimeter
   rim — so the front face ends at Z=22); cover plate Z(22,25) snaps on and seats
   flush on that Z=22 rim (its -Z datum).
-- Axle dowel +Z stop **is** the cover boss Z(20,22) → dowels **must** precede
-  the cover, and can be dropped head-up into the open front. Consistent.
-- C/D finger pivots are at Y≈33.6/40.4, well above the housing top wall (Y=16),
-  so fingers + their barbed pins install from above, independent of the cover.
-  Pin Z span ~3.5–23 does not overlap the cover plate Z(22,25). Consistent.
+- Axle-pin +Z locating boss **is** the cover boss Z(20,22) → axle pins **must**
+  be inserted and capped before the cover, from the open front. Consistent.
+- C/D finger pivots are at Y≈33.6/40.4, well above the housing top wall (Y=16).
+  The finger pins are staked to the arm/follower as a bench sub-assembly (pin
+  inserted, cap melted on) before the unit drops into the housing, independent of
+  the cover. Pin Z span ~3.5–23 does not overlap the cover plate Z(22,25). Consistent.
 - `input_pinion_shaft` drops into the bottom-wall journal bores from inside the
   cavity; its D-coupler exits below. Consistent.
 - `drive_arm_L` now drops in like `drive_arm_R` (no integral shaft); `pin_A_L`
-  axle dowel installed before cover. Consistent.
+  axle pin inserted and capped before cover. Consistent.
 
 ---
 
@@ -216,9 +222,6 @@ These were additional fixes in `gripper.py` not tracked in the original fail lis
 both confirmed clean in current geometry.
 
 ### RISK-BY-DESIGN — acknowledge, do not necessarily change
-- `SNAP_BARB_LIP_T = 1.0 mm` (locking-lip axial thickness): below the 1.5 mm
-  functional advisory but the code documents it as the 2.5-perimeter @0.4 mm
-  nozzle floor. Acceptable as-is; just confirm the slicer lays ≥2 perimeters
-  there. Do not reduce.
-- `AXLE_DOWEL head over boss bore = 1.3 mm` axial bearing: tight but >1.0 mm.
-  Informational.
+- `melt_cap` formed-head bearing over the bore = 1.3 mm axial: tight but
+  >1.0 mm. The melted thermal-rivet head is the geometric pull-out stop (no
+  elastic barb lip), so there is no flexing feature to fatigue. Informational.

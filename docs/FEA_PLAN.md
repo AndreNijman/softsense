@@ -36,7 +36,7 @@ for geometric nonlinearity; penalty-method contact against the rigid artifact).
 Quick linear-elastic 2D/section checks → max von Mises + deflection + FoS vs
 material allowable, to corroborate the repo hand-calcs:
 - snap clip cantilever (repo: 1.36 % worst-tight strain, PA12-GF)
-- finger-pin barb seat / counterbore shoulder (repo: 2.78 % insertion, PETG-HF)
+- ~~finger-pin barb seat / counterbore shoulder (2.78 % insertion)~~ **obsolete** — pins no longer flex; retention is now a melted PETG-HF cap head (geometric formed head, no insertion strain to check)
 - gear tooth root (drive torque) and drive-arm at the C-eye boss
 Emit `stats.json` + `stats.md`.
 
