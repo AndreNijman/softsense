@@ -1,0 +1,8 @@
+{
+  "name": "SCServo",
+  "version": "1.0.0",
+  "description": "Feetech SCServo SDK (SMS_STS / SCSCL) for serial bus servos, Arduino port. Bundled from Waveshare's ugv_base_general for offline builds.",
+  "keywords": ["feetech", "sts3215", "sts3250", "servo", "esp32"],
+  "frameworks": "arduino",
+  "platforms": "espressif32"
+}
