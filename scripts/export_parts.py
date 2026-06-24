@@ -19,9 +19,10 @@ NOTE: this script does NOT edit gripper.py. It only imports it.
 
 ------------------------------------------------------------------------------
 THIS GRIPPER IS NOW FULLY 3D-PRINTED -- ZERO BOUGHT HARDWARE.
-The metal pivot pins were replaced by printed PETG SNAP PINS, and the bolted
-front cover by a snap-clip cover with integral cantilever clips. Every part in
-this manifest is printed.
+The pivot pins are printed PETG-HF HEAT-STAKE pins -- a plain journal pin plus a
+separate cap melted onto the pin's stud with a soldering iron (no barbs to break,
+no press fits to slide out). The bolted front cover is a snap-clip cover with
+integral cantilever clips. Every part in this manifest is printed.
 
 ------------------------------------------------------------------------------
 De-duplication logic (LABEL-based)
@@ -32,35 +33,39 @@ gen_step() returns 17 labelled leaf solids in assembled world coordinates:
     drive_arm_R, drive_arm_L
     follower_R,  follower_L
     finger_R,    finger_L
-    pin_A_R, pin_A_L, pin_B_R, pin_B_L  (internal axle SNAP PINS)
-    pin_C_R, pin_D_R, pin_C_L, pin_D_L  (finger-pivot SNAP PINS)
+    pin_A_R, pin_A_L, pin_B_R, pin_B_L  (internal axle HEAT-STAKE pins)
+    pin_C_R, pin_D_R, pin_C_L, pin_D_L  (finger-pivot HEAT-STAKE pins)
+    cap_{A,B,C,D}_{R,L}                  (one melt-on retaining cap per pin -> x8)
     front_cover                          (integral snap clips)
     input_pinion_shaft                   (pinion + shaft + bottom shoulder + D-coupler)
 
 We collapse duplicates by the part LABEL via an explicit map (LABEL_TO_NAME),
-NOT by a geometric/bounding-box fingerprint. The old fingerprint approach broke
-once the metal pins became printed snap pins: the axle and finger snap pins now
-have almost identical bounding boxes (Z ~30.1 vs ~29.1 mm), so a height-based
-classifier put BOTH groups under one name ("pin_finger") and one file silently
-overwrote the other. Mapping by label is unambiguous and never collides.
+NOT by a geometric/bounding-box fingerprint. Mapping by label is unambiguous and
+never collides (the old fingerprint approach silently overwrote pins with similar
+bounding boxes).
 
-Grouping (17 children -> 10 unique part files):
+Grouping (25 children -> 12 unique part files):
 
   * follower_R / follower_L -> one file `follower`, qty 2. A follower is a
     symmetric link bar; left and right are congruent.
 
-  * The 4 internal axle snap pins (pin_A_R, pin_A_L, pin_B_R, pin_B_L) are one
-    geometry -> `snap_pin_axle`, qty 4.
+  * The 4 internal axle pins each carry a LOCATING COLLAR just above their element;
+    the three element heights differ, so they are three SKUs -> `melt_pin_axle_AR`
+    (qty 1, crank arm), `melt_pin_axle_AL` (qty 1, crank arm + crown), `melt_pin_axle_B`
+    (qty 2, follower). (A B-position pin's collar would foul the follower if reused.)
 
-  * The 4 finger-pivot snap pins (pin_C_R, pin_D_R, pin_C_L, pin_D_L) are one
-    geometry -> `snap_pin_finger`, qty 4.
+  * The 4 finger-pivot pins split by DEPTH: C reaches the crank layer, D only the
+    follower layer, so they are different lengths -> `melt_pin_finger_C` (qty 2)
+    and `melt_pin_finger_D` (qty 2). (The old code wrongly merged them.)
+
+  * The 8 melt-on retaining caps are one geometry -> `melt_cap`, qty 8.
 
   * finger_R / finger_L stay SEPARATE (chiral Fin Ray ribs all slant the same
     way within a finger; a mirror flips the slant -> not superimposable).
 
   * drive_arm_R / drive_arm_L stay SEPARATE (both are plain gear+arm plates that
-    ride on snap-pin axles; drive_arm_L carries the crown gear on its +Z face but
-    has no integral shaft).
+    ride on the heat-stake axle pins; drive_arm_L carries the crown gear on its
+    +Z face but has no integral shaft).
 
   * enclosure qty 1, front_cover qty 1, input_pinion_shaft qty 1.
 
@@ -111,14 +116,28 @@ LABEL_TO_NAME = {
     "follower_L": "follower",
     "finger_R": "finger_R",          # chiral -> kept separate
     "finger_L": "finger_L",          # chiral -> kept separate
-    "pin_A_R": "snap_pin_axle",      # internal axle snap pins x4
-    "pin_A_L": "snap_pin_axle",
-    "pin_B_R": "snap_pin_axle",
-    "pin_B_L": "snap_pin_axle",
-    "pin_C_R": "snap_pin_finger",    # finger-pivot snap pins x4
-    "pin_D_R": "snap_pin_finger",
-    "pin_C_L": "snap_pin_finger",
-    "pin_D_L": "snap_pin_finger",
+    # internal axle heat-stake pins. Each now carries a LOCATING COLLAR positioned
+    # just above its element, and the three element heights differ, so the pins are
+    # three distinct SKUs (a B-position collar would foul the follower; an A-position
+    # collar sits below the crown). A_R = crank arm (collar @6.25); A_L = crank arm +
+    # crown (collar @9.25); B = follower (collar @12.25).
+    "pin_A_R": "melt_pin_axle_AR",
+    "pin_A_L": "melt_pin_axle_AL",
+    "pin_B_R": "melt_pin_axle_B",
+    "pin_B_L": "melt_pin_axle_B",
+    # finger-pivot heat-stake pins: C (to the crank layer) and D (to the follower
+    # layer) sit at different Z depths -> DIFFERENT lengths, so they are two SKUs.
+    # (The old single "snap_pin_finger" SKU was the C length, so the 2 D pins did
+    # not seat -- fixed here.) x2 each.
+    "pin_C_R": "melt_pin_finger_C",
+    "pin_C_L": "melt_pin_finger_C",
+    "pin_D_R": "melt_pin_finger_D",
+    "pin_D_L": "melt_pin_finger_D",
+    # one separate melt-on retaining cap, the SAME part on every pin -> qty 8.
+    "cap_A_R": "melt_cap", "cap_A_L": "melt_cap",
+    "cap_B_R": "melt_cap", "cap_B_L": "melt_cap",
+    "cap_C_R": "melt_cap", "cap_C_L": "melt_cap",
+    "cap_D_R": "melt_cap", "cap_D_L": "melt_cap",
     "front_cover": "front_cover",
     "input_pinion_shaft": "input_pinion_shaft",  # pinion + shaft + collar + D-coupler
 }
@@ -161,7 +180,7 @@ def part_meta(name: str):
     if name.startswith("drive_arm"):
         return ("PA12-GF",
                 "lay the flat gear+arm plate face-down on the bed (5 mm thick). "
-                "Both arms ride on snap-pin axles (no integral shaft).")
+                "Both arms ride on the heat-stake axle pins (no integral shaft).")
     if name.startswith("follower"):
         return ("PETG / Nylon",
                 "lay the flat link bar face-down on the bed (5 mm thick).")
@@ -170,11 +189,19 @@ def part_meta(name: str):
                 "lay the Fin Ray plane FLAT on the bed, RIDGE (contact-face) "
                 "side DOWN for clean grip ridges; the 10 mm depth is the Z "
                 "height (may want a 90 deg rotate from the exported pose).")
-    if name.startswith("snap_pin"):
-        return ("PETG",
-                "stand HEAD DOWN with the pin AXIS VERTICAL (barb tip up); no "
-                "supports -- the split barb prints as a self-supporting cone "
-                "and springs out past the far bore face to lock.")
+    if name == "melt_cap":
+        return ("PETG-HF",
+                "tiny cup: print OPEN-END UP (closed crown on the bed) so the "
+                "blind pocket needs no bridging; no supports. Slip over a pin's "
+                "melt-stud and fuse the crown with a soldering iron.")
+    if name.startswith("melt_pin"):
+        return ("PETG-HF",
+                "stand the pin AXIS VERTICAL, HEAD DOWN, melt-stud UP; no supports "
+                "(plain stepped cylinder, collar prints as a self-supporting band). "
+                "Finger pins: _finger_C long (crank layer), _finger_D short (follower "
+                "layer). Axle pins differ by collar height: _axle_AR (crank), _axle_AL "
+                "(crank+crown), _axle_B (follower). After assembly, slip a melt_cap on "
+                "the protruding stud and fuse it.")
     # Fallback for any unexpected new part.
     return ("PETG / Nylon",
             "orientation TBD -- inspect and lay the largest flat face on the bed.")
@@ -280,11 +307,14 @@ def main():
     for r in rows:
         print("  - {}: {}".format(r["name"], r["note"]))
     print()
-    n_axle = next((r["qty"] for r in rows if r["name"] == "snap_pin_axle"), 0)
-    n_fing = next((r["qty"] for r in rows if r["name"] == "snap_pin_finger"), 0)
-    print("Snap pins are PRINTED PETG parts (snap_pin_axle x{}, "
-          "snap_pin_finger x{}) -- they REPLACE the old metal pins. Print head "
-          "down, no supports.".format(n_axle, n_fing))
+    n_axle = sum(r["qty"] for r in rows if r["name"].startswith("melt_pin_axle"))
+    n_finC = next((r["qty"] for r in rows if r["name"] == "melt_pin_finger_C"), 0)
+    n_finD = next((r["qty"] for r in rows if r["name"] == "melt_pin_finger_D"), 0)
+    n_cap = next((r["qty"] for r in rows if r["name"] == "melt_cap"), 0)
+    print("Pins are PRINTED PETG-HF HEAT-STAKE pivots (axle x{} = AR+AL+Bx2, "
+          "melt_pin_finger_C x{}, melt_pin_finger_D x{}) + melt_cap x{}. No barbs, "
+          "no metal: insert each pin, slip a cap on the protruding stud, melt the "
+          "cap with a soldering iron.".format(n_axle, n_finC, n_finD, n_cap))
     print("R/L Fin Ray fingers are chiral mirrors -> exported as two separate "
           "files (finger_R, finger_L), each qty 1.")
     print("ZERO bought hardware: every part is 3D-printed.")
@@ -298,8 +328,9 @@ def main():
                  "**CLOSED** pose (`GRIPPER_OPEN=0`).")
     lines.append("")
     lines.append("**This gripper is FULLY 3D-PRINTED -- zero bought hardware.** "
-                 "The metal pivot pins are now printed PETG snap pins and the "
-                 "front cover snaps on with integral cantilever clips. Every "
+                 "The pivot pins are printed PETG-HF HEAT-STAKE pins (a separate "
+                 "cap is melted onto each pin's stud with a soldering iron) and "
+                 "the front cover snaps on with integral cantilever clips. Every "
                  "part below is printed.")
     lines.append("")
     lines.append("STL mesh tolerance: `{} mm` (linear), `{}` (angular). "
@@ -318,15 +349,21 @@ def main():
     lines.append("## Notes")
     lines.append("")
     lines.append("- **Everything is printed.** No screws, no dowel pins, no "
-                 "bought fasteners. `snap_pin_axle` (x{}) and `snap_pin_finger` "
-                 "(x{}) are printed PETG push-to-snap pivots (shank radius "
-                 "PIN_R = {} mm). PETG is chosen so the split barb flexes on "
-                 "insertion yet the loaded pivot shank resists creep better "
-                 "than TPU.".format(n_axle, n_fing, gripper.PIN_R))
-    lines.append("- **Snap pins: print head down, axis vertical, no supports.** "
-                 "The split/barbed tip is self-supporting; it squeezes through "
-                 "the bore on insertion and springs out past the far face to "
-                 "lock. To remove, pinch the barb and pull.")
+                 "bought fasteners. The axle pins (x{} = `melt_pin_axle_AR` + "
+                 "`melt_pin_axle_AL` + `melt_pin_axle_B` x2), `melt_pin_finger_C` "
+                 "(x{}, long crank-layer pin), `melt_pin_finger_D` (x{}, short "
+                 "follower-layer pin) and `melt_cap` (x{}) are PETG-HF HEAT-STAKE "
+                 "pivots (shank radius PIN_R = {} mm). Each pin has a locating collar "
+                 "so its element cannot slide axially; retention is a geometric melted "
+                 "head (no broken barbs, no pins sliding out)."
+                 .format(n_axle, n_finC, n_finD, n_cap, gripper.PIN_R))
+    lines.append("- **Heat-stake pins: print HEAD DOWN, axis vertical, no "
+                 "supports.** Insert the pin, slip a `melt_cap` over the "
+                 "protruding stud (open end toward the part), and fuse the cap "
+                 "crown with a soldering iron -> a rivet head wider than the bore. "
+                 "Finger pins (C/D) are staked at the arm/follower-eye bottom on "
+                 "the bench; axle pins (A/B) are staked on the EXTERIOR back face. "
+                 "See docs/ASSEMBLY.md.")
     lines.append("- **Front cover snaps on (no screws).** It carries 4 integral "
                  "cantilever clips (2 per long side) that hook into the body "
                  "side-wall windows. Print outer-face DOWN, clips UP. Push on "
@@ -339,8 +376,8 @@ def main():
                  "bar; left and right are the same part -> one file, qty 2.")
     lines.append("- **Drive arms differ.** `drive_arm_L` carries the crown gear "
                  "on its +Z face (right-angle stage); `drive_arm_R` is a plain "
-                 "gear+arm plate. Both arms ride on snap-pin axles -- neither "
-                 "has an integral shaft. The input shaft is a separate part: "
+                 "gear+arm plate. Both arms ride on the heat-stake axle pins -- "
+                 "neither has an integral shaft. The input shaft is a separate part: "
                  "`input_pinion_shaft`.")
     lines.append("- **input_pinion_shaft** (pinion + vertical shaft + bottom "
                  "shoulder + D-coupler) prints shaft-axis VERTICAL (rotate 90° "

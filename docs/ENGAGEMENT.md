@@ -1,47 +1,50 @@
 # Pin / cover retention engagement report
 
-Measured retention and engagement numbers for the snap-fit / pin-retention
+Measured retention and engagement numbers for the pin-retention
 re-engineering of the fully-3D-printed underwater gripper (`gripper.py`). This
 file is the production gate for "won't fall apart underwater, pins won't fall
 off." All numbers are measured from the live model (build123d, closed pose) and
 the design constants; the FDM tolerance stack assumes the real-print ±0.2 mm
 band at the seam.
 
-> **Verdict: every retention feature is now GEOMETRIC (positive capture in
-> rigid material), latches at worst-case tight, and does not lock up / fail to
-> assemble at worst-case loose.**
+> **Verdict: every pivot pin is retained by a heat-staked melt cap — a formed
+> thermal-rivet head wider than its bore, so retention is GEOMETRIC (positive
+> capture in rigid material) and creep-immune. The cover clips remain geometric
+> snap hooks that latch at worst-case tight and do not lock up at worst-case
+> loose.**
 
 ---
 
 ## 1. What changed and why it is creep-proof
 
-### 1a. Barbed finger pins (`pin_C_*`, `pin_D_*`) — confined counterbore
+### 1a. Finger pins (`melt_pin_finger_C` ×2, `melt_pin_finger_D` ×2) — heat-staked melt cap
 
 Previously the only capture was `SNAP_BARB_SEAT = 0.30 mm` of axial overlap held
-by the **elastic preload** of a split tip springing out into open cavity space
-below the eye. That relaxes under sustained load + water plasticization and the
-pin walks out (UNDERWATER §2a FAIL).
+by the **elastic preload** of a split barb tip springing out into open cavity
+space below the eye. That relaxes under sustained load + water plasticization and
+the pin walks out (the original UNDERWATER §2a FAIL).
 
-The fix is a **rigid confining counterbore** cut into the EXIT (bottom) face of
-each receiving eye (crank eye for `pin_C`, follower eye for `pin_D`):
+The finger pins are now **two SKUs of plain printed journal pin**, each retained
+by a separate printed **melt cap** (`melt_cap`, qty 8 total across the gripper):
 
-- The expanded locking lip drops into a pocket of radius `SNAP_CB_R = 3.65 mm`
-  recessed `SNAP_CB_DEPTH = 1.30 mm` into the eye.
-- The pocket **wall radially confines the lip** (gap 0.45 mm nominal): the lip
-  cannot creep-relax inward to re-enter the bore and escape. Creep relaxes the
-  lip OUTWARD toward the wall, which makes escape *harder*, not easier.
-- The step where the bore narrows back from the pocket (3.65 mm) to the running
-  bore (`AXLE_BORE_R = 2.60 mm`) is a **rigid annular shoulder, 1.05 mm wide**,
-  that takes the axial pull-out load in rigid material — retention no longer
-  depends on the sprung tip staying expanded.
-- A **local eye boss** (`SNAP_EYE_BOSS_R = 4.65 mm`) is added at each
-  counterbored eye so a solid confining ring + shoulder survives around the
-  widened pocket (the plain `LINK_W/2 = 3.5 mm` eye was too small for the
-  3.65 mm pocket — it would have blown through the wall).
+- `melt_pin_finger_C` (×2, **long**, crank-layer → `pin_C_R` / `pin_C_L`) and
+  `melt_pin_finger_D` (×2, **short**, follower-layer → `pin_D_R` / `pin_D_L`).
+  The old single finger-pin SKU is gone; the crank and follower eyes sit at
+  different layers, so the two lengths are distinct parts.
+- Each pin passes through its eye and protrudes a **melt-stud** out the bottom
+  (arm eye for `pin_C`, follower eye for `pin_D`). You **slip a `melt_cap` over
+  the stud and fuse it with a soldering iron** — the stud and cap flow into a
+  single **thermal-rivet head wider than the bore**. Capped at the arm/follower
+  eye BOTTOM as a bench sub-assembly.
+- Retention is purely **geometric**: a formed rivet head straddles the joint
+  exactly like the pin head on the other face. **Nothing flexes** (no sprung
+  barb to stress-relax) and **nothing relies on friction** (no press fit to
+  slip), so the creep / pull-out mode is eliminated by mechanism — there is no
+  counterbore pocket and no `SNAP_BARB_*` engagement margin involved.
 
-Capture proof (model-measured): at nominal the pin lip sits in the void pocket
-(0 mm³ interference); raise the pin 0.5 mm and the lip clashes the rigid
-shoulder (4.26 mm³) — the shoulder physically blocks pull-out.
+Capture proof (mechanism): pull-out is blocked because the melted head (wider
+than the bore) physically cannot pass the eye; there is no elastic feature whose
+relaxation could release it.
 
 ### 1b. Input-shaft axial capture (`input_pinion_shaft`) — install-from-below
 
@@ -101,54 +104,53 @@ Verified as a real interleave, not a tip graze nor a core clash:
 Pitches match (crown 2π·8/24 = pinion 2π·3/9 = 2.09 mm), so rotation transmits.
 Tune backlash with a coupon print like the other gears.
 
-### 1d. Axle dowels (`pin_A_R`, `pin_A_L`, `pin_B_R`, `pin_B_L`) — sandwich, zero slop
+### 1d. Axle pins (`melt_pin_axle` ×4 → `pin_A_R`, `pin_A_L`, `pin_B_R`, `pin_B_L`) — riveted to the back wall
 
-These were over-long (head poked 0.8 mm INTO the cover boss, an interference)
-and had ~17 mm of axial slop. They are now **sandwiched with no slop** between:
+These are now plain printed PETG-HF journal pins (previously plain PA12-GF
+dowels — glass-filled PA12-GF melts poorly under a soldering iron, so they too
+are PETG-HF now). Each is **riveted to the back wall** by a heat-staked cap, a
+fixed pivot post:
 
-- **+Z stop:** the head (OD r 3.9, too wide for the cover-boss bore r 2.6) seats
-  against the cover-boss inner face (Z = 20) with 0.20 mm clearance.
-- **−Z stop:** the back axle bore is **stepped** — a wide running bore down to
-  `AXLE_STOP_Z = 0`, then a narrow flood hole (`AXLE_FLOOD_R = 1.5 mm`) through
-  the back wall. The dowel's flat shank end (r 2.3, too wide for the 1.5 mm
-  flood hole) **bottoms on the rigid step**. A narrow pilot tip self-centres in
-  the flood hole. **Flooding/draining is preserved** (3 mm-dia flood hole, well
-  above the 1.5 mm vent floor) — the socket is still single-shell / open both
-  ends per UNDERWATER §3.
+- **Head, +Z:** the pin head (OD r 3.9, too wide for the cover-boss bore r 2.6)
+  seats **under the cover boss** (Z = 20) with 0.20 mm clearance. The cover is
+  **no longer the retainer** — it just locates the head.
+- **Shank bottoms on the back-bore step:** the back axle bore is **stepped** — a
+  wide running bore down to `AXLE_STOP_Z = 0`, then a narrow flood hole
+  (`AXLE_FLOOD_R = 1.5 mm`) through the back wall. The pin's shank shoulder
+  (r 2.3, too wide for the 1.5 mm flood hole) **bottoms on the rigid step**.
+- **Melt-stud caps from OUTSIDE the back face:** the pin's stud threads the
+  back-wall flood hole and is heat-staked with a `melt_cap` on the **outside** of
+  the back wall, forming a rivet head wider than the flood hole. The pin is thus
+  a fixed pivot post — retention is geometric (a formed head), independent of the
+  cover. **Flooding/draining is preserved** (the flood hole stays open around the
+  thin stud / under the formed cap) — the socket is still single-shell / open
+  both ends per UNDERWATER §3.
 
-Capture proof (model-measured): nominal dowel-vs-enclosure interference 0 mm³;
-push −0.5 Z and the flat shank end clashes the step (4.8 mm³); push +Z and the
-head clashes the cover boss (6.2 mm³). Trapped both ways.
+Capture proof (mechanism): the +Z head cannot enter the cover-boss bore and the
+−Z melt-cap head cannot pass the back-wall flood hole; the pin is riveted between
+the two formed/geometric heads, trapped both ways.
 
-### 1e. Constants changed in `gripper.py`
+### 1e. Pin set in `gripper.py`
 
-| Constant | Old | New | Why |
+The sprung-barb / confined-counterbore approach (the whole `SNAP_BARB_*` and
+`SNAP_CB_*` family of constants) is **removed**. Retention is now the heat-stake
+melt cap, so the pin set is:
+
+| Part | Qty | Role | Material |
 |---|---|---|---|
-| `SNAP_BARB_SEAT` | 0.30 | **1.20** | audit floor ≥1.0; real axial-capture margin vs creep + ≥0.3 mm hygroscopic drift |
-| `SNAP_BARB_PROUD` | 0.7 | **0.9** | lip catches 0.6 mm of rigid shoulder (was 0.4); strain still in PETG band |
-| `SNAP_BARB_LIP_T` | 1.0 | **1.0** (unchanged) | print-wall floor (D-2): NOT reduced |
-| `SNAP_SLOT_LEN` | 7.0 | **9.0** | longer split cantilever keeps the larger insertion deflection < ~3 % strain |
-| `SNAP_CB_RCLEAR` | — (new) | **0.45** | pocket radial clearance; worst-tight gap stays ≥0 (no jam) |
-| `SNAP_CB_FLOOR_CLEAR` | — (new) | **0.30** | axial gap lip-front to pocket floor |
-| `SNAP_CB_DEPTH` | — (new) | 1.30 | = LIP_T + floor clr (pocket depth) |
-| `SNAP_CB_R` | — (new) | 3.65 | pocket radius = barb_max_r + RCLEAR |
-| `SNAP_EYE_BOSS_R` | — (new) | 4.65 | local eye boss so the pocket has a solid wall ring |
-| `AXLE_STOP_Z` | — (new) | 0.0 | back-bore step the dowel bottoms on |
-| `AXLE_FLOOD_R` | — (new) | 1.5 | narrow flood hole below the step |
-| `AXLE_DOWEL_Z0/Z1` | (−1, 19) | **0 / 18** | sandwich length: head on cover boss, shank end on step |
-| `COVER_VENT_R` | — (new) | 0.9 | 1.8 mm-dia front-cover vent (C-6) |
-| `COVER_VENT_XY` | — (new) | (−34/0/+34, 12) | 3 vents over the open cavity, +Y biased |
+| `melt_pin_axle` | 4 | axle pivot posts (A_R/A_L/B_R/B_L), riveted to back wall | PETG-HF |
+| `melt_pin_finger_C` | 2 | long crank-layer finger pins (`pin_C_R/C_L`) | PETG-HF |
+| `melt_pin_finger_D` | 2 | short follower-layer finger pins (`pin_D_R/D_L`) | PETG-HF |
+| `melt_cap` | 8 | push-on cap heat-staked over each pin's melt-stud | PETG-HF |
 
-Functions touched: `snap_pin` (narrow pilot tip for `barb=False` dowels),
-`link_bar` (new `counterbores` param + local eye boss + `_counterbore_cut`),
-`drive_arm` (counterbore the C eye), `build_enclosure` (stepped back axle bore),
-`build_front_cover` (vent holes), `gen_step` (finger-pin z0 per pocket, dowel
-sandwich length, follower counterbores).
+Surviving retention geometry: `AXLE_STOP_Z` (back-bore step the axle pin's shank
+bottoms on) and `AXLE_FLOOD_R` (narrow back-wall flood hole the melt-stud threads
+and is capped through, on the outside). The three front-cover vents (C-6) are
+unchanged.
 
-The barb is still a NARROWING lead cone (prints head-down / barb-up,
-self-supporting per D-1); `SNAP_BARB_LIP_T` is untouched (D-2); the drive shaft,
-grip ridges, internal fillets and the snap split slot are all untouched (D-3,
-D-5).
+Each pin is a plain stepped cylinder with a protruding melt-stud — no barb cone,
+no split slot, no counterbore pocket. The drive shaft, grip ridges, internal
+fillets and the cover snap split slot are all untouched (D-3, D-5).
 
 ---
 
@@ -156,41 +158,35 @@ D-5).
 
 | Feature | Metric | Nominal | Worst tight (+0.2) | Worst loose (−0.2) | Pass condition |
 |---|---|---|---|---|---|
-| **Finger pin** lip radial catch past shoulder | mm | 0.60 | 1.00 | **0.20** | loose >0 → still latches ✔ |
-| **Finger pin** axial seat (rigid LIP_T on shoulder) | mm | 1.00 | — | 0.80 | ≥ audit 1.0 floor (LIP_T) ✔ |
-| **Finger pin** SEAT margin (lip below shoulder) | mm | 1.20 | — | — | ≥1.0 ✔ |
-| **Counterbore** confinement gap (wall − lip) | mm | 0.45 | **0.05** | 0.85 | tight ≥0 → no jam ✔ |
-| **Counterbore** rigid shoulder width | mm | 1.05 | 0.65 | 1.45 | robust axial bearing ✔ |
-| **Finger pin** worst-tight insertion strain | % | — | **2.78** | — | < PETG yield ~4–5 % ✔ |
-| **Axle dowel** head past back bore (−Z catch) | mm | 1.30 | 1.70 | 0.90 | loose >0 → can't pass ✔ |
-| **Axle dowel** shank end past flood hole (−Z stop) | mm | 0.80 | 1.20 | 0.40 | loose >0 → bottoms on step ✔ |
-| **Axle dowel** head past cover bore (+Z) † | mm | 1.30 | 1.70 | 0.90 | loose >0 → head can't enter cover bore ✔ |
-| **Axle dowel** residual axial slop | mm | ~0 | — | ~0.40 | trapped both ends ✔ |
+| **Finger pin** retention | — | melt-cap head wider than bore | — | — | geometric (formed head) → no creep/pull-out path ✔ |
+| **Axle pin** head past cover bore (+Z) † | mm | 1.30 | 1.70 | 0.90 | loose >0 → head can't enter cover bore ✔ |
+| **Axle pin** shank shoulder past flood hole (−Z stop) | mm | 0.80 | 1.20 | 0.40 | loose >0 → bottoms on step ✔ |
+| **Axle pin** melt-cap head (back face, −Z) | — | rivet head wider than flood hole | — | — | geometric → riveted to back wall ✔ |
+| **Axle pin** residual axial slop | mm | ~0 | — | ~0.40 | trapped both ends ✔ |
 | **Cover hook** engagement | mm | 1.50 | 1.90 | **1.10** | loose >1.0 → geometric (≥1.5 nom) ✔ |
 | **Cover hook** worst-tight insertion strain | % | 1.07 | **1.36** | — | < 1.5 % PA12-GF build gate ✔ |
 
-† The +Z stop is a **face-to-face seat**: the head bottom face bears on the
+† The +Z head row is a **face-to-face seat**: the head bottom face bears on the
 cover-boss face (0.2 mm seating clearance). The 1.30/1.70/0.90 mm figures are the
 *radial* overlap that stops the head ENTERING the cover bore — they are not
-1.30 mm of axial engagement. (Same for the −Z head row: radial overlap prevents
-the head passing the back bore; the actual −Z stop is the shank end on the step.)
+1.30 mm of axial engagement.
 
-Insertion-strain figures use a cantilever surface-strain estimate
-`ε = 3·t·δ / (2·L²)`. For the finger pin the slot cantilever uses
-`L = SNAP_SLOT_LEN = 9 mm` and an effective slotted-quadrant thickness
-`t_eff ≈ 1.5 mm` (estimate, not a closed-form for a cross-slotted barb — treat
-as an order-of-magnitude check; calibrate on a single printed pin per
-`PRINTING.md` "Fit tuning"). For the cover clip `L = 20.5 mm`, `t = SNAP_ARM_T = 2.0 mm`.
+The cover-clip insertion-strain figure uses a cantilever surface-strain estimate
+`ε = 3·t·δ / (2·L²)` with `L = 20.5 mm`, `t = SNAP_ARM_T = 2.0 mm`. The pins
+themselves no longer flex (no barb), so there is no pin insertion strain to
+estimate — they push straight through their bores and are capped afterward.
 
-### Axle-dowel capture, top and bottom
+### Axle-pin capture, top and bottom
 
 - **Top (cover end, +Z):** head OD r 3.9 vs cover-boss bore r 2.6 →
-  **1.3 mm radial overlap**; head top seats on the cover-boss face (Z = 20) with
-  0.2 mm clearance. The head cannot enter the cover bore.
-- **Bottom (back end, −Z):** head OD r 3.9 vs back bore r 2.6 → **1.3 mm radial
-  overlap** (head cannot pass the back bore); flat shank end r 2.3 vs flood hole
-  r 1.5 → **0.8 mm radial overlap** bottoming on the rigid step.
-- Dowel span Z 0 → 18 (shank), head to 19.8. Served eyes (arm Z 1–6, follower
+  **1.3 mm radial overlap**; head top seats under the cover-boss face (Z = 20)
+  with 0.2 mm clearance. The head cannot enter the cover bore. The cover only
+  locates the head — it is no longer the retainer.
+- **Bottom (back end, −Z):** flat shank shoulder r 2.3 vs flood hole r 1.5 →
+  **0.8 mm radial overlap** bottoming on the rigid step; the melt-stud threads
+  the flood hole and is heat-staked into a rivet head on the **outside** of the
+  back wall, riveting the pin to the back wall (a fixed pivot post).
+- Pin span Z 0 → 18 (shank), head to 19.8. Served eyes (arm Z 1–6, follower
   Z 7–12) are fully within the shank.
 
 ---
@@ -208,11 +204,11 @@ as an order-of-magnitude check; calibrate on a single printed pin per
   so the cover seats flush) — no longer in the ignore set.
 - **Pin-vs-NON-receiving-part** (separate check, since pins are in the ignore
   set and now intentionally engage their bores): **CLEAN at 0.0, 0.5, 1.0** —
-  the new counterbore/lip/boss geometry does not make any pin clash with a part
+  the journal-pin / melt-stud geometry does not make any pin clash with a part
   it is not meant to engage.
-- **Single valid solids**: `pin_C_R`, `pin_D_R` (finger snap pins),
-  `pin_A_R`, `pin_B_R` (axle dowels), and `input_pinion_shaft` each build as
-  **1 solid, `is_valid` True**.
+- **Single valid solids**: `melt_pin_finger_C`, `melt_pin_finger_D` (finger
+  pins), `melt_pin_axle` (axle pins), `melt_cap` (retainer caps), and
+  `input_pinion_shaft` each build as **1 solid, `is_valid` True**.
 - **Finger-vs-finger at closed**: `finger_R & finger_L = 0 mm³` (centerline trim
   preserved — fingers never collide closed).
 
@@ -247,31 +243,31 @@ as an order-of-magnitude check; calibrate on a single printed pin per
 
 ## 6. Residual risk / notes for the integrator & user
 
-0. **Worst-loose finger-pin radial catch is 0.20 mm — and that is geometrically
-   defensible.** It is a *smaller number* than the old, failed 0.30 mm seat, but
-   it is a fundamentally *safer* mode: 0.20 mm of **rigid** radial overlap on a
-   shoulder, with the lip trapped in a pocket whose wall it relaxes OUTWARD
-   toward under creep (escape needs inward compression, which creep never
-   supplies). The old 0.30 mm was **elastic axial** preload that creep relaxed
-   directly toward release. Do not compare the two numbers head-to-head.
-1. **Assembly order is load-bearing for the axle dowels.** Install the three
-   axle dowels through the **front-open cavity, tip-first**, BEFORE snapping on
-   the cover. The cover-boss face is the +Z stop — without the cover the dowel
-   can lift straight back out. State this in the build sheet.
-2. **Insertion strain is an estimate, not a closed form.** The 2.78 % finger-pin
-   figure uses an assumed effective slotted-quadrant thickness. Per
-   `PRINTING.md`, print and fit-test ONE pin + a scrap counterbored coupon
-   before committing the full set; verify the click and that the lip seats in
-   the pocket.
-3. **Material directive (UNDERWATER §1/§8):** snap pins and clips in **PETG**
-   (or ASA / glass-filled nylon). **Never TPU** (creeps, wallows the pocket) or
-   **PLA** (hydrolyzes wet, barb cracks). ASA/PA-GF raise insertion strain
-   slightly — still inside yield per the table, but re-check on a coupon.
-4. **Pocket worst-tight confinement gap is +0.05 mm** (essentially line-to-line).
-   On a printer that oversizes solids and undersizes holes more than ±0.2 mm the
-   lip could be a light press in the pocket — that *helps* retention but adds a
-   little insertion force; if a pin is too hard to seat, ream the pocket a hair,
-   do not reduce the lip.
+0. **Retention is geometric by mechanism, not by a margin number.** Each pin is
+   held by a melted rivet head wider than its bore: there is **no elastic
+   feature** whose worst-loose value could fall to zero and release, so there is
+   no creep path to defend with a seat number. This is a fundamentally safer mode
+   than the old elastic-axial barb preload (which crept directly toward release).
+1. **Assembly order: cap the axle pins from OUTSIDE the back wall.** Insert each
+   axle pin from the **front-open cavity, tip-first**, so the head seats under
+   the cover boss and the melt-stud protrudes through the back-wall flood hole;
+   slip a `melt_cap` on the stud and heat-stake it on the **outside** of the back
+   face. The pin is then riveted to the back wall, so the cover is **not** the
+   retainer — assemble the internals, melt the axle caps, then snap the cover on
+   (the cover only locates the head). State this in the build sheet.
+2. **Melt the cap on a coupon first.** Per `PRINTING.md`, print ONE pin + cap +
+   a scrap bore coupon and heat-stake it before committing the full set; verify
+   the formed head is wider than the bore, fully fused, and that the pin can no
+   longer be pulled out.
+3. **Material directive (UNDERWATER §1/§8):** ALL pins and caps in **PETG-HF**
+   (heat-stakes cleanly under a soldering iron); cover clips in **PETG** (or ASA
+   / glass-filled nylon). **Never TPU** for any pin (creeps, wallows the bore) or
+   **PLA** (hydrolyzes wet). Glass-filled PA12-GF melts poorly and is **not** used
+   for any pin or cap.
+4. **Form a full melt-cap head.** Heat-stake until the cap and stud flow into a
+   single head that visibly overhangs the bore all round; under-fusing (a cap
+   that only tacks on) loses the geometric capture. If a pin is hard to insert
+   before capping, ream the bore a hair — do not skip the cap.
 5. **Running clearance kept at `PRINT_CLEAR = 0.30 mm`** (bore-to-shank radial
    0.30 mm, within the 0.25–0.40 mm window). Retention was fixed geometrically,
    NOT by tightening clearance (per UNDERWATER C-5/6).

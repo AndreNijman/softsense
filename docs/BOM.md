@@ -8,10 +8,13 @@ use). This is the *what-to-print* list — and for this revision that is the
 tool-free snap-together sequence.
 
 > # ZERO bought hardware inside the gripper. No screws, no nuts, no bolts, no bushings.
-> **Every gripper part is 3D-printed and snaps or slides together by hand — tool-free
-> assembly.** The 4 axle pins are plain headed dowels captured geometrically
-> between the back-wall bore step and the front-cover boss. The 4 finger pins
-> are barbed push-to-snap pins with rigid counterbore capture. The front cover
+> **Every gripper part is 3D-printed and snaps, slides, or heat-stakes together by hand —
+> tool-free except for a soldering iron at the pin caps.** All 8 pivot pins are plain
+> printed journal pins, each retained by a separate printed cap melted over the pin's
+> protruding stud with a soldering iron (a thermal rivet head wider than the bore). The
+> 4 axle pins rivet to the back wall through the existing flood holes; the 4 finger pins
+> (two SKUs, C and D, at different Z depths) cap on the arm/follower-eye underside as a
+> bench sub-assembly. The front cover
 > is held by 4 integral printed cantilever snap clips. The input shaft turns in
 > two flooded journal bearings — no metal bushing. The **only** non-printed items
 > in the whole system are the user's waterproof actuator (bottom D-shaft) and,
@@ -26,75 +29,84 @@ nothing to buy inside the gripper, and no metal anywhere in the gripper.
 ## 1. Printed parts (the complete BOM)
 
 Everything below is emitted by `gripper.gen_step()` (verified against the live
-`gen_step()` output: 17 children, labels as listed). The enclosure floods through
-its drain holes; the mechanism drops in; the axle dowels are captured between
-back-wall step and cover boss; the finger snap pins latch in rigid counterbore
-pockets; the cover snaps on. Done.
+`gen_step()` output: 25 children, labels as listed). The enclosure floods through
+its drain holes; the mechanism drops in; each axle pin drops through its bore and
+rivets to the back wall through the existing flood hole; each finger pin is melt-capped
+on the arm/follower-eye underside as a bench sub-assembly; the cover snaps on. Done.
 
 **Material legend:** FINAL = production print material. TEST = test-print material.
-The 4 finger snap pins are the sole exception to the otherwise all-PA12-GF rigid
-build — see note below the table.
+The 8 pivot pins and their 8 melt caps are PETG-HF (so they melt cleanly under a
+soldering iron) — the sole exception to the otherwise all-PA12-GF rigid build; see
+note below the table.
 
 | Part | Qty | **FINAL material** | Test-print | Rough filament | Role / key detail |
 |---|---|---|---|---|---|
 | `enclosure` | 1 | **PA12-GF (Nylon 12 glass-filled)** | PETG-HF | ~80–110 g | Flooded gearbox body. Open front, flush, full-width integrated base with chamfered bottom perimeter (4 × M4 clearance holes), top link slots, 4 back-wall axle bosses + stepped bores (wide running bore + narrow flood hole), upper + lower journal bores + collar pocket for the vertical input shaft in the bottom wall, bottom drains (4 positions × 2 Z = 8 holes) + 2 side drains, 4 snap-clip catch windows in the long side walls. Never PLA. |
-| `front_cover` | 1 | **PA12-GF** | PETG-HF | ~20–30 g | Closes the open front; 4 inner-face bosses cap the axle-dowel heads (+Z dowel stop); **4 integral cantilever snap clips** (2 per long side, `SNAP_Z0=1.5` — lengthened arm, now slimmed to 2.0 mm thick so each tab stands just 2.4 mm proud of the side wall with a chamfered free-tip blade; 1.36 % worst-tight strain, within PA12-GF allowable) latch into body side-wall windows; **3 × Ø1.8 mm vent holes** at (±34, +12). Push on to click (click is a touch softer with the thinner arm); flex 4 hooks outward to release. |
-| `drive_arm_R` | 1 | **PA12-GF** | PETG-HF | ~12–18 g | Right gear sector + crank arm. Clearance-bored at A_R (rides on axle dowel `pin_A_R`). Counterbored C-eye exit (−Z face) for `pin_C_R` geometric capture. Flat plate; prints face-down. |
-| `drive_arm_L` | 1 | **PA12-GF** | PETG-HF | ~12–18 g | Left gear sector + crank arm + **integral CROWN gear** on its +Z face (driven by the input pinion via the right-angle stage). Clearance-bored at A_L (rides on axle dowel `pin_A_L`). Counterbored C-eye for `pin_C_L`. Flat plate; prints face-down. |
+| `front_cover` | 1 | **PA12-GF** | PETG-HF | ~20–30 g | Closes the open front; 4 inner-face bosses locate the axle-pin heads (the heads seat just under these bosses — but the pins are riveted to the back wall by their melt caps, so the cover is no longer their retainer); **4 integral cantilever snap clips** (2 per long side, `SNAP_Z0=1.5` — lengthened arm, now slimmed to 2.0 mm thick so each tab stands just 2.4 mm proud of the side wall with a chamfered free-tip blade; 1.36 % worst-tight strain, within PA12-GF allowable) latch into body side-wall windows; **3 × Ø1.8 mm vent holes** at (±34, +12). Push on to click (click is a touch softer with the thinner arm); flex 4 hooks outward to release. |
+| `drive_arm_R` | 1 | **PA12-GF** | PETG-HF | ~12–18 g | Right gear sector + crank arm. Clearance-bored at A_R (rides on axle pin `pin_A_R`). C-eye (−Z exit face) journals the slim land of finger pin `pin_C_R`; the pin's melt-stud exits below and is melt-capped. Flat plate; prints face-down. |
+| `drive_arm_L` | 1 | **PA12-GF** | PETG-HF | ~12–18 g | Left gear sector + crank arm + **integral CROWN gear** on its +Z face (driven by the input pinion via the right-angle stage). Clearance-bored at A_L (rides on axle pin `pin_A_L`). C-eye journals `pin_C_L`. Flat plate; prints face-down. |
 | `input_pinion_shaft` | 1 | **PA12-GF** | PETG-HF | ~8–12 g | ONE printed part: spur input pinion + vertical shaft + integral capture collar + bottom D-profile coupler (r 5.0, D-flat depth 1.4, length 12 mm). Axis vertical (exits the housing bottom). Two journal bearings in the housing (upper 2 mm, lower 7 mm); collar (OD 5.8 mm) trapped in a housing pocket between the two bore-mouth shoulders for axial capture (zero hardware). Print shaft-axis vertical for a self-supporting cylinder. |
-| `follower_R` | 1 | **PA12-GF** | PETG-HF | ~6–9 g | Right B→D link bar. Counterbored D-eye exit (−Z face) for `pin_D_R` geometric capture. Flat plate; prints face-down. |
-| `follower_L` | 1 | **PA12-GF** | PETG-HF | ~6–9 g | Left B→D link bar. Counterbored D-eye exit (−Z face) for `pin_D_L`. Same geometry as `follower_R` (mirrored in gen_step). |
+| `follower_R` | 1 | **PA12-GF** | PETG-HF | ~6–9 g | Right B→D link bar. D-eye (−Z exit face) journals the slim land of finger pin `pin_D_R`; the pin's melt-stud exits below and is melt-capped. Flat plate; prints face-down. |
+| `follower_L` | 1 | **PA12-GF** | PETG-HF | ~6–9 g | Left B→D link bar. D-eye journals `pin_D_L`. Same geometry as `follower_R` (mirrored in gen_step). |
 | `finger_R` | 1 | **Bambu TPU 95A HF** (TPU ~95A — print ether-stable only) | TPU | ~30 g (ρ 1.22) | Right Fin Ray compliant jaw. Grip ridges on contact face; internal slanted-rib truss; mount holes at C_R and D_R. Must flex — print in TPU only. Print profile: `PRINT_PROFILE_P1S_TPU.md`. |
 | `finger_L` | 1 | **Bambu TPU 95A HF** (TPU ~95A) | TPU | ~30 g (ρ 1.22) | Left Fin Ray compliant jaw (chiral mirror of `finger_R`). |
-| `pin_A_R` | 1 | **PA12-GF** | PETG-HF | ~1–2 g | **Axle dowel** for right drive-arm pivot (A_R). Plain head + shank + narrow pilot tip. No barb — rigid geometric sandwich (head vs cover boss; shoulder vs stepped bore step). |
-| `pin_A_L` | 1 | **PA12-GF** | PETG-HF | ~1–2 g | **Axle dowel** for left drive-arm pivot (A_L). Same geometry as `pin_A_R`. Added because `drive_arm_L` no longer carries an integral horizontal shaft — it now rides on this snap-pin axle like the other arms. |
-| `pin_B_R` | 1 | **PA12-GF** | PETG-HF | ~1–2 g | **Axle dowel** for right follower pivot. Same geometry as `pin_A_R`. |
-| `pin_B_L` | 1 | **PA12-GF** | PETG-HF | ~1–2 g | **Axle dowel** for left follower pivot. Same geometry as `pin_A_R`. |
-| `pin_C_R` | 1 | **PETG-HF** ★ | PETG-HF | ~1–2 g | **Finger snap pin** for right crank-coupler joint (C_R). Barbed split tip; head above finger; lip locks in rigid PA12-GF counterbore pocket in the crank-arm C-eye. |
-| `pin_D_R` | 1 | **PETG-HF** ★ | PETG-HF | ~1–2 g | **Finger snap pin** for right follower-coupler joint (D_R). Barbed; lip locks in PA12-GF follower D-eye counterbore pocket. |
-| `pin_C_L` | 1 | **PETG-HF** ★ | PETG-HF | ~1–2 g | **Finger snap pin** for left crank-coupler joint (C_L). |
-| `pin_D_L` | 1 | **PETG-HF** ★ | PETG-HF | ~1–2 g | **Finger snap pin** for left follower-coupler joint (D_L). |
+| `pin_A_R` (`melt_pin_axle`) | 1 | **PETG-HF** ★ | PETG-HF | ~1–2 g | **Axle pin** (heat-stake) for right drive-arm pivot (A_R). Head seats just under the cover boss; shank journals the gear/arm and bottoms on the back-bore step; melt-stud threads the existing back-wall flood hole and protrudes past the exterior back face, where its cap is melted from outside — riveted to the back wall (a fixed pivot post). No barb, no cover sandwich. |
+| `pin_A_L` (`melt_pin_axle`) | 1 | **PETG-HF** ★ | PETG-HF | ~1–2 g | **Axle pin** (heat-stake) for left drive-arm pivot (A_L). Same geometry as `pin_A_R`. Added because `drive_arm_L` no longer carries an integral horizontal shaft — it now rides on this axle pin like the other arms. |
+| `pin_B_R` (`melt_pin_axle`) | 1 | **PETG-HF** ★ | PETG-HF | ~1–2 g | **Axle pin** (heat-stake) for right follower pivot. Same geometry as `pin_A_R`. |
+| `pin_B_L` (`melt_pin_axle`) | 1 | **PETG-HF** ★ | PETG-HF | ~1–2 g | **Axle pin** (heat-stake) for left follower pivot. Same geometry as `pin_A_R`. |
+| `pin_C_R` (`melt_pin_finger_C`) | 1 | **PETG-HF** ★ | PETG-HF | ~1–2 g | **Finger pin** (heat-stake), LONG crank-layer SKU, for right crank-coupler joint (C_R). Head seats on the finger top; fat neck is the anti-wobble running bearing in the 2.6 mm TPU finger bore; slim land journals the rigid PA12-GF crank-arm C-eye; melt-stud protrudes past the C-eye bottom, where a separate cap is melted (bench sub-assembly). |
+| `pin_D_R` (`melt_pin_finger_D`) | 1 | **PETG-HF** ★ | PETG-HF | ~1–2 g | **Finger pin** (heat-stake), SHORT follower-layer SKU, for right follower-coupler joint (D_R). Same head/neck/land/melt-stud arrangement; melt-stud capped past the follower D-eye bottom. |
+| `pin_C_L` (`melt_pin_finger_C`) | 1 | **PETG-HF** ★ | PETG-HF | ~1–2 g | **Finger pin** (heat-stake), LONG crank-layer SKU, for left crank-coupler joint (C_L). |
+| `pin_D_L` (`melt_pin_finger_D`) | 1 | **PETG-HF** ★ | PETG-HF | ~1–2 g | **Finger pin** (heat-stake), SHORT follower-layer SKU, for left follower-coupler joint (D_L). |
+| `melt_cap` | 8 | **PETG-HF** ★ | PETG-HF | <1 g ea | **Heat-stake cap** — one per pin (qty 8). Slip over the pin's protruding melt-stud and fuse with a soldering iron → a thermal-rivet head wider than the bore. Retention is geometric (formed head larger than the hole), not an elastic snap and not a press fit. Negligible mass each. |
 
-★ **Finger snap pins (pin_C_R/L, pin_D_R/L) — PETG-HF in the final build, not PA12-GF.**
-The split snap barb reaches ~2.78 % insertion strain on worst-tight tolerance.
-PA12-GF's allowable is ~1.5–2.0 % (brittle glass-filled grade, no yield plateau) — it
-would crack on insertion. PETG-HF's allowable is ~2.5–3.5 % — 2.78 % is inside the
-band. Pull-out load is carried entirely by the **rigid PA12-GF counterbore shoulder** in
-the receiving arm/follower eye, not by the pin material — so a tougher PETG-HF pin is
-structurally equivalent for retention. (Verified in `MATERIALS.md` §3 / Fix 2A.)
+★ **All 8 pivot pins + their 8 melt caps — PETG-HF in the final build, not PA12-GF.**
+The pins and caps are heat-staked: a separate cap is melted over each pin's protruding
+stud with a soldering iron to form a thermal rivet head. PETG-HF is used for all of them
+because they must **melt cleanly under a soldering iron** — glass-filled PA12-GF does not
+heat-stake well (the glass loading resists clean reflow). Nothing flexes (retention is the
+formed head, geometric, not an elastic snap) and nothing relies on friction (not a press
+fit, so nothing slides out). Pull-out load is carried by the formed melt-cap head against
+the eye/wall face, not by an interference fit. (See `MATERIALS.md` §3 / Fix 2A.)
 
 \* Rough single-piece estimates at recommended walls/infill (`PRINTING.md`).
-**Total filament: roughly ~120–175 g PA12-GF + ~50–70 g ether-TPU + ~4–8 g PETG-HF
-(finger pins).** The 8 snap pins and `input_pinion_shaft` together add roughly 10–15 g.
+**Total filament: roughly ~120–175 g PA12-GF + ~50–70 g ether-TPU + ~5–10 g PETG-HF
+(8 pins + 8 caps).** The 8 pins, 8 caps, and `input_pinion_shaft` together add roughly
+12–18 g; each melt cap is tiny (<1 g).
 
 ---
 
 ### 1.1 Pin families: what makes each type work
 
-There are **two distinct pin mechanisms** in this gripper. They are not
-interchangeable.
+Every pivot is a **heat-stake (melt-rivet) pin**: a plain printed PETG-HF journal
+pin retained by a separate printed PETG-HF cap (`melt_cap`) melted over the pin's
+protruding stud with a soldering iron, forming a thermal rivet head wider than the
+bore. Retention is **geometric** (a formed head larger than the hole) — *not* an
+elastic snap (nothing flexes → nothing breaks) and *not* a press fit (nothing relies
+on friction → nothing slides out). There are **two pin layouts**, distinguished by
+where the cap is melted; they are not interchangeable.
 
-**Axle dowels — `pin_A_R`, `pin_A_L`, `pin_B_R`, `pin_B_L` (4 pins, plain, no barb)**
+**Axle pins — `pin_A_R`, `pin_A_L`, `pin_B_R`, `pin_B_L` (4 pins, `melt_pin_axle`)**
 
-Retention by rigid geometric sandwich. The flat shank shoulder (r 2.3 mm) is
-wider than the back-wall flood hole (r 1.5 mm) — it **bottoms on the annular
-step** and cannot pass through (−Z stop). The head flange (r 3.9 mm) is wider
-than the cover-boss bore (r 2.6 mm) — once the cover is on, the head face
-seats against the cover-boss face and **cannot lift past it** (+Z stop). The
-dowel is trapped between two rigid shoulders with ~0 axial slop. No barb; no
-click. **Must be installed before the cover is snapped on.**
+The head seats just under the cover boss. The shank (r 2.3 mm) journals the
+gear/arm and **bottoms on the back-bore step** (the wide running bore narrows to
+the flood hole). The melt-stud threads the **existing back-wall flood hole** and
+protrudes past the **exterior back face**, where its cap is melted **from outside** —
+riveting the pin to the back wall as a **fixed pivot post**. The cover is no longer
+the retainer and no longer sandwiches these pins; they stand on their own once
+capped. Cap the axle pins (from outside the back wall) as part of dropping the
+mechanism in; the cover snaps on afterward over a finished, retained axle set.
 
-**Finger snap pins — `pin_C_R`, `pin_D_R`, `pin_C_L`, `pin_D_L` (4 pins, barbed)**
+**Finger pins — `pin_C_R`/`pin_C_L` (`melt_pin_finger_C`, LONG/crank layer),
+`pin_D_R`/`pin_D_L` (`melt_pin_finger_D`, SHORT/follower layer) — 4 pins, 2 SKUs**
 
-Retention by **rigid counterbore capture**. A confining pocket (SNAP_CB_R
-3.65 mm, depth 1.3 mm) is cut into the exit face of each receiving eye. The
-locking lip (r 3.2 mm) passes the bore (r 2.6 mm) and drops into the pocket.
-The **rigid annular shoulder** (1.05 mm wide, at the pocket/bore step) takes
-axial pull-out load in rigid material. The pocket wall radially confines the
-lip — creep drives the lip outward toward the wall (harder to escape), not
-inward (easier). This is geometric capture, not elastic preload. A positive
-**click** confirms the lip has seated. Inserted from above the finger, barb
-exits below the link eye.
+C and D sit at **different Z depths** (crank layer vs follower layer), so they are
+**two SKUs**, not one — the old single finger pin was wrong (half didn't seat). On
+each: the head seats on the **finger top**; a **fat neck** is the anti-wobble running
+bearing in the fixed 2.6 mm TPU finger bore; a **slim land** journals the rigid
+PA12-GF arm/follower eye; the **melt-stud** protrudes past the arm/follower-eye
+**bottom**, where a separate cap is melted. The finger pins are melt-capped as a
+**bench sub-assembly** (finger + pin + cap built up off the gripper, then dropped in).
 
 ---
 
@@ -104,21 +116,21 @@ exits below the link eye.
   PA12 is the lowest-uptake engineering nylon (~0.7–1.2 % saturated; glass fill
   reduces it further). It does not hydrolyze and holds tight dimensions under
   sustained immersion. Glass fill gives ~3.5–5.5 GPa modulus and low creep —
-  ideal for gearbox bodies, arms, link bars, and axle dowels. **PETG-HF** is
+  ideal for gearbox bodies, arms, and link bars. **PETG-HF** is
   used for test prints: same geometry fidelity, faster to iterate. **Never PLA**
   (hydrolyzes); no ester-based materials; no raw PA6/PA66 (high swell).
 
-- **Axle dowels (pin_A_R, pin_A_L, pin_B_R, pin_B_L) → PA12-GF.** Plain rigid
-  sandwich dowels — nothing flexes. PA12-GF's low creep is a bonus for sustained
-  axial retention; stiffness irrelevant to the barb-free geometry.
-
-- **Finger snap pins (pin_C_R/L, pin_D_R/L) → PETG-HF even in the final build.**
-  The split barb reaches ~2.78 % insertion strain, which exceeds PA12-GF's
-  ~1.5–2.0 % brittle allowable (would crack on insert). PETG-HF's 2.5–3.5 %
-  allowable passes with margin. Pull-out retention is taken by the rigid PA12-GF
-  counterbore shoulder in the arm/follower — the pin material carries no pull-out
-  load. **Never TPU for any pin** (creeps under sustained load, wallows bores,
-  loses snap retention).
+- **All 8 pivot pins + 8 melt caps (`melt_pin_axle` ×4, `melt_pin_finger_C` ×2,
+  `melt_pin_finger_D` ×2, `melt_cap` ×8) → PETG-HF.** These are heat-staked: a
+  separate cap is melted over each pin's stud with a soldering iron to form the
+  retaining rivet head. They must **melt cleanly under a soldering iron**, and
+  glass-filled PA12-GF does **not** heat-stake well (the glass loading resists
+  clean reflow). So all pins moved PA12-GF → PETG-HF along with the caps. Nothing
+  flexes — retention is the formed head, geometric, not elastic — so the old
+  barb-ductility/insertion-strain argument no longer applies. Pull-out load is the
+  melt-cap head bearing against the eye/wall face. **Never TPU for any pin**
+  (creeps under sustained load, wallows bores) and TPU will not form a clean
+  rivet head.
 
 - **Fingers → TPU ~95A; selected filament Bambu TPU 95A HF.** The Fin Ray
   grip principle is material compliance — the fingers must flex to wrap an object.
@@ -142,14 +154,16 @@ exits below the link eye.
 
 **This is a fully 3D-printed, zero-hardware gripper interior.** No screws, no
 nuts, no bolts, no washers, no bushings inside the gripper body. Assembly is
-tool-free: drop in the printed axle dowels, install the input-pinion-shaft,
-snap on the cover, push in the barbed finger pins. Disassembly reverses in kind
-— flex the cover clips and lift out the pins.
+tool-free apart from a soldering iron at the caps: drop in the printed axle pins
+and rivet them to the back wall (melt a cap on each stud from outside), install
+the input-pinion-shaft, build up the finger+pin+cap bench sub-assemblies, drop
+them in, snap on the cover. Disassembly: flex the cover clips, snip or shave the
+melt caps, and lift out the pins (the caps are sacrificial — reprint and re-stake).
 
 | Obsolete metal item (previous version) | Count | Replaced by |
 |---|---|---|
-| Pivot screws / metal dowels (2 drive axles + 2 follower axles + 4 finger pins) | 8 × A4/316 SS | **8 printed pins** — 4 axle dowels (`pin_A_R/A_L/B_R/B_L`) + 4 finger snap pins (`pin_C_R/D_R/C_L/D_L`) |
-| Nylon-insert locknuts (one per pivot) | 8 × SS | **Eliminated** — axle dowels trapped by cover geometry; finger pins by counterbore lock |
+| Pivot screws / metal dowels (2 drive axles + 2 follower axles + 4 finger pins) | 8 × A4/316 SS | **8 printed heat-stake pins + 8 printed melt caps** — 4 axle pins (`pin_A_R/A_L/B_R/B_L` = `melt_pin_axle`) + 4 finger pins (`pin_C_R/C_L` = `melt_pin_finger_C`, `pin_D_R/D_L` = `melt_pin_finger_D`), each retained by a melted-on `melt_cap` |
+| Nylon-insert locknuts (one per pivot) | 8 × SS | **Eliminated** — every pin is retained by its own melted-on cap (a thermal rivet head wider than the bore) |
 | M3 front-cover screws | 4 × A4/316 SS | **4 integral printed cantilever snap clips** on `front_cover` |
 | Input-shaft plain bushing (PTFE/acetal) | 1 | **Eliminated** — vertical input shaft runs in two flooded printed journal bores (no metal bushing); collar trapped geometrically in housing pocket |
 | **Total bought hardware** | **19 pieces** | **0 pieces** |
@@ -171,8 +185,8 @@ with a running fit.
 - **Collar axial capture**: an integral collar (OD 5.8 mm, length 2.0 mm) on
   the shaft sits in a pocket between the two bore-mouth shoulders — wider than
   the bore, trapped with ~0.25 mm axial play each side. This is **rigid
-  geometric capture** (same principle as the captured axle dowels), not elastic
-  preload — no creep risk.
+  geometric capture** (a formed shoulder wider than the bore, same family of
+  retention as the melt-capped pin heads), not elastic preload — no creep risk.
 
 Flooded journal bores work for the same reason as the pivot bores: no pressure
 differential, no dry cavity — the joint runs wet, water is coolant and
@@ -206,19 +220,20 @@ flooded. Printed bores flush clean with a fresh-water rinse.
 | `follower_L` | 1 | PA12-GF |
 | `finger_R` | 1 | Ether-based TPU ~95A |
 | `finger_L` | 1 | Ether-based TPU ~95A |
-| `pin_A_R` (axle dowel) | 1 | PA12-GF |
-| `pin_A_L` (axle dowel — new) | 1 | PA12-GF |
-| `pin_B_R` (axle dowel) | 1 | PA12-GF |
-| `pin_B_L` (axle dowel) | 1 | PA12-GF |
-| `pin_C_R` (finger snap pin ★) | 1 | **PETG-HF** |
-| `pin_D_R` (finger snap pin ★) | 1 | **PETG-HF** |
-| `pin_C_L` (finger snap pin ★) | 1 | **PETG-HF** |
-| `pin_D_L` (finger snap pin ★) | 1 | **PETG-HF** |
-| **Total printed parts** | **17** | — |
+| `pin_A_R` (axle pin, `melt_pin_axle` ★) | 1 | **PETG-HF** |
+| `pin_A_L` (axle pin, `melt_pin_axle` — new ★) | 1 | **PETG-HF** |
+| `pin_B_R` (axle pin, `melt_pin_axle` ★) | 1 | **PETG-HF** |
+| `pin_B_L` (axle pin, `melt_pin_axle` ★) | 1 | **PETG-HF** |
+| `pin_C_R` (finger pin, `melt_pin_finger_C` — LONG ★) | 1 | **PETG-HF** |
+| `pin_D_R` (finger pin, `melt_pin_finger_D` — SHORT ★) | 1 | **PETG-HF** |
+| `pin_C_L` (finger pin, `melt_pin_finger_C` — LONG ★) | 1 | **PETG-HF** |
+| `pin_D_L` (finger pin, `melt_pin_finger_D` — SHORT ★) | 1 | **PETG-HF** |
+| `melt_cap` (heat-stake cap, one per pin ★) | 8 | **PETG-HF** |
+| **Total printed parts** | **25** (9 structural + 8 pins + 8 caps) | — |
 | Bought hardware inside gripper (screws/nuts/bolts/bushings) | **0** | — |
 | User-supplied (outside gripper) | Waterproof actuator + D-shaft coupling; M4 flange bolts + nylon/PTFE galvanic-isolating washers | — |
 
-★ Finger snap pins in PETG-HF (final build) — see §1.2 rationale.
+★ All 8 pins + 8 melt caps in PETG-HF (final build) so they heat-stake cleanly — see §1.2 rationale.
 
 ---
 
@@ -235,10 +250,11 @@ With no screws, nuts, bolts, pins, or bushings inside the gripper:
 - **No dissimilar-metal contact, no anode, no pitting, nothing to rust.**
 - Structural parts in PA12-GF: low water uptake (~0.7–1.2 % saturated, further
   reduced by glass fill), no hydrolysis, holds dimension over months of immersion.
-- Axle dowels and input_pinion_shaft in PA12-GF: rigid sandwich / collar-capture
-  geometry, low creep — retention stays positive with zero elastic degradation.
-- Finger snap pins in PETG-HF: tough enough to flex the split barb on insertion
-  without cracking; pull-out load taken by the PA12-GF counterbore shoulder.
+- `input_pinion_shaft` in PA12-GF: rigid collar-capture geometry, low creep —
+  retention stays positive with zero elastic degradation.
+- All 8 pivot pins + 8 melt caps in PETG-HF: low uptake (~0.1–0.3 %), retained by
+  a melted-on rivet head (geometric, nothing flexes). PETG-HF chosen because it
+  heat-stakes cleanly; glass-filled PA12-GF does not.
 - Fingers in ether-based TPU: does not hydrolyze in sustained immersion.
 - Housing flooded: internal and external pressure equalize through drain holes
   and vent holes — the thin printed wall sees no differential, nothing to crush.

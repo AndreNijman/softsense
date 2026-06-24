@@ -21,7 +21,7 @@ change to each line. No new taxonomy.
 |---|---|---|
 | "Cycle to flush grit; inspect teeth for wear" | Grit-**tolerant** mesh: enlarged tooth-root debris relief + a touch more backlash so sand passes instead of jamming; nothing to inspect | 6 |
 | "Rinse thoroughly… salt crystallizes and abrades" (implies trapped sediment) | Swept, ledge-free cavity floor + bigger wash-through path so one dunk self-clears; no flat shelf holds sand | 7 |
-| "Inspect every snap pin / cover clip for loss of engagement; **replace pins that loosened**" | Retention is already geometric (ENGAGEMENT.md); remaining weak link is the one-piece barb finger pin → convert to creep-immune two-piece captured pin (UNDERWATER constraint #3); cover gets a secondary detent so it can't back out | 4, 8 |
+| "Inspect every pivot pin / cover clip for loss of engagement; **replace pins that loosened**" | Retention is geometric (ENGAGEMENT.md); the old one-piece sprung-barb finger pin is **now replaced** by the creep-immune two-piece heat-stake pin (plain journal pin + separate PETG-HF cap melted into a thermal-rivet head wider than the bore — DONE); cover gets a secondary detent so it can't back out | 4, 8 |
 | Implicit: user must verify cavity actually flooded (front-up RISK) | Already mitigated (3 cover vents); plan keeps them, no new burden | — |
 
 Target end state of the checklist: **"Rinse with fresh water. Done."**
@@ -63,10 +63,12 @@ Target end state of the checklist: **"Rinse with fresh water. Done."**
    teeth" item. (Backlash up only — never tighten; UNDERWATER C-5/6.)
 7. **Swept, ledge-free cavity floor** — fillet/slope the internal floor so no
    flat shelf traps sediment and one rinse drains it. Reduces the rinse burden.
-8. **Two-piece captive finger pin** — replace the one-piece sprung barb (least
-   creep-proof feature even after the counterbore fix) with a headed pin +
-   push-on retainer cap, both flanges wider than bore (UNDERWATER constraint #3).
-   Fold in with #3 since we're already touching the pins.
+8. **Two-piece captive finger pin** — **DONE via heat-stake melt caps.** The
+   one-piece sprung barb (least creep-proof feature even after the counterbore
+   fix) is replaced by a plain journal pin + a separate PETG-HF cap melted over
+   its stud with a soldering iron into a thermal-rivet head wider than the bore
+   (geometric formed-head retention, UNDERWATER constraint #3). All 8 pivot pins
+   now use this scheme.
 
 ---
 

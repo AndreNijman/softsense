@@ -32,7 +32,7 @@ inline in `gripper.py`:
 
 | Held | Why |
 |---|---|
-| Print/tolerance clearances (`PRINT_CLEAR` 0.3, mesh/bore running gaps, snap-pin counterbore clears) | Set by the 0.4 mm FDM nozzle, not the part. The *nominal* scales, the additive gap is held → running fits stay ~0.3 mm at every scale. |
+| Print/tolerance clearances (`PRINT_CLEAR` 0.3, mesh/bore running gaps, heat-stake pin/cap & bore running clears) | Set by the 0.4 mm FDM nozzle, not the part. The *nominal* scales, the additive gap is held → running fits stay ~0.3 mm at every scale. |
 | Fastener sizes (M4 bolts, M3 taps) | An M4 is M4 at any scale; only the bolt-pattern **positions** scale. (See §6 — at 2× consider M5/M6 for the higher loads.) |
 | Flood / drain / vent hole **radii** | Sized by absolute bubble/surface-tension + FDM-floor physics; positions scale. |
 | Edge-break chamfers / fillets (`DFM_EDGE`, `CHAM_*`, `R_VERT`, finger fillets) | Manufacturing finishes; held (also keeps fillet ops robust). |
@@ -147,8 +147,8 @@ variants/scale_2.0x/parts/
 variants/scale_2.0x/plates/   # plate_{petg,rigid_1,rigid_2,tpu}_1.stl  (4 plates)
 ```
 
-Materials and orientations are unchanged from 1× (PA12-GF rigid, PETG snap-pins, TPU
-fingers); see each variant's `parts/MANIFEST.md`. Assembly is identical to the 1× (the
+Materials and orientations are unchanged from 1× (PA12-GF rigid, PETG-HF heat-stake
+pins + caps, TPU fingers); see each variant's `parts/MANIFEST.md`. Assembly is identical to the 1× (the
 input shaft still installs from below, pinion-first).
 
 ---
@@ -175,11 +175,12 @@ motor, is the ceiling). Force scales ~k² off a sub-Newton base, so a 248 mm jaw
   grip force ~k² (≈ 2.25× at 1.5×, 4× at 2×) and the gear ceiling ~k³, but the gripper is
   still **gear/motor-current-limited**, not a high-force industrial jaw. The repo posture
   stays rank/size, not certified absolute newtons.
-- **Assembly at 2× needs more hand force (or a clamp).** Snap-pin and cover-clip *insertion*
+- **Assembly at 2× needs more hand force (or a clamp).** Cover-clip *insertion*
   force scales ~k² (≈ 2.25× at 1.5×, **~4× at 2×**) even though the *bending strain* is
   scale-invariant (so the clips don't over-strain — they just take more push). At 1.5× this
-  is still hand-pressable; **at 2× expect to need a clamp / arbor press** to seat the snap
-  pins and click the cover. Geometry and retention are unchanged.
+  is still hand-pressable; **at 2× expect to need a clamp / arbor press** to click the
+  cover. The pivot pins are slip-fit (no insertion force) and the melt-cap retention is a
+  thermal-rivet head, so it is unaffected by scale. Geometry and retention are unchanged.
 - **Mounting interface changed.** The flange bolt-pattern and the D-coupler scale (the
   coupler must transmit ~k² torque), so the 7 separate mounting **adapters**
   (`motor/cad/adapters/`) must be re-scaled to re-mate. Consider stepping the flange bolts

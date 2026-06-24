@@ -5,8 +5,9 @@ specified and justified**, plus the FEA re-check confirming all the stats hold f
 **Bambu TPU 95A HF** specifically. Target machine: **Bambu Lab P1S, 0.4 mm hardened
 steel nozzle**, slicer **Bambu Studio**.
 
-> The fingers are the only TPU parts. The rigid parts (PA-class) and the snap pins
-> (PETG-HF) print on the same P1S with stock Bambu system profiles — see §6.
+> The fingers are the only TPU parts. The rigid structural parts (PA12-GF) and the
+> heat-stake pivot pins + retaining caps (all PETG-HF) print on the same P1S with
+> stock Bambu system profiles — see §6.
 
 > **Why Bambu TPU 95A HF (vs the old eSUN eTPU-95A):** the "HF" (high-flow) grade
 > prints at ~3× the throughput of standard TPU 95A (max volumetric speed ~12 mm³/s,
@@ -230,9 +231,12 @@ Re-run yourself: `eval_finger.py <name> production '{"_E":9.8,"_strength":27.3}'
 The fingers are the only TPU parts. For completeness on the same P1S + 0.4 hardened
 nozzle:
 
-- **Snap pins (`snap_pin_*`) — PETG-HF.** Use Bambu's stock **Bambu PETG-HF @BBL P1S**
-  filament + a 0.16–0.20 mm process; 100 % infill, 5–6 walls (they're small locking
-  parts). Prints cleanly on the P1S.
+- **Heat-stake pivot pins + caps (`melt_pin_*` ×8 + `melt_cap` ×8) — all PETG-HF.**
+  Both finger-pin SKUs (`melt_pin_finger_C`/`_D`), the `melt_pin_axle` pins (PETG-HF,
+  not PA12-GF — glass-filled nylon melts poorly under a soldering iron) and the 8
+  `melt_cap` retainers print in the same PETG-HF. Use Bambu's stock **Bambu PETG-HF
+  @BBL P1S** filament + a 0.16–0.20 mm process; 100 % infill, 5–6 walls (they're small
+  locking parts). Prints cleanly on the P1S.
 - **Rigid parts (enclosure, arms, followers, cover, shaft) — spec'd PA12-GF.**
   PA12-GF is marginal on a P1S: it needs ~260–290 °C (within the P1S's hardened-hotend
   range) **but the P1S has no actively heated chamber**, so glass-filled nylon is
