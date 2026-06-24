@@ -1,0 +1,13 @@
+# wlan0 = the access point interface (hostapd owns the radio; networkd just
+# assigns the gateway IP, even before a client associates).
+[Match]
+Name=wlan0
+
+[Network]
+Address=10.42.0.1/24
+ConfigureWithoutCarrier=yes
+IgnoreCarrierLoss=yes
+LinkLocalAddressing=no
+
+[Link]
+RequiredForOnline=no
