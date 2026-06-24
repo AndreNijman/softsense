@@ -43,9 +43,13 @@ PRINT_SET = {
     "finger_R":           (1, "etherTPU-95A"),
     "finger_L":           (1, "etherTPU-95A"),
     # heat-stake pins + caps: all PETG-HF (one pin material; mushrooms cleanly
-    # under a soldering iron). axle pins switched from PA12-GF (glass-filled, melts
-    # poorly) to PETG-HF. finger pins split C (long) / D (short) -- different lengths.
-    "melt_pin_axle":      (4, "PETG-HF"),
+    # under a soldering iron). Each pin has a locating collar so its element can't
+    # slide axially; the collar height differs by element, so the axle pins are 3
+    # SKUs (AR crank / AL crank+crown / B follower) and the finger pins 2 (C long /
+    # D short).
+    "melt_pin_axle_AR":   (1, "PETG-HF"),
+    "melt_pin_axle_AL":   (1, "PETG-HF"),
+    "melt_pin_axle_B":    (2, "PETG-HF"),
     "melt_pin_finger_C":  (2, "PETG-HF"),
     "melt_pin_finger_D":  (2, "PETG-HF"),
     "melt_cap":           (8, "PETG-HF"),

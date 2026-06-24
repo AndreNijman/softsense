@@ -663,8 +663,21 @@ def pin(p, label, visible):
     return c
 
 
-def axle_pin(p, head_inner_z, shank_end_z, stud_tip_z, label="axle_pin",
-             color=PIN_COLOR):
+# Axle-pin LOCATING COLLAR ----------------------------------------------------
+# The rotating elements (gear/arm at A, follower at B) rode on a bare PIN_R shank
+# with ~12 mm of EMPTY pin above them, so they rocked and slid axially ("the
+# elements slide up and down"). Fix: a fat collar on the pin in that empty space,
+# just ABOVE each element. The element is then trapped between the back-boss face
+# (below) and the collar (above) and can only spin, not slide. Feasible on a
+# one-piece pin because the axle pin inserts stud-FIRST: the collar approaches
+# from above and never has to pass through the element's bore.
+AXLE_COLLAR_R = PIN_R + 0.75 * SCALE   # 3.05: > AXLE_BORE_R (2.45) -> a 0.6 mm up-stop shoulder
+AXLE_COLLAR_GAP = 0.25 * SCALE         # running clearance above the element (it still spins free)
+assert AXLE_COLLAR_R > AXLE_BORE_R + 0.4, "axle collar too small to stop the element sliding up"
+
+
+def axle_pin(p, head_inner_z, shank_end_z, stud_tip_z, elem_top_z,
+             label="axle_pin", color=PIN_COLOR):
     """Axle pivot pin (A/B) -- HEAT-STAKE, replaces the loose dowel that slid and
     wobbled out. Built directly in world coords at XY p. Inserted from the FRONT
     (open cavity), stud-first:
@@ -673,12 +686,15 @@ def axle_pin(p, head_inner_z, shank_end_z, stud_tip_z, label="axle_pin",
         SHANK (PIN_R)        head_inner_z .. shank_end_z   -- journals the gear/arm;
                                                              flat end bottoms on the
                                                              back-bore step
+        COLLAR (AXLE_COLLAR_R) elem_top_z+gap .. head-0.5  -- fat band filling the empty
+                                                             pin above the element so it
+                                                             cannot slide/rock up
         MELT-STUD (MELT_STUD_R) shank_end_z .. stud_tip_z  -- threads the back-wall
                                                              flood hole and protrudes
                                                              past the exterior back face
     A separate cap is melted onto the stud from OUTSIDE the back wall -> the pin is
-    riveted to the wall = a fixed pivot post the gear/arm runs on. No more wobble,
-    cannot fall out."""
+    riveted to the wall = a fixed pivot post the gear/arm runs on. The element is
+    axially trapped between the back-boss face (below) and the collar (above)."""
     x, y = p
     head = Cylinder(radius=SNAP_HEAD_R, height=SNAP_HEAD_T).moved(
         Location((x, y, head_inner_z + SNAP_HEAD_T / 2.0)))
@@ -687,10 +703,20 @@ def axle_pin(p, head_inner_z, shank_end_z, stud_tip_z, label="axle_pin",
     stud = Cylinder(radius=MELT_STUD_R, height=(shank_end_z - stud_tip_z)).moved(
         Location((x, y, (shank_end_z + stud_tip_z) / 2.0)))
     body = head + shank + stud
-    # DFM: break the head rim (eased on insertion) and the stud tip (eases the cap on).
+    # LOCATING COLLAR: fat band just above the element up toward the head, so the
+    # element is trapped (back-boss face below + collar bottom above) and can no
+    # longer slide or rock up the bare shank. Its bottom face is the running stop.
+    c_lo = elem_top_z + AXLE_COLLAR_GAP
+    c_hi = head_inner_z - 0.5
+    if c_hi - c_lo > 0.6:
+        body = body + Cylinder(radius=AXLE_COLLAR_R, height=(c_hi - c_lo)).moved(
+            Location((x, y, (c_lo + c_hi) / 2.0)))
+    # DFM: break the head rim, the stud tip, and the collar TOP rim (its bottom
+    # stays crisp -- it is the axial stop). Bearing surfaces stay crisp.
     rim = [e for e in body.edges().filter_by(GeomType.CIRCLE)
            if abs(e.center().Z - (head_inner_z + SNAP_HEAD_T)) < 0.2
-           or abs(e.center().Z - stud_tip_z) < 0.2]
+           or abs(e.center().Z - stud_tip_z) < 0.2
+           or abs(e.center().Z - c_hi) < 0.2]
     body = _safe_round(body, rim, min(DFM_EDGE, SNAP_HEAD_T * 0.5), chamfer)
     body.label = label
     body.color = color
@@ -1582,8 +1608,15 @@ def gen_step():
                 # Dropped in from the front; head seats under the cover boss, the
                 # melt-stud exits the back-wall flood hole and a cap is melted on
                 # the EXTERIOR back face -> a fixed pivot post (no wobble/fall-out).
+                # elem_top = top of the element this pin carries, so the locating
+                # collar sits just above it: A -> crank gear/arm top (the LEFT side
+                # also carries the crown gear, so its element is taller); B -> follower top.
+                if j == "A":
+                    elem_top = CROWN_Z[1] if tag == "L" else Z_CRANK0 + T_CRANK
+                else:
+                    elem_top = Z_FOLLOW0 + T_FOLLOW
                 parts.append(axle_pin(pose[j], AXLE_DOWEL_Z1, AXLE_STOP_Z,
-                                      AXLE_STUD_TIP_Z, label=lbl))
+                                      AXLE_STUD_TIP_Z, elem_top, label=lbl))
                 parts.append(melt_cap(pose[j], ENC_Z[0], label=cap_lbl))
 
     # bolt-on front cover (keep existing occurrence ids stable up to here)

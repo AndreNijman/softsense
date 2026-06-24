@@ -120,15 +120,26 @@ ORIENT = {
              "small first-layer bevel (no support needed; trims a little elephant "
              "foot). Supportless.",
     ),
-    "melt_pin_axle": dict(
-        # Plain stepped cylinder (head + shank + melt-stud). Exported head at +Z,
-        # stud at -Z. Flip 180 about X => head flange on the bed (anchors the
-        # print), stud points +Z up (self-supporting cylinder, no slot/barb).
-        rot=[("x", 180)], qty=4, group="petg",
-        note="flip 180 about X: head flange on bed, melt-stud up. Plain stepped "
-             "cylinder -- self-supporting, no slot. Supportless. PETG-HF. "
-             "Qty 4: pin_A_R, pin_A_L, pin_B_R, pin_B_L. After install, melt a "
-             "cap on the back-protruding stud.",
+    "melt_pin_axle_AR": dict(
+        # Stepped cylinder (head + locating collar + journal + melt-stud). Flip 180
+        # about X => head flange on the bed, stud points +Z up. The collar prints as
+        # a self-supporting wider band (its underside is an upward-facing step).
+        rot=[("x", 180)], qty=1, group="petg",
+        note="flip 180 about X: head flange on bed, melt-stud up. Collar = "
+             "self-supporting band, no support. PETG-HF. pin_A_R (crank arm, "
+             "lowest collar). Melt a cap on the back stud after install.",
+    ),
+    "melt_pin_axle_AL": dict(
+        rot=[("x", 180)], qty=1, group="petg",
+        note="flip 180 about X: head flange on bed, melt-stud up. PETG-HF. "
+             "pin_A_L (crank arm + crown -> mid collar). Melt a cap on the back "
+             "stud after install.",
+    ),
+    "melt_pin_axle_B": dict(
+        rot=[("x", 180)], qty=2, group="petg",
+        note="flip 180 about X: head flange on bed, melt-stud up. PETG-HF. "
+             "pin_B_R/B_L (follower -> highest collar, longest journal). Melt a "
+             "cap on the back stud after install.",
     ),
     "input_pinion_shaft": dict(
         # The part is a vertical shaft (model-Y axis in the assembly) with a pinion
@@ -182,7 +193,8 @@ ORIENT = {
 # print order within a group (so the summary / plate reads logically)
 RIGID_ORDER = ["enclosure", "front_cover", "drive_arm_L", "drive_arm_R",
                "follower", "input_pinion_shaft"]
-PETG_ORDER = ["melt_pin_axle", "melt_pin_finger_C", "melt_pin_finger_D", "melt_cap"]
+PETG_ORDER = ["melt_pin_axle_AR", "melt_pin_axle_AL", "melt_pin_axle_B",
+              "melt_pin_finger_C", "melt_pin_finger_D", "melt_cap"]
 TPU_ORDER = ["finger_R", "finger_L"]
 
 

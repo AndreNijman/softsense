@@ -49,8 +49,10 @@ Grouping (25 children -> 12 unique part files):
   * follower_R / follower_L -> one file `follower`, qty 2. A follower is a
     symmetric link bar; left and right are congruent.
 
-  * The 4 internal axle pins (pin_A_R, pin_A_L, pin_B_R, pin_B_L) are one
-    geometry -> `melt_pin_axle`, qty 4.
+  * The 4 internal axle pins each carry a LOCATING COLLAR just above their element;
+    the three element heights differ, so they are three SKUs -> `melt_pin_axle_AR`
+    (qty 1, crank arm), `melt_pin_axle_AL` (qty 1, crank arm + crown), `melt_pin_axle_B`
+    (qty 2, follower). (A B-position pin's collar would foul the follower if reused.)
 
   * The 4 finger-pivot pins split by DEPTH: C reaches the crank layer, D only the
     follower layer, so they are different lengths -> `melt_pin_finger_C` (qty 2)
@@ -114,10 +116,15 @@ LABEL_TO_NAME = {
     "follower_L": "follower",
     "finger_R": "finger_R",          # chiral -> kept separate
     "finger_L": "finger_L",          # chiral -> kept separate
-    "pin_A_R": "melt_pin_axle",      # internal axle heat-stake pins x4 (identical length)
-    "pin_A_L": "melt_pin_axle",
-    "pin_B_R": "melt_pin_axle",
-    "pin_B_L": "melt_pin_axle",
+    # internal axle heat-stake pins. Each now carries a LOCATING COLLAR positioned
+    # just above its element, and the three element heights differ, so the pins are
+    # three distinct SKUs (a B-position collar would foul the follower; an A-position
+    # collar sits below the crown). A_R = crank arm (collar @6.25); A_L = crank arm +
+    # crown (collar @9.25); B = follower (collar @12.25).
+    "pin_A_R": "melt_pin_axle_AR",
+    "pin_A_L": "melt_pin_axle_AL",
+    "pin_B_R": "melt_pin_axle_B",
+    "pin_B_L": "melt_pin_axle_B",
     # finger-pivot heat-stake pins: C (to the crank layer) and D (to the follower
     # layer) sit at different Z depths -> DIFFERENT lengths, so they are two SKUs.
     # (The old single "snap_pin_finger" SKU was the C length, so the 2 D pins did
@@ -189,11 +196,12 @@ def part_meta(name: str):
                 "melt-stud and fuse the crown with a soldering iron.")
     if name.startswith("melt_pin"):
         return ("PETG-HF",
-                "stand the pin AXIS VERTICAL, HEAD DOWN, melt-stud UP; no "
-                "supports (plain stepped cylinder). melt_pin_finger_C is the long "
-                "(crank-layer) pin, melt_pin_finger_D the short (follower-layer) "
-                "pin, melt_pin_axle the back-wall pin. After assembly, slip a "
-                "melt_cap on the protruding stud and fuse it.")
+                "stand the pin AXIS VERTICAL, HEAD DOWN, melt-stud UP; no supports "
+                "(plain stepped cylinder, collar prints as a self-supporting band). "
+                "Finger pins: _finger_C long (crank layer), _finger_D short (follower "
+                "layer). Axle pins differ by collar height: _axle_AR (crank), _axle_AL "
+                "(crank+crown), _axle_B (follower). After assembly, slip a melt_cap on "
+                "the protruding stud and fuse it.")
     # Fallback for any unexpected new part.
     return ("PETG / Nylon",
             "orientation TBD -- inspect and lay the largest flat face on the bed.")
@@ -299,11 +307,11 @@ def main():
     for r in rows:
         print("  - {}: {}".format(r["name"], r["note"]))
     print()
-    n_axle = next((r["qty"] for r in rows if r["name"] == "melt_pin_axle"), 0)
+    n_axle = sum(r["qty"] for r in rows if r["name"].startswith("melt_pin_axle"))
     n_finC = next((r["qty"] for r in rows if r["name"] == "melt_pin_finger_C"), 0)
     n_finD = next((r["qty"] for r in rows if r["name"] == "melt_pin_finger_D"), 0)
     n_cap = next((r["qty"] for r in rows if r["name"] == "melt_cap"), 0)
-    print("Pins are PRINTED PETG-HF HEAT-STAKE pivots (melt_pin_axle x{}, "
+    print("Pins are PRINTED PETG-HF HEAT-STAKE pivots (axle x{} = AR+AL+Bx2, "
           "melt_pin_finger_C x{}, melt_pin_finger_D x{}) + melt_cap x{}. No barbs, "
           "no metal: insert each pin, slip a cap on the protruding stud, melt the "
           "cap with a soldering iron.".format(n_axle, n_finC, n_finD, n_cap))
@@ -341,12 +349,13 @@ def main():
     lines.append("## Notes")
     lines.append("")
     lines.append("- **Everything is printed.** No screws, no dowel pins, no "
-                 "bought fasteners. `melt_pin_axle` (x{}), `melt_pin_finger_C` "
-                 "(x{}, the long crank-layer pin), `melt_pin_finger_D` (x{}, the "
-                 "short follower-layer pin) and `melt_cap` (x{}) are PETG-HF "
-                 "HEAT-STAKE pivots (shank radius PIN_R = {} mm). Retention is a "
-                 "geometric melted head, so nothing flexes (no broken barbs) and "
-                 "nothing relies on friction (no pins sliding out)."
+                 "bought fasteners. The axle pins (x{} = `melt_pin_axle_AR` + "
+                 "`melt_pin_axle_AL` + `melt_pin_axle_B` x2), `melt_pin_finger_C` "
+                 "(x{}, long crank-layer pin), `melt_pin_finger_D` (x{}, short "
+                 "follower-layer pin) and `melt_cap` (x{}) are PETG-HF HEAT-STAKE "
+                 "pivots (shank radius PIN_R = {} mm). Each pin has a locating collar "
+                 "so its element cannot slide axially; retention is a geometric melted "
+                 "head (no broken barbs, no pins sliding out)."
                  .format(n_axle, n_finC, n_finD, n_cap, gripper.PIN_R))
     lines.append("- **Heat-stake pins: print HEAD DOWN, axis vertical, no "
                  "supports.** Insert the pin, slip a `melt_cap` over the "
