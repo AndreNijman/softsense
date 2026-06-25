@@ -96,8 +96,8 @@ FINGER_SCALE = _env_float("GRIPPER_FINGER_SCALE", 1.0, 0.6, 2.5)
 #   * ANGLES (THETA_CLOSED, OPEN_TRAVEL, *_DEG, slants): similitude preserves angles.
 #   * FASTENER sizes (BOLT_R / tap / clearance): an M4 is M4 at any scale; only the
 #     bolt-pattern POSITIONS scale. (Higher loads at >1x -> consider M5/M6 manually.)
-#   * flood/drain/vent hole RADII (DRAIN_R, COVER_VENT_R, AXLE_FLOOD_R): sized by
-#     absolute bubble/surface-tension + FDM floor physics, not part size; positions scale.
+#   * flood-hole RADII (AXLE_FLOOD_R; the drilled drains + cover vents were removed):
+#     sized by absolute bubble/surface-tension + FDM floor physics, not part size.
 #   * grip MICRO-TEXTURE (FR_GRIP_*): a LOCKED, separately-validated wet-grip optimum
 #     whose drainage is set by water-film physics (absolute), not part size -> a
 #     bigger finger simply carries MORE posts of the same size.
@@ -133,11 +133,17 @@ OPEN_TRAVEL = 46.0     # crank rotates this many deg from closed to full open
 # --------------------------------------------------------------------------
 # Z layers (back -> front) so moving parts never share a plane
 T_CRANK = 5.0 * SCALE
-Z_CRANK0 = 1.0 * SCALE                # crank + gear layer
-T_FOLLOW = 5.0 * SCALE
-Z_FOLLOW0 = 7.0 * SCALE                # follower layer
+Z_CRANK0 = 1.0 * SCALE                # crank + gear layer (Z 1..6)
+T_FOLLOW = 5.5 * SCALE               # was 5.0: longer follower journal; its top now reaches
+                                     # close under the finger so the D-pin barely cantilevers
+Z_FOLLOW0 = 6.5 * SCALE              # was 7.0: follower Z 6.5..12 (0.5mm gap above the crank
+                                     # layer; top just below the finger, no finger overlap)
 T_FINGER = 10.0 * SCALE              # Fin Ray finger depth in Z (z 13..23)
 Z_FINGER0 = 13.0 * SCALE              # finger layer
+FINGER_THRUST_GAP = 0.12 * SCALE     # running gap between each C/D eye-journal-boss TOP (the
+                                     # new under-finger thrust shoulder) and the finger bottom
+                                     # -- collapses the old ~1mm finger axial float to a
+                                     # running gap and squares the finger on both bosses
 LINK_W = 7.0 * SCALE  # link bar half-lobe width
 PIN_R = 2.3 * SCALE   # pivot pin radius
 PIN_HEAD_R = 3.6 * SCALE  # socket-head cap radius
@@ -145,11 +151,18 @@ PIN_HEAD_T = 1.2 * SCALE  # cap height (sits ~flush in a counterbore)
 
 # production / printability (FDM design-for-AM standards) -- HELD (process, not scaled)
 PRINT_CLEAR = 0.3     # mating clearance per side (FDM standard ~0.3 mm)
-PIN_FIT_CLEAR = 0.15  # TIGHTER running-fit per side for printed PIVOTS (was 0.30):
-                      # the four-bar bores rode 0.6 mm loose diametral -> visible
-                      # wobble. 0.15/side is a snug printed running fit. HELD (process).
+PIN_FIT_CLEAR = 0.15  # fat finger-NECK fit per side in the LOCKED 2.6mm TPU finger bore
+                      # (FP_NECK_R = MOUNT_HOLE_R - PIN_FIT_CLEAR). Bounded by the locked
+                      # bore + FDM tolerance: it CANNOT go tighter (the neck must still enter
+                      # the finger at +0.15 print oversize). HELD (process).
+AXLE_FIT_CLEAR = 0.10  # TIGHTENED 0.15->0.10: the rigid four-bar axle running fit (gear/arm/
+                      # follower on its PETG-on-PETG pivot pin). Halves the base-pivot lost
+                      # motion (0.30->0.20mm diametral) at the A/B pivots that sit at the base
+                      # of the 124mm tip lever, where slop is most amplified. The element bore
+                      # carries this running clearance; the non-rotating pin's housing/cover
+                      # holes reuse it (the pin is melt-riveted, so it doesn't run). HELD.
 DFM_EDGE = 0.4        # universal edge-break chamfer: no sharp edges
-AXLE_BORE_R = PIN_R + PIN_FIT_CLEAR   # link/arm/gear runs on its axle pin: snug running fit
+AXLE_BORE_R = PIN_R + AXLE_FIT_CLEAR  # link/arm/gear runs on its axle pin: snug running fit
                                       # (scaled pin + held gap). NOTE: the FINGER bore stays
                                       # MOUNT_HOLE_R = PIN_R+PRINT_CLEAR (already-printed TPU).
 
@@ -168,6 +181,41 @@ AXLE_BORE_R = PIN_R + PIN_FIT_CLEAR   # link/arm/gear runs on its axle pin: snug
 # to be coupon-tuned for backlash/contact on the target printer -- NOT a final
 # tooth form. A_L keeps its spur rim teeth meshing A_R (drive is unbroken).
 SHAFT_R = 4.0 * SCALE # vertical input-shaft radius
+
+
+def _involute_tip_r(m, z, pa_deg, x, backlash, a_coef=1.0, b_coef=1.25,
+                    tip_land_deg=2.0):
+    """The actual (auto-truncated) involute tip radius -- the same number the gear
+    generator below produces, but available up here at constant-definition time so
+    the crown valley / pitch-tangency math keys off the REAL pinion tip, not the
+    nominal addendum (a profile-shifted low-z pinion is tip-truncated, so its real
+    tip is shorter than r_p + (1+x)*m)."""
+    pa = math.radians(pa_deg)
+    r_p = m * z / 2.0
+    r_b = r_p * math.cos(pa)
+    r_a = r_p + m * (a_coef + x)
+    r_f = r_p - m * (b_coef - x)
+    r_lo = max(r_b, r_f) + 1e-4
+    s_p = m * (math.pi / 2.0 + 2.0 * x * math.tan(pa)) - backlash
+    half_p = s_p / (2.0 * r_p)
+
+    def off(r):
+        ac = math.acos(min(1.0, r_b / r))
+        return (half_p + (math.tan(pa) - pa)) - (math.tan(ac) - ac)
+
+    tip_land = math.radians(tip_land_deg)
+    if off(r_a) < tip_land:
+        lo, hi = r_lo, r_a
+        for _ in range(40):
+            mid = 0.5 * (lo + hi)
+            if off(mid) < tip_land:
+                hi = mid
+            else:
+                lo = mid
+        r_a = lo
+    return r_a
+
+
 # --- crown / face-gear stage geometry (genuine shallow face mesh) -----------
 # This is a RADIAL-PINION FACE-GEAR mesh, NOT two interpenetrating bodies:
 #   * the CROWN is a thin FACE RING on the A_L gear's +Z face. Its teeth are
@@ -179,44 +227,63 @@ SHAFT_R = 4.0 * SCALE # vertical input-shaft radius
 #     and shaft all clear the crown ring body and root.
 # The disengagement direction is +Z (lift the pinion off the crown face): the
 # tooth-tip overlap then collapses to ~0, proving this is a real tooth mesh and
-# not buried bodies. Representative straight-flank form (coupon-tunable), like
-# the spur gears elsewhere in this model.
-CROWN_RC = 8.0 * SCALE  # crown-gear pitch radius on the A_L gear face
-CROWN_Z = (6.0 * SCALE, 9.0 * SCALE)  # crown ring model-Z span (sits on the A_L gear +Z face)
-CROWN_TOOTH_H = 3.0 * SCALE  # crown tooth RADIAL band half-width about the pitch circle
-                      # (raised 1.6->3.0 in the Phase-4 drivetrain restructure: the
-                      # radial band IS the crown tooth's load-bearing FACE WIDTH in
-                      # bending, so widening it ~halves root stress. See motor/DRIVETRAIN.md
-                      # gear FEA. Pitch radius CROWN_RC is unchanged -> mesh ratio intact.)
-CROWN_FACE_H = 2.8 * SCALE  # crown tooth AXIAL proud height -- the gear-FEA REFERENCE
-                      # height (motor/scripts/gear_fea*.py model the root-bending
-                      # cantilever at this height -> a taller-than-actual tooth =
-                      # CONSERVATIVE T_safe). The ACTUAL meshing teeth are SHORTER:
-                      # _crown_gear computes their top/floor from the pinion so the
-                      # crown tips clear the spinning pinion ROOT cylinder (no bind)
-                      # and the valley floor sits below the pinion tip (real mesh).
-CROWN_MESH_CLEAR = 0.4  # radial clearance crown-tip<->pinion-root and floor<->pinion-tip
-CROWN_TEETH = 24      # crown face-tooth count (representative)
-PINION_RP = 3.0 * SCALE  # input-pinion pitch radius
-PINION_TEETH = 9      # pinion tooth count (representative; ratio CROWN/PINION) -- COUNT held
-PINION_TOOTH_H = 1.6 * SCALE
-PINION_T = 8.0 * SCALE  # pinion thickness along its axis (model Y)
-                      # (raised 4.0->8.0 in the Phase-4 restructure: pinion face width
-                      # is the safe strength lever -- root bending stress scales 1/face.
-                      # Pitch radius PINION_RP unchanged -> mesh ratio intact. See
-                      # motor/DRIVETRAIN.md; clearance re-verified by the interference check.)
-PINION_TIP = PINION_RP + 0.45 * PINION_TOOTH_H   # pinion tooth-tip radius
-MESH_DEPTH = 2.2 * SCALE  # how far the pinion tips dip into the crown teeth (deep enough
-                      # that the tip sits in the valley with flank contact, not a graze)
+# not buried bodies. The PINION is now a TRUE INVOLUTE (the conjugate master, see
+# below); the CROWN stays representative proud radial blocks, sized + phase-locked
+# to that involute pinion and kept block-form so the gear-FEA cantilever model
+# (motor/scripts/gear_fea*.py) stays conservative. The pitch planes are made
+# tangent (DRIVE_Z) so contact rolls at mid-tooth instead of tip-gouging.
+CROWN_RC = 8.0 * SCALE  # crown-gear pitch radius on the A_L gear face (HELD: ratio + motor FEA)
+CROWN_TEETH = 24      # crown face-tooth count (HELD -> ratio CROWN/PINION = 24/9 = 8/3 exact)
+CROWN_TOOTH_H = 3.0 * SCALE  # crown tooth RADIAL band half-width about the pitch circle -- the
+                      # load-bearing FACE WIDTH in bending (the gear-FEA lever, held). Crown ring
+                      # outer = CROWN_RC + this = 11.0 < the involute gear tip 13.5 -> clears.
+CROWN_FACE_H = 2.8 * SCALE  # crown tooth AXIAL proud height -- gear-FEA REFERENCE height
+                      # (conservative; the actual meshing proud teeth are computed shorter from
+                      # the real pinion so the crown tips clear the pinion root and the valley
+                      # floor sits below the pinion tip -- a real face mesh, not buried bodies).
+CROWN_MESH_CLEAR = 0.2  # radial mesh clearance crown<->pinion (TIGHTENED 0.4->0.2: the old 0.4
+                      # was a loose graze that read as backlash; 0.2 is a snug printed face mesh).
+
+# --- input PINION: now a TRUE INVOLUTE spur (the conjugate master of the face mesh) ---
+# The old straight-flank pinion had ~0deg pressure angle at pitch -> non-conjugate; it
+# tip-gouged then ran in a loose gap = the input-stage ripple, multiplied 8/3 downstream.
+# Pitch radius PINION_RP and the 9T count are HELD, which keeps (a) the 8/3 ratio + motor
+# T_safe/torque chain, and (b) one-piece-shaft installability -- the pinion tip stays < the
+# journal bore so the shaft still drops in pinion-first through the journals (a bigger
+# re-module would make the pinion wider than the bore and break that). The fix is the FORM.
+PINION_RP = 3.0 * SCALE  # input-pinion pitch radius (HELD)
+PINION_TEETH = 9      # pinion tooth count (HELD -> ratio CROWN/PINION = 24/9 = 8/3)
+PINION_MODULE = 2.0 * PINION_RP / PINION_TEETH   # = 0.667*SCALE (pitch dia / teeth)
+PINION_PA_DEG = 25.0  # involute pressure angle (no-undercut floor 11.2T; 9T needs a small shift)
+PINION_X = 0.25       # profile shift to clear the 9T undercut (x_min ~ +0.20 at 25deg)
+PINION_BACKLASH = 0.15  # total circular backlash (mm) -- printed-fit flank thinning, ratio held
+PINION_PHASE_DEG = 360.0 / PINION_TEETH / 2.0    # = 20 -> a pinion VALLEY faces the crown tooth
+                      # on the -Y mesh azimuth (EXPLICIT phase lock; mirrors the spur half_tooth
+                      # trick instead of relying on the old accidental 270/15-deg interleave).
+PINION_TIP = _involute_tip_r(PINION_MODULE, PINION_TEETH, PINION_PA_DEG,
+                             PINION_X, PINION_BACKLASH)   # real (auto-truncated) tooth-tip radius
+PINION_ROOT_R = PINION_RP - PINION_MODULE * (1.25 - PINION_X)   # involute root radius
+PINION_TOOTH_H = PINION_TIP - PINION_ROOT_R      # involute whole depth (motor-FEA interface)
+PINION_T = 8.0 * SCALE  # pinion thickness (face width) along its axis (model Y) -- strength lever
+assert PINION_TIP < SHAFT_R + PRINT_CLEAR + 1e-9, \
+    "pinion tip >= journal bore -> one-piece input shaft would no longer install pinion-first"
+assert abs(CROWN_RC / PINION_RP - 8.0 / 3.0) < 1e-9, "right-angle ratio drifted off 8/3"
+
 DRIVE_X = -A_R[0]                    # shaft/pinion model-X = A_L x = -12
-# Shaft/pinion axis model-Z: raise it so the pinion sits ABOVE the crown face and
-# only its bottom tips reach MESH_DEPTH into the crown teeth (top at CROWN_Z[1]):
-#   pinion_bottom_tip_Z = CROWN_Z[1] - MESH_DEPTH = DRIVE_Z - PINION_TIP
-DRIVE_Z = CROWN_Z[1] - MESH_DEPTH + PINION_TIP    # = 9 - 1 + 3.72 = 11.72
-# Pinion centred at the crown -Y azimuth (model-Y = -CROWN_RC), straddling it so
-# the pinion face width sweeps the crown teeth at that azimuth.
+# CROWN ring base sits ON the A_L gear's +Z top face, so it MUST track the gear thickness
+# (Z_CRANK0 + T_CRANK) -- a literal would float if T_CRANK ever changes. PITCH-PLANE
+# TANGENCY: set DRIVE_Z so the pinion pitch cylinder's bottom (DRIVE_Z - PINION_RP) lands on
+# the crown pitch plane, with the (truncated) pinion tip clearing the gear face by a small
+# valley standoff + CROWN_MESH_CLEAR. This rolls contact to mid-tooth instead of the old
+# ~0.45-module tip/edge gouge.
+CROWN_BASE_Z = Z_CRANK0 + T_CRANK                # crown ring base = A_L gear top face
+CROWN_VALLEY_FLOOR = CROWN_BASE_Z + 0.3 * SCALE  # crown valley floor (just above the gear face)
+DRIVE_Z = CROWN_VALLEY_FLOOR + PINION_TIP + CROWN_MESH_CLEAR   # == crown_pitch_Z + PINION_RP
+CROWN_Z = (CROWN_BASE_Z, DRIVE_Z - PINION_ROOT_R - CROWN_MESH_CLEAR)  # ring base .. proud tooth top
+# Pinion centred at the crown -Y azimuth (model-Y = -CROWN_RC), straddling it so the pinion
+# face width sweeps the crown teeth at that azimuth.
 PINION_YC = -CROWN_RC                 # pinion centre model-Y = -8 (the mesh azimuth)
-PINION_Y = (PINION_YC - PINION_T / 2.0, PINION_YC + PINION_T / 2.0)  # -10 .. -6
+PINION_Y = (PINION_YC - PINION_T / 2.0, PINION_YC + PINION_T / 2.0)  # -12 .. -4
 SHAFT_R_BORE = SHAFT_R + PRINT_CLEAR  # journal-bore radius (running clearance)
 # TWO JOURNAL BEARINGS along model -Y, now a CONTINUOUS running bore (no mid
 # pocket -> one uninterrupted bearing length). Stack (model-Y, +Y up/cavity, -Y
@@ -279,7 +346,23 @@ assert MELT_CAP_H - MELT_CAP_HOLE_H >= 0.3, "melt cap crown wall too thin to pri
 assert MELT_RECESS_R >= MELT_CAP_OR, "melt recess must nest the cap"
 
 GEAR_TEETH = 16       # COUNT held (scaled radius + fixed count -> module scales, ratio intact)
-GEAR_TOOTH_H = 3.0 * SCALE  # radial tooth height
+# --- spur sector-gear TOOTH FORM (A_L <-> A_R sync mesh): now a TRUE INVOLUTE ---
+# The old 4-point straight-flank trapezoid was non-conjugate (~0deg pressure angle at
+# pitch) -> it tip-gouged then ran in a loose gap = the visible mesh ripple/rattle and
+# the bulk of the "wonky/loose" feel (this is the prominent, on-centreline mesh). It is
+# replaced by a sampled involute (involute_gear_points) with a designed printed
+# backlash. Pitch radius R_GEAR and centre distance 2*R_GEAR are unchanged, so the 1:1
+# synced mirror and the half-tooth interleave (gen_step) are preserved exactly.
+GEAR_MODULE = 2.0 * R_GEAR / GEAR_TEETH   # = 1.5*SCALE  (pitch diameter / teeth)
+GEAR_PA_DEG = 25.0        # involute pressure angle: 25deg drops the no-undercut floor to
+                          # 11.2T so the 16T gear needs zero profile shift (held process)
+GEAR_BACKLASH = 0.15      # total circular backlash (mm) removed as symmetric flank
+                          # thinning -- a printed-fit allowance, ratio untouched (held)
+GEAR_TIP_R = R_GEAR + GEAR_MODULE         # true involute tip radius (= 13.5 at SCALE 1;
+                                          # was 0.45*GEAR_TOOTH_H -> 13.35). Used for the
+                                          # crown-ring + journal-boss clearance gates.
+GEAR_TOOTH_H = 3.0 * SCALE  # (legacy radial tooth height -- retained only where old
+                            # clearance refs still read it; the involute uses GEAR_MODULE)
 GEAR_SECTOR_DEG = 150.0   # gears are sectors, not full discs -- ANGLE held
 
 # --- Fin Ray finger (TPU compliant jaw) parameters ---
@@ -342,7 +425,10 @@ FP_NECK_R = MOUNT_HOLE_R - PIN_FIT_CLEAR   # fat finger-bearing neck (2.45): clo
                                            # running fit in the FIXED 2.6 finger bore
 FP_ARM_BORE_R = 1.60 * SCALE   # rigid C/D eye bore: kept NARROW so the cap (MELT_CAP_OR)
                                # catches a fat ~1.0 mm pull-out shoulder around it
-FP_ARM_LAND_R = FP_ARM_BORE_R - 0.10   # pin's snug journal land in the rigid eye (1.50)
+FP_ARM_LAND_R = FP_ARM_BORE_R - 0.075  # pin's snug journal land in the rigid eye (1.525):
+                                       # tightened 0.10->0.075/side. With the new journal boss
+                                       # the land is now long (L/D ~ 4 at C), so this fit + the
+                                       # length together kill the finger out-of-plane tilt.
 # the cap recess reuses link_bar's counterbore plumbing, cut into the eye exit face:
 FP_CB_R = MELT_RECESS_R           # eye-exit recess radius that nests the cap (2.9)
 FP_CB_DEPTH = MELT_RECESS_DEPTH   # recess depth (1.0)
@@ -475,6 +561,87 @@ def _poly_solid(pts, z0, thickness):
     return sol.moved(Location((0, 0, z0)))
 
 
+def _inv(a):
+    """Involute function inv(a) = tan(a) - a (radians)."""
+    return math.tan(a) - a
+
+
+def involute_gear_points(m, z, pa_deg=25.0, x=0.0, backlash=0.15,
+                         a_coef=1.0, b_coef=1.25, n_inv=12, phase_deg=0.0,
+                         n_root=3, tip_land_deg=2.0):
+    """One closed CCW (x,y) loop for a TRUE INVOLUTE spur gear centred at origin,
+    axis +Z -- a drop-in for the old 4-point straight-flank tooth (feed straight to
+    _poly_solid(pts, z0, thickness), which re-winds CCW + bores + .moves).
+
+        m         module (mm) = 2*pitch_radius/z   (spur: 2*R_GEAR/GEAR_TEETH=1.5)
+        z         tooth count
+        pa_deg    pressure angle (25deg: no-undercut floor 11.2T, so 16T needs no
+                  shift and the profile-shifted 6T pinion clears undercut)
+        x         profile shift coef (+ for low z to kill undercut)
+        backlash  TOTAL circular backlash (mm) removed symmetrically off both flanks
+                  as tooth-THINNING -- a fit allowance, NOT a centre-distance change,
+                  so pitch radii and the ratio are untouched
+        phase_deg tooth phase (pass the spur half_tooth=11.25 to the LEFT gear so the
+                  pair interleaves; pass PINION_PHASE_DEG to the pinion)
+
+    Each tooth is a monotone-polar sweep up the left involute flank, across the tip,
+    down the right flank, then a rounded root land to the next tooth -> never
+    self-intersects. A profile-shifted low-z tooth goes POINTED at full addendum, so
+    the tip is auto-truncated to a `tip_land_deg` half-angle flat (binary search on
+    r_a). Representative-but-real conjugate flanks: this is what makes the mesh roll
+    smoothly with tight, even backlash instead of the old tip-gouge/loose-gap ripple.
+    """
+    pa = math.radians(pa_deg)
+    r_p = m * z / 2.0                       # pitch radius
+    r_b = r_p * math.cos(pa)                # base radius (involute starts here)
+    r_a = r_p + m * (a_coef + x)            # addendum / tip radius
+    r_f = r_p - m * (b_coef - x)            # dedendum / root radius
+    r_lo = max(r_b, r_f) + 1e-4             # involute is undefined below the base circle
+    s_p = m * (math.pi / 2.0 + 2.0 * x * math.tan(pa)) - backlash  # tooth thickness @ pitch
+    half_p = s_p / (2.0 * r_p)              # half tooth thickness as an angle at pitch
+
+    def off(r):                            # flank angular offset from the tooth centreline
+        return (half_p + _inv(pa)) - _inv(math.acos(min(1.0, r_b / r)))
+
+    # low-z auto tip-truncation: shrink r_a until the tip keeps a tip_land half-angle
+    tip_land = math.radians(tip_land_deg)
+    if off(r_a) < tip_land:
+        lo, hi = r_lo, r_a
+        for _ in range(40):
+            mid = 0.5 * (lo + hi)
+            if off(mid) < tip_land:
+                hi = mid
+            else:
+                lo = mid
+        r_a = lo
+    assert r_a > r_lo + 1e-6 and off(r_lo) > 0.0, \
+        f"involute tooth degenerate (m={m} z={z} x={x}): no positive-area flank"
+
+    step = 2.0 * math.pi / z
+    ph = math.radians(phase_deg)
+    radii = [r_lo + (r_a - r_lo) * (i / (n_inv - 1)) for i in range(n_inv)]
+    off_lo = off(r_lo)
+    pts = []
+    for k in range(z):
+        c = ph + k * step
+        if r_f < r_lo - 1e-3:               # radial stub down to the true root (left side)
+            pts.append((r_f * math.cos(c - off_lo), r_f * math.sin(c - off_lo)))
+        for r in radii:                     # LEFT flank: root -> tip
+            a = c - off(r)
+            pts.append((r * math.cos(a), r * math.sin(a)))
+        for r in reversed(radii):           # RIGHT flank: tip -> root
+            a = c + off(r)
+            pts.append((r * math.cos(a), r * math.sin(a)))
+        if r_f < r_lo - 1e-3:               # radial stub (right side)
+            pts.append((r_f * math.cos(c + off_lo), r_f * math.sin(c + off_lo)))
+        a_here, a_next = c + off_lo, (c + step) - off_lo   # rounded root arc to next tooth
+        for j in range(1, n_root):
+            t = j / n_root
+            aa = a_here + (a_next - a_here) * t
+            pts.append((r_f * math.cos(aa), r_f * math.sin(aa)))
+    return pts
+
+
 def _counterbore_cut(p, z_face, depth, into_plus_z, pocket_r):
     """Solid to subtract from a receiving eye so a MELT CAP nests in a recess cut
     into the eye's EXIT face. The bore is WIDENED to pocket_r over `depth` of the
@@ -492,14 +659,20 @@ def _counterbore_cut(p, z_face, depth, into_plus_z, pocket_r):
 
 
 def link_bar(p0, p1, width, z0, thickness, label, color, counterbores=None,
-             bore0_r=None, bore1_r=None):
+             bore0_r=None, bore1_r=None, eye1_boss_top=None):
     """Rounded-end link bar from p0 to p1 (eyes at both ends). Each eye is bored
     at bore0_r (p0) / bore1_r (p1), defaulting to AXLE_BORE_R; a finger-pin eye
     passes bore=FP_ARM_BORE_R so the melt cap catches a fat shoulder around it.
     `counterbores` is an optional list of (point, z_face, depth, into_plus_z,
     pocket_r, boss_r) specs cut into the eye exit face to nest a melt cap
     (see _counterbore_cut); each gets a local boss_r boss so a solid confining
-    ring + axial shoulder survives around the widened pocket."""
+    ring + axial shoulder survives around the widened pocket.
+
+    `eye1_boss_top` (Z, optional): grow an ANTI-WOBBLE JOURNAL BOSS upward off the
+    bore1 (finger-pin) eye to this Z -- just under the finger -- so the slim pin LAND
+    journals continuously from the arm body up to the finger instead of cantilevering
+    across the empty gap (the old out-of-plane finger wobble). The boss TOP is the
+    under-finger thrust shoulder (axial capture). It grows in build +Z -> supportless."""
     if bore0_r is None:
         bore0_r = AXLE_BORE_R
     if bore1_r is None:
@@ -520,11 +693,20 @@ def link_bar(p0, p1, width, z0, thickness, label, color, counterbores=None,
         for (cp, zf, depth, into_pz, pocket_r, boss_r) in counterbores:
             bar += Cylinder(radius=boss_r, height=thickness).moved(
                 Location((cp[0], cp[1], z0 + thickness / 2.0)))
-    # bore the pin holes (per-eye fit radius)
+    # anti-wobble journal boss grown UP off the bore1 (finger) eye to just under the finger
+    boss_top1 = None
+    if eye1_boss_top is not None and eye1_boss_top > z0 + thickness + 0.2:
+        boss_top1 = eye1_boss_top
+        h = boss_top1 - (z0 + thickness)
+        bar += Cylinder(radius=FP_EYE_BOSS_R, height=h).moved(
+            Location((p1[0], p1[1], (z0 + thickness + boss_top1) / 2.0)))
+    # bore the pin holes (per-eye fit radius); bore1 runs through any journal boss
     bar -= Cylinder(radius=bore0_r, height=thickness * 3).moved(
         Location((p0[0], p0[1], z0 + thickness / 2.0)))
-    bar -= Cylinder(radius=bore1_r, height=thickness * 3).moved(
-        Location((p1[0], p1[1], z0 + thickness / 2.0)))
+    b1_lo = z0 - thickness
+    b1_hi = (boss_top1 if boss_top1 is not None else z0 + thickness) + thickness
+    bar -= Cylinder(radius=bore1_r, height=(b1_hi - b1_lo)).moved(
+        Location((p1[0], p1[1], (b1_lo + b1_hi) / 2.0)))
     # cap-nesting recesses (the geometric melt-cap capture pockets)
     if counterbores:
         for (cp, zf, depth, into_pz, pocket_r, boss_r) in counterbores:
@@ -544,18 +726,10 @@ def gear(center, phase_deg, z0, thickness, label, color, bore=True):
     centreline so the pair meshes. `phase_deg` rotates the teeth (the right
     and left gears are offset half a tooth so the teeth interleave).
     `bore=False` leaves the hub solid (for a gear with an integral shaft)."""
-    pitch = R_GEAR
-    root = pitch - 0.55 * GEAR_TOOTH_H
-    tip = pitch + 0.45 * GEAR_TOOTH_H
-    step = 2 * math.pi / GEAR_TEETH
-    ph = math.radians(phase_deg)
-    pts = []
-    for k in range(GEAR_TEETH):
-        c = ph + k * step
-        # one tooth: root-left, tip-left, tip-right, root-right
-        for frac, r in ((-0.34, root), (-0.18, tip), (0.18, tip), (0.34, root)):
-            aa = c + frac * step
-            pts.append((r * math.cos(aa), r * math.sin(aa)))
+    # TRUE INVOLUTE flanks (replaces the 4-point straight-flank trapezoid). phase_deg
+    # carries the L/R half-tooth interleave from gen_step so the pair still meshes.
+    pts = involute_gear_points(GEAR_MODULE, GEAR_TEETH, pa_deg=GEAR_PA_DEG,
+                               x=0.0, backlash=GEAR_BACKLASH, phase_deg=phase_deg)
     sol = _poly_solid(pts, z0, thickness)
     if bore:
         sol -= Cylinder(radius=AXLE_BORE_R, height=thickness * 3).moved(
@@ -585,8 +759,8 @@ def _crown_gear(center, z_lo, z_hi, label, color):
     #   valley floor sits CROWN_MESH_CLEAR below the pinion tip (the tip drops into
     #   the gap); tooth top sits CROWN_MESH_CLEAR below the pinion ROOT cylinder, so
     #   the proud crown tips clear the spinning pinion core (no interference bind).
-    pin_tip_z = DRIVE_Z - PINION_TIP
-    pin_root_z = DRIVE_Z - (PINION_RP - 0.55 * PINION_TOOTH_H)
+    pin_tip_z = DRIVE_Z - PINION_TIP                            # real involute pinion tip
+    pin_root_z = DRIVE_Z - PINION_ROOT_R                        # real involute pinion root
     valley_top = max(z_lo + 0.3, pin_tip_z - CROWN_MESH_CLEAR)   # base-ring top / floor
     tooth_top = pin_root_z - CROWN_MESH_CLEAR                    # proud tooth tip
     base_h = valley_top - z_lo
@@ -626,7 +800,8 @@ def drive_arm(A, C, spin_deg, z0, thickness, label, color, with_crown=False):
     # the axle running fit.
     cb = [(C, z0, FP_CB_DEPTH, True, FP_CB_R, FP_EYE_BOSS_R)]
     arm = link_bar(A, C, LINK_W, z0, thickness, label + "_arm", color,
-                   counterbores=cb, bore0_r=AXLE_BORE_R, bore1_r=FP_ARM_BORE_R)
+                   counterbores=cb, bore0_r=AXLE_BORE_R, bore1_r=FP_ARM_BORE_R,
+                   eye1_boss_top=Z_FINGER0 - FINGER_THRUST_GAP)
     part = g + arm
     if with_crown:
         part += _crown_gear(A, CROWN_Z[0], CROWN_Z[1], label + "_crown", color)
@@ -671,18 +846,25 @@ def pin(p, label, visible):
 # (below) and the collar (above) and can only spin, not slide. Feasible on a
 # one-piece pin because the axle pin inserts stud-FIRST: the collar approaches
 # from above and never has to pass through the element's bore.
-AXLE_COLLAR_R = PIN_R + 0.75 * SCALE   # 3.05: > AXLE_BORE_R (2.45) -> a 0.6 mm up-stop shoulder
-AXLE_COLLAR_GAP = 0.25 * SCALE         # running clearance above the element (it still spins free)
+AXLE_COLLAR_R = PIN_R + 0.75 * SCALE   # 3.05: > AXLE_BORE_R (2.40) -> a 0.65 mm up-stop shoulder
+AXLE_COLLAR_GAP = 0.12 * SCALE         # TIGHTENED 0.25->0.12: a true running thrust clearance
+                                       # above the element -- halves the residual axial shuffle
+                                       # (it still spins free; a collar-root relief keeps the
+                                       # flat printed thrust faces from print-welding/dragging)
 assert AXLE_COLLAR_R > AXLE_BORE_R + 0.4, "axle collar too small to stop the element sliding up"
 
 
 def axle_pin(p, head_inner_z, shank_end_z, stud_tip_z, elem_top_z,
-             label="axle_pin", color=PIN_COLOR):
+             tip_z1=None, tip_r=None, label="axle_pin", color=PIN_COLOR):
     """Axle pivot pin (A/B) -- HEAT-STAKE, replaces the loose dowel that slid and
     wobbled out. Built directly in world coords at XY p. Inserted from the FRONT
     (open cavity), stud-first:
+        SPIGOT (tip_r)       head-top .. tip_z1            -- reduced tip that threads
+                                                             up into the cover-boss bore
+                                                             = the located +Z end (kills
+                                                             the cantilever wobble)
         HEAD  (SNAP_HEAD_R)  inner face at head_inner_z   -- seats under the cover
-                                                             boss = the +Z stop
+                                                             boss = the +Z axial stop
         SHANK (PIN_R)        head_inner_z .. shank_end_z   -- journals the gear/arm;
                                                              flat end bottoms on the
                                                              back-bore step
@@ -694,7 +876,9 @@ def axle_pin(p, head_inner_z, shank_end_z, stud_tip_z, elem_top_z,
                                                              past the exterior back face
     A separate cap is melted onto the stud from OUTSIDE the back wall -> the pin is
     riveted to the wall = a fixed pivot post the gear/arm runs on. The element is
-    axially trapped between the back-boss face (below) and the collar (above)."""
+    axially trapped between the back-boss face (below) and the collar (above), and
+    the pin itself is now journaled at BOTH ends (back-wall bore + the SPIGOT in the
+    cover-boss bore) so it no longer rocks. tip_z1=None omits the spigot."""
     x, y = p
     head = Cylinder(radius=SNAP_HEAD_R, height=SNAP_HEAD_T).moved(
         Location((x, y, head_inner_z + SNAP_HEAD_T / 2.0)))
@@ -703,6 +887,15 @@ def axle_pin(p, head_inner_z, shank_end_z, stud_tip_z, elem_top_z,
     stud = Cylinder(radius=MELT_STUD_R, height=(shank_end_z - stud_tip_z)).moved(
         Location((x, y, (shank_end_z + stud_tip_z) / 2.0)))
     body = head + shank + stud
+    # LOCATING SPIGOT: a reduced tip above the head that threads up into the
+    # cover-boss bore so the pin is supported at BOTH ends instead of cantilevering
+    # off the back wall. A lead-in chamfer (added to the rim list below) lets the
+    # cover drop onto all four spigots as it snaps home.
+    head_top_z = head_inner_z + SNAP_HEAD_T
+    if tip_z1 is not None and tip_z1 > head_top_z + 0.3:
+        spig_r = tip_r if tip_r is not None else PIN_R
+        body = body + Cylinder(radius=spig_r, height=(tip_z1 - head_top_z)).moved(
+            Location((x, y, (head_top_z + tip_z1) / 2.0)))
     # LOCATING COLLAR: fat band just above the element up toward the head, so the
     # element is trapped (back-boss face below + collar bottom above) and can no
     # longer slide or rock up the bare shank. Its bottom face is the running stop.
@@ -711,12 +904,14 @@ def axle_pin(p, head_inner_z, shank_end_z, stud_tip_z, elem_top_z,
     if c_hi - c_lo > 0.6:
         body = body + Cylinder(radius=AXLE_COLLAR_R, height=(c_hi - c_lo)).moved(
             Location((x, y, (c_lo + c_hi) / 2.0)))
-    # DFM: break the head rim, the stud tip, and the collar TOP rim (its bottom
-    # stays crisp -- it is the axial stop). Bearing surfaces stay crisp.
+    # DFM: break the head rim, the stud tip, the collar TOP rim (its bottom stays
+    # crisp -- it is the axial stop), and the SPIGOT tip (a lead-in for the cover).
+    # Bearing surfaces stay crisp.
     rim = [e for e in body.edges().filter_by(GeomType.CIRCLE)
            if abs(e.center().Z - (head_inner_z + SNAP_HEAD_T)) < 0.2
            or abs(e.center().Z - stud_tip_z) < 0.2
-           or abs(e.center().Z - c_hi) < 0.2]
+           or abs(e.center().Z - c_hi) < 0.2
+           or (tip_z1 is not None and abs(e.center().Z - tip_z1) < 0.2)]
     body = _safe_round(body, rim, min(DFM_EDGE, SNAP_HEAD_T * 0.5), chamfer)
     body.label = label
     body.color = color
@@ -1115,7 +1310,7 @@ SLOT_L = (-41.0 * SCALE, -2.5 * SCALE)  # left top slot x-span  (WIDENED so arms
 # top at that gear-tip Y minus 0.3 mm running clearance. The shaft simply spans the
 # short gap from the boss top up to the pinion (this upper boss is the alignment
 # journal; the long lower bore carries the load).
-_GEAR_TIP_Y = -(R_GEAR + 0.45 * GEAR_TOOTH_H)            # -13.35 (gear teeth reach here)
+_GEAR_TIP_Y = -GEAR_TIP_R            # -13.5: involute gear teeth reach this far down model-Y
 DRIVE_BOSS_Y = (CAV_Y[0], min(PINION_Y[0] - 0.3, _GEAR_TIP_Y - 0.3))  # -17 .. -13.65
 DRIVE_BOSS_R = SHAFT_R + 2.4 * SCALE         # boss OD -> >=2 mm wall around bore
 BOT_FLANGE_Y = (-25.0 * SCALE, ENC_Y[0])    # bottom mounting flange: y -25 .. -20
@@ -1128,8 +1323,8 @@ BOT_FLANGE_Z = (ENC_Z[0], 22.0 * SCALE)      # back flush with the body; front s
 FLANGE_TY = (BOT_FLANGE_Y[1] - BOT_FLANGE_Y[0])   # flange thickness in Y (5)
 BOLT_R = 2.25                # M4 clearance
 # bolt holes on the bottom flange: a clean symmetric 4 at the flange corners, clear
-# of the shaft exit (x=-12, z=10.52), its lower bore, and the drains (was an
-# asymmetric 5 that read as random).
+# of the shaft exit (x=-12, z=10.52) and its lower bore (was an asymmetric 5 that
+# read as random).
 BOLT_XZ = [(-38.0 * SCALE, 2.0 * SCALE), (38.0 * SCALE, 2.0 * SCALE),
            (-38.0 * SCALE, 18.0 * SCALE), (38.0 * SCALE, 18.0 * SCALE)]
 R_VERT = 6.0                 # vertical corner radius (4->6: rounder uprights read
@@ -1141,13 +1336,15 @@ CHAM_COVER = 1.2            # matching chamfer on the front-cover outer perimete
                             # (shared edge language -> the body/cover seam reads as an
                             # intentional shadow line, not a parts mismatch)
 
-# --- underwater drainage / flood holes (so the housing floods & drains) ---
-# With model -Y now WORLD-DOWN, the model -Y bottom wall is the low point. Drains
-# there let water in/out; the +Y top slots are the high vent (no trapped pocket).
-DRAIN_R = 2.5
-DRAIN_BOTTOM_X = [-30.0 * SCALE, 0.0, 16.0 * SCALE, 30.0 * SCALE]  # bottom-wall rows (clear of shaft x=-12
-                                            # and of the corner bolts at x=+-38)
-DRAIN_SIDE_YZ = [(-14.0 * SCALE, 4.0 * SCALE), (-14.0 * SCALE, 16.0 * SCALE)]  # low side-wall holes (along X)
+# --- underwater drainage / flood holes ---
+# The 12 drilled drains (8 bottom-flange + 4 side-wall, Ø5) were REMOVED (2026-06,
+# cosmetic). The flood-vent sim showed flooding is never flow-limited: the kinematic
+# openings alone (the two +Y top slots + the four snap-clip windows, which the code
+# notes "also act as drains") purge the ~84 mL void in <1 s and equalise pressure
+# (water is incompressible once flooded). Worst-case trapped-air pocket rises only
+# from ~6 mL to ~14 mL (+4 g -> +10 g buoyancy, still under the +23 g near-neutral
+# baseline). The melt-stud axle-flood holes (back wall) and the shaft journal remain
+# as flood paths. Trade-off accepted by the user; see the flood-vent analysis.
 
 # --- assembly split: open-front body + bolt-on front cover ---------------
 COVER_COLOR = Color(0.33, 0.35, 0.40)   # cover: slightly lighter than ENC
@@ -1157,7 +1354,52 @@ AXLE_PIVOTS = [A_R, B_R, mirror_x(B_R), mirror_x(A_R)]  # captured-axle pivots
 #  gone -- A_L is driven by the crown gear, so it needs a normal pivot axle.)
 AXLE_SCREW_R = AXLE_BORE_R              # snap-pin shank clearance (was M3)
 BOSS_OD_R = AXLE_SCREW_R + 2.0 * SCALE  # axle boss OD -> 2 mm wall around bore (DFM min)
-BACK_BOSS_Z = (-2.0 * SCALE, 1.0 * SCALE)  # back-wall boss into cavity
+BACK_BOSS_Z = (-2.0 * SCALE, 1.0 * SCALE)  # back-wall boss into cavity (top = crank-layer floor)
+# AXIAL DOWN-STOP per pivot. The crank/gear sits in the LOW Z layer (Z_CRANK0..), so it
+# rests directly on the BACK_BOSS_Z[1]=1 boss top (trapped: boss below + collar above).
+# The FOLLOWER sits in a HIGHER layer (Z_FOLLOW0=6.5..), so a boss capped at Z=1 left its
+# bottom floating ~5.5 mm above any support -> it slid axially down the pin (the 2026-06
+# collar pass only added the UP-stop and only the crank happened to land on the boss). Fix:
+# give the B (follower) pivots a TALLER back-boss whose top is a DOWN THRUST SHOULDER just
+# under the follower, so the follower is trapped boss-below + collar-above like the crank.
+B_BOSS_TOP = Z_FOLLOW0 - AXLE_COLLAR_GAP   # follower down-stop top (running thrust gap) = 6.38
+_B_PIVOTS = (B_R, mirror_x(B_R))           # the follower pivots (vs the A crank pivots)
+
+
+def _back_boss_top(px, py):
+    """Back-boss top Z for a pivot: tall (B_BOSS_TOP) at the follower pivots so the
+    follower has a down thrust shoulder; the crank-layer default elsewhere."""
+    return B_BOSS_TOP if (px, py) in _B_PIVOTS else BACK_BOSS_Z[1]
+
+
+def _axle_back_boss(px, py):
+    """Back-wall boss for one pivot. A (crank) pivots get a plain full cylinder capped at
+    the crank-layer floor. B (follower) pivots get a full base (below the crank layer) plus
+    a TALL D-SHAPED thrust stem that reaches up to a down-shoulder just under the follower:
+    the crank arm sweeps the INBOARD side of B near full open (no radial room there -- it
+    nearly touches the pin), so the stem is cut to the OUTBOARD ~180deg where B stays clear
+    at every pose. The half-annulus thrust shoulder still traps the follower axially."""
+    btop = _back_boss_top(px, py)
+    if (px, py) not in _B_PIVOTS:
+        return Cylinder(radius=BOSS_OD_R, height=(btop - BACK_BOSS_Z[0])).moved(
+            Location((px, py, (BACK_BOSS_Z[0] + btop) / 2.0)))
+    base = Cylinder(radius=BOSS_OD_R, height=(BACK_BOSS_Z[1] - BACK_BOSS_Z[0])).moved(
+        Location((px, py, (BACK_BOSS_Z[0] + BACK_BOSS_Z[1]) / 2.0)))
+    sh = btop - BACK_BOSS_Z[1]
+    stem = Cylinder(radius=BOSS_OD_R, height=sh).moved(
+        Location((px, py, (BACK_BOSS_Z[1] + btop) / 2.0)))
+    # keep the OUTBOARD half: outboard = B - A (this pivot's crank centre), rotated ~45deg
+    # away from the arm's up-sweep (measured clear-sector centre; CW on the right side).
+    ax = math.copysign(A_R[0], px)
+    keep = math.degrees(math.atan2(py - A_R[1], px - ax)) + (45.0 if px < 0 else -45.0)
+    kx, ky = math.cos(math.radians(keep)), math.sin(math.radians(keep))
+    L, margin = 4.0 * BOSS_OD_R, 0.4
+    keephalf = Box(L, L, sh + 2.0).moved(
+        Location((px + kx * (L / 2.0 + margin), py + ky * (L / 2.0 + margin),
+                  (BACK_BOSS_Z[1] + btop) / 2.0), (0, 0, 1), keep))
+    return base + (stem & keephalf)
+
+
 COVER_BOSS_Z = (20.0 * SCALE, 22.0 * SCALE)  # cover inner-face boss into cavity
 # --- axle pin HEAT-STAKE capture (replaces the old loose dowel sandwich) -----
 # The plain dowel was meant to be trapped between the back boss and the cover boss,
@@ -1167,7 +1409,13 @@ COVER_BOSS_Z = (20.0 * SCALE, 22.0 * SCALE)  # cover inner-face boss into cavity
 # reduced MELT-STUD threads the back-wall flood hole and protrudes past the EXTERIOR
 # back face, where a separate cap is melted on (the -Z stop). The gear/arm runs on
 # the shank; the pin itself no longer moves -> no wobble, cannot fall out.
-AXLE_DOWEL_CLR = 0.20                       # head-to-cover-boss seating gap
+AXLE_DOWEL_CLR = 0.05                       # head-to-cover-boss seating gap: TIGHTENED 0.20->0.05.
+                                            # The old 0.20 was below the printed segment-length
+                                            # tolerance -> a fictional, ambiguous seat. 0.05 gives
+                                            # ONE firm +Z datum (head under the cover boss); the
+                                            # melt-rivet cap is the -Z datum; the spigot is now a
+                                            # pure radial locator. So every pin lands at the same
+                                            # Z and the assembly reads even.
 AXLE_DOWEL_Z1 = COVER_BOSS_Z[0] - AXLE_DOWEL_CLR - SNAP_HEAD_T   # 18.0 (head inner face / shank top)
 # The back axle bore is STEPPED: a wide (AXLE_SCREW_R) running bore from the cavity
 # down to AXLE_STOP_Z, then a flood hole (AXLE_FLOOD_R) on through the back wall. The
@@ -1192,13 +1440,30 @@ CORNER_CLEAR_R = 1.7                   # M3 clearance hole in the cover
 CORNER_BOSS_Z = (-2.0, 22.0)           # (legacy; replaced by snap clips)
 COVER_Z = (22.0 * SCALE, 25.0 * SCALE)  # bolt-on cover plate
 
-# --- front-cover vent holes (underwater audit C-6): let trapped air escape when
-# the gripper is front-up. Placed over the OPEN cavity (Y in [-17,14.5], X in
-# [-45,45]), biased +Y so they are the high point fingers-up, one near each side
-# to cover roll, clear of the 3 cover axle bosses and the snap-clip windows. ---
-COVER_VENT_R = 0.9                      # 1.8 mm dia (> 1.5 mm bubble/FDM floor)
-COVER_VENT_XY = [(-34.0 * SCALE, 12.0 * SCALE), (0.0, 12.0 * SCALE), (34.0 * SCALE, 12.0 * SCALE)]   # clean symmetric row,
-                                        # >=8 mm from any boss centre
+# --- axle-pin LOCATING SPIGOT (anti-wobble) ---------------------------------
+# The pin used to be riveted ONLY at the back wall (stud + melt-cap + a short
+# 2.5 mm shank journal); its HEAD just floated under the cover-boss face with a
+# 0.20 mm gap and NO radial location -> the pin was a cantilever and its top
+# rocked ("wobble"). Fix: a reduced TIP SPIGOT above the head that threads up
+# into the cover-boss bore (the "proper mounting hole" on the cover side). The
+# pin is now journaled at BOTH ends (back-wall bore + cover-boss bore) so it can
+# no longer rock. The spigot also registers the cover onto all four pins as it
+# snaps home. The cover-boss bore (AXLE_SCREW_R) is reused as the locating hole
+# (0.15 mm running fit on the PIN_R spigot, same as the back journal); a short
+# lead-in mouth lets the cover self-align onto the four spigots.
+AXLE_TIP_R = PIN_R                          # spigot Ø = shank: runs in the AXLE_SCREW_R cover bore
+AXLE_TIP_PROUD = 2.5 * SCALE                # spigot engages this far up into the cover-boss bore
+AXLE_TIP_Z1 = COVER_BOSS_Z[0] + AXLE_TIP_PROUD   # spigot tip Z (drainage gap left above it)
+AXLE_TIP_LEADIN = 0.5                       # cover-boss mouth lead-in (radial widen, held literal)
+assert AXLE_TIP_R < AXLE_SCREW_R, "axle locating spigot must clear the cover-boss bore"
+assert AXLE_TIP_Z1 < COVER_Z[1] - (CHAM_COVER + 0.8), \
+    "axle spigot would punch the cover skin / leave no drainage above the tip"
+
+# --- front-cover vent holes: REMOVED (2026-06, cosmetic) ---
+# The 3 × Ø1.8 cover vents were the underwater audit-C-6 fix for trapped air in the
+# FRONT-UP attitude (air pools against the cover where the mechanism blocks it from
+# reaching the top slots). Removing them gives up that front-up venting: only safe if
+# the gripper is not operated front-up. Trade-off explicitly accepted by the user.
 
 # --- snap-clip front cover (tool-free, zero hardware) -------------------
 SNAP_Y = [-9.0 * SCALE, 7.0 * SCALE]  # clip y-centres on each side wall
@@ -1296,8 +1561,8 @@ def _all_snap_clips():
 def build_enclosure():
     """Hollow flooded gearbox housing (underwater), SPLIT for assembly: open
     front so the mechanism drops in; the snap-clip cover supports the far axle
-    ends. Keeps the cavity, two top slots, captured-axle bosses, and drain/flood
-    holes. The old back-wall A_L horizontal shaft bore + plain-bushing seat are
+    ends. Keeps the cavity, two top slots, captured-axle bosses, and the back-wall
+    axle-flood holes. The old back-wall A_L horizontal shaft bore + plain-bushing seat are
     GONE; instead the BOTTOM (model -Y) wall carries the two-bearing journal for
     the VERTICAL input shaft (upper boss bore + flange exit bore) and the mounting
     flange + bolt holes moved to the bottom around that exit. The 4 corner screw
@@ -1336,8 +1601,7 @@ def build_enclosure():
     body = chamfer(base_edges, length=CHAM_EDGE)
 
     for (px, py) in AXLE_PIVOTS:
-        body += Cylinder(radius=BOSS_OD_R, height=(BACK_BOSS_Z[1] - BACK_BOSS_Z[0])).moved(
-            Location((px, py, (BACK_BOSS_Z[0] + BACK_BOSS_Z[1]) / 2.0)))
+        body += _axle_back_boss(px, py)   # A: full cylinder; B: full base + D-shaped thrust stem
 
     # UPPER journal boss: stands +Y off the inside bottom-wall face into the cavity
     # at the shaft XY (model x=DRIVE_X, z=DRIVE_Z). Axis = model Y.
@@ -1368,7 +1632,9 @@ def build_enclosure():
     # The step (annular shoulder at AXLE_STOP_Z) is the rigid -Z stop the dowel shank
     # bottoms on; the narrow hole keeps the socket flooding/draining.
     for (px, py) in AXLE_PIVOTS:
-        wz0, wz1 = AXLE_STOP_Z, BACK_BOSS_Z[1] + 1.5    # wide bore: step -> cavity
+        # wide bore runs from the back step UP through the (per-pivot) boss into the cavity,
+        # so the pin shank still passes the now-taller follower boss
+        wz0, wz1 = AXLE_STOP_Z, _back_boss_top(px, py) + 1.5
         body -= Cylinder(radius=AXLE_SCREW_R, height=(wz1 - wz0)).moved(
             Location((px, py, (wz0 + wz1) / 2.0)))
         nz0, nz1 = ENC_Z[0] - 3.0, AXLE_STOP_Z + 0.01   # flood hole + melt-stud clearance through back
@@ -1396,20 +1662,9 @@ def build_enclosure():
             Location((bx, (BOT_FLANGE_Y[0] + BOT_FLANGE_Y[1]) / 2.0, bz),
                      (1, 0, 0), -90.0))
 
-    # bottom flood/drain holes (axis model -Y); now the housing LOW point. They
-    # must pass through BOTH the bottom wall AND the mounting flange below it to
-    # reach the outside, so make them full through-holes from cavity floor to the
-    # flange outer face. x positions clear the shaft exit (x=DRIVE_X=-12).
-    d_y0 = BOT_FLANGE_Y[0] - 2.0
-    d_y1 = CAV_Y[0] + 0.5
-    for dx in DRAIN_BOTTOM_X:
-        for dz in (4.0 * SCALE, 16.0 * SCALE):
-            body -= Cylinder(radius=DRAIN_R, height=(d_y1 - d_y0)).moved(
-                Location((dx, (d_y0 + d_y1) / 2.0, dz), (1, 0, 0), -90.0))
-    for (sy, sz) in DRAIN_SIDE_YZ:
-        for sx in (ENC_X[0] + WALL / 2.0, ENC_X[1] - WALL / 2.0):
-            body -= Cylinder(radius=DRAIN_R, height=(WALL + 6.0)).moved(
-                Location((sx, sy, sz), (0, 1, 0), 90.0))
+    # (the 8 bottom-flange + 4 side-wall Ø5 drain holes were removed -- cosmetic;
+    # see the drainage note above. Flooding/venting still works via the top slots,
+    # the snap-clip windows, the back-wall axle-flood holes, and the shaft journal.)
 
     body.label = "enclosure"
     body.color = ENC
@@ -1446,18 +1701,22 @@ def build_front_cover():
                 plate = fillet([e], radius=0.8)
             except Exception:
                 pass
-    # axle-boss bores are BLIND drainage/clearance pockets (they do NOT pierce the
-    # exposed outer face -> clean front). The dowel head seats on the boss FACE
-    # (z=COVER_BOSS_Z[0]); these bores hold nothing. They open to the flooded cavity
-    # and stop CHAM_COVER+0.3 short of the outer face so a solid skin remains.
+    # axle-boss bores are now the pin's LOCATING HOLE: the pin's reduced TIP SPIGOT
+    # (AXLE_TIP_R) threads up into this bore at a 0.15 mm running fit, so the pin is
+    # journaled at both ends and no longer rocks. The bore stays BLIND (does NOT
+    # pierce the exposed outer face -> clean front) and ends CHAM_COVER+0.3 short of
+    # the outer face, leaving a drainage gap above the spigot tip + a solid skin. The
+    # head still seats on the boss FACE (z=COVER_BOSS_Z[0]). A short widened MOUTH at
+    # the boss face is a lead-in so the cover self-aligns onto all four spigots.
     blind_top = COVER_Z[1] - (CHAM_COVER + 0.3)
     for (px, py) in AXLE_PIVOTS:
         plate -= Cylinder(radius=AXLE_SCREW_R, height=(blind_top - COVER_BOSS_Z[0]) + 0.02).moved(
             Location((px, py, (COVER_BOSS_Z[0] + blind_top) / 2.0)))
-    # vent holes through the cover plate (front-up air escape, audit C-6)
-    for (vx, vy) in COVER_VENT_XY:
-        plate -= Cylinder(radius=COVER_VENT_R, height=(COVER_Z[1] - COVER_Z[0]) + 4.0).moved(
-            Location((vx, vy, (COVER_Z[0] + COVER_Z[1]) / 2.0)))
+        # lead-in mouth (chamfer-equivalent): a short wider counterbore at the bore
+        # entry so each spigot finds its hole as the cover snaps home.
+        plate -= Cylinder(radius=AXLE_SCREW_R + AXLE_TIP_LEADIN, height=AXLE_TIP_LEADIN + 0.02).moved(
+            Location((px, py, COVER_BOSS_Z[0] + AXLE_TIP_LEADIN / 2.0)))
+    # (front-cover vent holes removed -- cosmetic; see the cover-vent note above)
     for clip in _all_snap_clips():
         plate += clip
     plate.label = "front_cover"
@@ -1466,19 +1725,14 @@ def build_front_cover():
 
 
 def _spur_pinion(thickness, label, color):
-    """Small spur INPUT PINION as a build123d solid, built with its axis along +Z
-    (caller rotates it to model -Y). Pitch radius PINION_RP, straight-flank
-    representative teeth (coupon-tunable, matching the model's other gears)."""
-    pitch = PINION_RP
-    root = pitch - 0.55 * PINION_TOOTH_H
-    tip = pitch + 0.45 * PINION_TOOTH_H
-    step = 2 * math.pi / PINION_TEETH
-    pts = []
-    for k in range(PINION_TEETH):
-        c = k * step
-        for frac, r in ((-0.30, root), (-0.16, tip), (0.16, tip), (0.30, root)):
-            aa = c + frac * step
-            pts.append((r * math.cos(aa), r * math.sin(aa)))
+    """Small INPUT PINION as a build123d solid, built with its axis along +Z (caller
+    rotates it to model -Y). Now a TRUE INVOLUTE spur (PINION_PA_DEG, profile-shifted
+    PINION_X to clear the 9T undercut, auto tip-truncated), matching the conjugate
+    flanks of the spur pair so the right-angle mesh rolls instead of gouges. The
+    PINION_PHASE_DEG offset clocks a tooth VALLEY onto the crown's -Y mesh azimuth."""
+    pts = involute_gear_points(PINION_MODULE, PINION_TEETH, pa_deg=PINION_PA_DEG,
+                               x=PINION_X, backlash=PINION_BACKLASH,
+                               phase_deg=PINION_PHASE_DEG)
     return _poly_solid(pts, 0.0, thickness)
 
 
@@ -1573,10 +1827,12 @@ def gen_step():
     # recess; B-eye keeps the axle running fit.
     parts.append(link_bar(R["B"], R["D"], LINK_W, Z_FOLLOW0, T_FOLLOW, "follower_R", STEEL_R,
                           counterbores=[(R["D"], Z_FOLLOW0, FP_CB_DEPTH, True, FP_CB_R, FP_EYE_BOSS_R)],
-                          bore0_r=AXLE_BORE_R, bore1_r=FP_ARM_BORE_R))
+                          bore0_r=AXLE_BORE_R, bore1_r=FP_ARM_BORE_R,
+                          eye1_boss_top=Z_FINGER0 - FINGER_THRUST_GAP))
     parts.append(link_bar(L["B"], L["D"], LINK_W, Z_FOLLOW0, T_FOLLOW, "follower_L", STEEL_L,
                           counterbores=[(L["D"], Z_FOLLOW0, FP_CB_DEPTH, True, FP_CB_R, FP_EYE_BOSS_R)],
-                          bore0_r=AXLE_BORE_R, bore1_r=FP_ARM_BORE_R))
+                          bore0_r=AXLE_BORE_R, bore1_r=FP_ARM_BORE_R,
+                          eye1_boss_top=Z_FINGER0 - FINGER_THRUST_GAP))
 
     # Fin Ray fingers (TPU) rigid with coupler CD
     parts.append(finger(R, refR, -1, TPU, "finger_R"))
@@ -1599,9 +1855,19 @@ def gen_step():
                 # D -> follower @Z_FOLLOW0); far + thickness = the eye top. The cap
                 # is melted at this bottom face -> finger+arms+pins are a BENCH
                 # SUB-ASSEMBLY (see docs/ASSEMBLY.md).
+                # The rigid eye now extends UP via link_bar's anti-wobble journal boss
+                # to (Z_FINGER0 - FINGER_THRUST_GAP) -- the under-finger thrust shoulder.
+                # The pin's slim LAND journals that FULL height (cap recess floor -> boss
+                # top), so it no longer cantilevers across the old empty gap. far = the
+                # eye EXIT (bottom) face where the melt cap nests (C -> crank @Z_CRANK0;
+                # D -> follower @Z_FOLLOW0). finger+arms+pins stay a BENCH SUB-ASSEMBLY.
+                # eye_top = Z_FINGER0 (the finger BOTTOM): the slim LAND journals the rigid
+                # eye+boss all the way up to the finger; the fat NECK then fills exactly the
+                # finger bore (Z13..23) and its neck->land step floats FINGER_THRUST_GAP above
+                # the boss-top thrust face, so the FINGER (not the pin) seats on the shoulder
+                # -- no rotating thrust face to drag.
                 far = Z_CRANK0 if j == "C" else Z_FOLLOW0
-                eye_t = T_CRANK if j == "C" else T_FOLLOW
-                parts.append(finger_pin(pose[j], far, far + eye_t,
+                parts.append(finger_pin(pose[j], far, Z_FINGER0,
                                         Z_FINGER0 + T_FINGER, label=lbl))
                 parts.append(melt_cap(pose[j], far, label=cap_lbl))
             else:                  # axles: HEAT-STAKE pin riveted to the back wall.
@@ -1616,7 +1882,8 @@ def gen_step():
                 else:
                     elem_top = Z_FOLLOW0 + T_FOLLOW
                 parts.append(axle_pin(pose[j], AXLE_DOWEL_Z1, AXLE_STOP_Z,
-                                      AXLE_STUD_TIP_Z, elem_top, label=lbl))
+                                      AXLE_STUD_TIP_Z, elem_top,
+                                      tip_z1=AXLE_TIP_Z1, tip_r=AXLE_TIP_R, label=lbl))
                 parts.append(melt_cap(pose[j], ENC_Z[0], label=cap_lbl))
 
     # bolt-on front cover (keep existing occurrence ids stable up to here)

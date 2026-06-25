@@ -81,6 +81,15 @@ relying on the cover; the formed head is the +Z-side capture against the back
 wall. (The back wall is reachable because the mount is the bottom shaft-exit
 flange, not the back face.)
 
+**Axial capture of each rotating element** (so an arm cannot slide along the pin):
+every element is trapped between a back-boss **down thrust shoulder** and the pin's
+**locating collar** above it (0.12 mm running gap each way). The crank/gear sits in
+the low Z layer and lands on the plain back-boss; the **follower sits a layer higher**,
+so its pivots (B_R, B_L) carry a **taller D-shaped boss** — full thrust shoulder on the
+**outboard** half, cut away on the inboard half where the crank arm sweeps past the
+follower pivot at full open. This trapped the old ~5.6 mm follower axial float down to
+0.24 mm without fouling the crank.
+
 ### Finger pins — `melt_pin_finger_C` (C_R, C_L) + `melt_pin_finger_D` (D_R, D_L) (4 pins, 2 SKUs)
 
 Plain stepped journal pins. From the top down: the **head seats on the finger
@@ -89,6 +98,16 @@ TPU finger bore**; a **slim land** journals the rigid arm or follower eye; and
 the **melt-stud protrudes past the arm/follower-eye BOTTOM (exit) face**, where
 the cap is melted. C reaches the crank layer (long `melt_pin_finger_C`); D
 reaches the follower layer (short `melt_pin_finger_D`).
+
+**Anti-wobble journal boss (2026-06 redesign):** each rigid C/D eye now grows a
+**journal boss upward** to just under the finger, so the slim land runs
+**continuously from the cap-recess floor up to the finger bottom** (L/D ≈ 3.6 at
+C) instead of journaling a short eye then flag-poling across an empty gap — this
+kills the finger's out-of-plane wobble. The **boss top is the under-finger thrust
+shoulder**: the finger seats on it with a 0.12 mm running gap (head above + shoulder
+below), so the old ~1 mm finger axial float collapses to a running fit and the finger
+sits square on **both** bosses (they end at the same Z). The neck→land step floats
+just above the shoulder, so there is no rotating thrust face to drag.
 
 Because the cap face is **buried mid-cavity** once the mechanism is in the
 housing, the finger pins are staked as a **bench sub-assembly**: build

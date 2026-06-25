@@ -115,10 +115,33 @@ by it.)
     unchanged) — confirms the kinematics are untouched.
 - **Proposed / not implemented (numbered option `DECISION_LOG.md` D10-a):** the full
   re-size (CROWN_RC 8→11, module 0.67→1.83, teeth 24/9→12/6, face 8). It ripples
-  through ~15 coupled mesh constants (DRIVE_Z, MESH_DEPTH, PINION_TIP, CROWN_Z, the
+  through ~15 coupled mesh constants (DRIVE_Z, PINION_TIP, CROWN_Z, the
   crown band radii…) with crown-ring-vs-sector-teeth clearance that **must be
   validated by CAD render** before shipping — so it is specified, not silently
   written, per the campaign rule.
+
+### 2026-06 tooth-FORM upgrade (branch `feat/gearbox-linkage-redesign`)
+
+The gearbox-polish pass replaced the **representative straight-flank** teeth with
+**true involutes** where it matters, *without* re-sizing — so this whole FEA chain
+stays valid as-is:
+
+- **Spur sector pair (A_L↔A_R)** and the **input pinion** are now sampled-involute
+  (25° pressure angle, 0.15 mm designed circular backlash, the 9-tooth pinion
+  profile-shifted x=+0.25 + tip-truncated to clear undercut). Conjugate flanks roll
+  instead of tip-gouging → the visible mesh ripple/backlash is gone.
+- **CROWN_RC (8), PINION_RP (3), CROWN_TEETH (24), PINION_TEETH (9) are HELD**, so
+  `CROWN_RC/PINION_RP = 24/9 = 8/3` is unchanged and **T_safe, the torque chain,
+  slip margin and selection scores are untouched** (no campaign re-run). The pinion
+  tip stays < the journal bore, so the one-piece input shaft still installs
+  pinion-first — the reason the bigger D10-a re-module was *not* taken here.
+- The **crown stays representative proud radial blocks** (now phase-locked to the
+  involute pinion with `PINION_PHASE_DEG`, and pitch-plane-tangent via the new
+  `DRIVE_Z`), deliberately kept block-form so the conservative straight-cantilever
+  `gear_fea*.py` model still bounds it — the crown remains the binding link at
+  **T_safe ≈ 0.013 N·m (radial)**. A fully conjugate face-gear crown is the open
+  follow-on. Re-running `gear_fea*.py` on the involute pinion only *raises*
+  `T_safe(pinion)` (stronger root), it does not move the binding crown bound.
 
 ## 6. The current-limit ceiling (the sensing-pivot connection)
 
