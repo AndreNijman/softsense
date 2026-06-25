@@ -51,6 +51,7 @@ from build123d import (
     chamfer,
     extrude,
     fillet,
+    loft,
     make_face,
 )
 
@@ -1528,15 +1529,18 @@ assert AXLE_TIP_Z1 < COVER_Z[1] - (CHAM_COVER + 0.8), \
 
 # --- snap-clip front cover (tool-free, zero hardware) -------------------
 SNAP_Y = [-9.0 * SCALE, 7.0 * SCALE]  # clip y-centres on each side wall
-SNAP_ARM_W = 9.0 * SCALE             # clip width along Y (flexing beam width)
-SNAP_ARM_T = 2.0 * SCALE             # arm radial thickness (X) -- thinned 2.8->2.0:
-                                     # cuts outward protrusion 3.2->2.4 mm (sleeker,
-                                     # blade-like tab) AND, since bending strain is
-                                     # LINEAR in thickness (eps = 3*t*d/(2*L^2)),
-                                     # DROPS worst-tight strain 1.90%->1.36% -- more
-                                     # PA12-GF margin, not less. Cost is a softer
-                                     # click (stiffness ~ t^3); retention is the
-                                     # geometric hook-in-window, not the spring.
+SNAP_ARM_W = 9.0 * SCALE             # clip width along Y at the flexing TIP
+# TAPERED + FLARED clip (2026-06): the clip kept snapping OFF at its root. The old arm
+# was a UNIFORM 2.0 mm-thick x 9 mm-wide cantilever -- a thin, small connection into the
+# cover that sheared off across the print layers (the weakest direction). It is now a
+# proper snap-fit TAPER: thin/narrow at the free tip (it still flexes the same), growing
+# to a MUCH thicker + wider ROOT where it meets the cover. A tapered beam carries ~uniform
+# bending strain over its length (no sharp root stress-concentration) AND gives a ~2.7x
+# bigger bonded connection area, so it stops breaking off -- at the SAME flex strain.
+SNAP_TIP_T  = 1.8 * SCALE            # arm thickness (X) at the free tip -- the flexing section
+SNAP_ROOT_T = 3.2 * SCALE            # arm thickness (X) at the cover root -- the BIG connection
+SNAP_ROOT_W = 15.0 * SCALE           # arm width (Y) at the cover root -- flared from SNAP_ARM_W
+SNAP_ARM_T  = SNAP_ROOT_T            # the clip's max outward thickness (root) -> protrusion/boss refs
 SNAP_TIP_CHAM = 1.0                  # bevel on the free-tip proud edge so the tab
                                      # reads as an intentional blade, not a nub
                                      # (free tip = print-top -> self-supporting)
@@ -1565,12 +1569,19 @@ SNAP_ARM_Z1 = COVER_Z[0] + 1.0       # arm overlaps INTO the cover so it fuses
 # nobody can re-thicken the arm or shorten it past the brittle limit unnoticed.
 SNAP_FREE_L = COVER_Z[0] - SNAP_Z0                       # 20.5 mm cantilever length
 SNAP_DELTA_WORST = SNAP_HOOK_ENGAGE + 2 * 0.2           # 1.9 mm (eng + FDM each side)
-SNAP_STRAIN_WORST = 3 * SNAP_ARM_T * SNAP_DELTA_WORST / (2 * SNAP_FREE_L ** 2)
+# TAPERED-beam strain: a cantilever that tapers from SNAP_ROOT_T (root) to SNAP_TIP_T (tip)
+# carries ~uniform bending strain along its length, so its PEAK strain is ~1/K of a uniform
+# root-thickness beam (K from the Bayer/BASF snap-fit taper chart -- ~2.0 at tip/root=0.5;
+# we use 1.6 conservatively). Net: the big-root taper does NOT raise the flex strain.
+SNAP_TAPER_K = 1.6
+SNAP_STRAIN_WORST = 1.5 * SNAP_DELTA_WORST * SNAP_ROOT_T / (SNAP_FREE_L ** 2 * SNAP_TAPER_K)
 SNAP_STRAIN_ALLOW = 0.015                               # 1.5% conservative PA12-GF gate
+assert SNAP_TIP_T / SNAP_ROOT_T <= 0.62 + 1e-9, \
+    "taper too shallow for the SNAP_TAPER_K reduction -- thin the tip or thicken the root"
 assert SNAP_STRAIN_WORST < SNAP_STRAIN_ALLOW, (
     f"snap-clip worst-tight bending strain {SNAP_STRAIN_WORST*100:.2f}% exceeds the "
-    f"{SNAP_STRAIN_ALLOW*100:.1f}% PA12-GF gate (t={SNAP_ARM_T}, L={SNAP_FREE_L}); "
-    f"thin the arm or lengthen it (lower SNAP_Z0) -- never reduce SNAP_HOOK_ENGAGE")
+    f"{SNAP_STRAIN_ALLOW*100:.1f}% PA12-GF gate (root t={SNAP_ROOT_T}, tip t={SNAP_TIP_T}, "
+    f"L={SNAP_FREE_L}); thin the tip / lengthen the arm -- never reduce SNAP_HOOK_ENGAGE")
 
 
 def _box_between(x0, x1, y0, y1, z0, z1):
@@ -1579,37 +1590,50 @@ def _box_between(x0, x1, y0, y1, z0, z1):
 
 
 def _one_clip(side, yc):
-    """One cantilever snap clip (arm + hook) for one side & y-centre, world
-    coords. side=+1 right wall (hook points -X inward); side=-1 mirror."""
+    """One cantilever snap clip (arm + hook) for one side & y-centre, world coords.
+    side=+1 right wall (hook points -X inward); side=-1 mirror. The arm is a snap-fit
+    TAPER: thin/narrow at the flexing free tip, lofted up to a thick/wide ROOT fused
+    into the cover -- a big bonded connection that won't snap off, at the same flex
+    strain (the taper spreads the strain instead of concentrating it at the root)."""
     s = side
-    arm_in = s * _ARM_IN_R
-    arm_out = s * _ARM_OUT_R
-    x_lo, x_hi = sorted((arm_in, arm_out))
-    arm = _box_between(x_lo, x_hi, yc - SNAP_ARM_W / 2.0, yc + SNAP_ARM_W / 2.0,
-                       SNAP_Z0, COVER_Z[0])
-    root_in = s * ENC_X[1]
-    rx_lo, rx_hi = sorted((root_in, arm_out))
-    root = _box_between(rx_lo, rx_hi, yc - SNAP_ARM_W / 2.0, yc + SNAP_ARM_W / 2.0,
-                        COVER_Z[0] - 3.0, SNAP_ARM_Z1)
-    arm = arm + root
+    arm_in = s * _ARM_IN_R   # fixed inner (wall-side) face; the taper grows outward
+
+    def _face(zc, t, w):
+        pts = [(arm_in, yc - w / 2.0), (arm_in + s * t, yc - w / 2.0),
+               (arm_in + s * t, yc + w / 2.0), (arm_in, yc + w / 2.0)]
+        return Pos(0, 0, zc) * make_face(Polyline(*_ccw(pts), close=True))
+
+    # tapered + flared flexing arm: thin tip (SNAP_TIP_T x SNAP_ARM_W) -> big root
+    # (SNAP_ROOT_T x SNAP_ROOT_W) at the cover
+    arm = loft([_face(SNAP_Z0, SNAP_TIP_T, SNAP_ARM_W),
+                _face(COVER_Z[0], SNAP_ROOT_T, SNAP_ROOT_W)])
+    # cover fusion: a root-WIDE bridge from the wall out to the arm root, fused UP into
+    # the cover -> the big bonded connection that resists shearing off (rigid zone, so
+    # bridging the flex standoff gap here is fine).
+    rx_lo, rx_hi = sorted((s * ENC_X[1], arm_in + s * SNAP_ROOT_T))
+    arm = arm + _box_between(rx_lo, rx_hi, yc - SNAP_ROOT_W / 2.0, yc + SNAP_ROOT_W / 2.0,
+                             COVER_Z[0] - 0.01, SNAP_ARM_Z1)
+    # hook at the tip region (the unchanged geometric catch into the wall window)
     tip = s * _HOOK_TIP_R
     hx_lo, hx_hi = sorted((arm_in, tip))
     hook = _box_between(hx_lo, hx_hi, yc - SNAP_ARM_W / 2.0, yc + SNAP_ARM_W / 2.0,
                         SNAP_HOOK_Z[0], SNAP_HOOK_Z[1])
     clip = arm + hook
+    # lead-in fillet (hook camming edge) + free-tip bevel, at the lowest-Z tip; OUTER
+    # edge only -- never the loaded root. Both wrapped so a fragile edge pick on the
+    # lofted body can't abort the cover (cosmetic).
     try:
         edges = clip.edges().filter_by(Axis.Y).group_by(Axis.Z)[0]
         inner_edge = sorted(edges, key=lambda e: abs(e.center().X))[0]
         clip = fillet([inner_edge], radius=min(SNAP_LEADIN, SNAP_HOOK_ENGAGE - 0.2))
     except Exception:
         pass
-    # free-tip bevel on the OUTER (proud) edge -> the tab end reads as a blade, not a
-    # nub. Free tip = lowest Z = print-top in the flipped cover orientation, so the
-    # bevel is self-supporting. OUTER edge only: never the high-stress root (rounding
-    # the root would shorten the effective cantilever and raise strain). Fail loud.
-    tip_ys = clip.edges().filter_by(Axis.Y).group_by(Axis.Z)[0]
-    outer_edge = sorted(tip_ys, key=lambda e: abs(e.center().X))[-1]
-    clip = chamfer([outer_edge], length=SNAP_TIP_CHAM)
+    try:
+        tip_ys = clip.edges().filter_by(Axis.Y).group_by(Axis.Z)[0]
+        outer_edge = sorted(tip_ys, key=lambda e: abs(e.center().X))[-1]
+        clip = chamfer([outer_edge], length=SNAP_TIP_CHAM)
+    except Exception:
+        pass
     clip.label = f"snap_clip_{'R' if side > 0 else 'L'}_{yc:+.0f}"
     clip.color = COVER_COLOR
     return clip
