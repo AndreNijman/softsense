@@ -1,12 +1,16 @@
 # Assembly instructions — fully 3D-printed underwater gripper
 
-> ## NO PURCHASED HARDWARE. ZERO FASTENERS. ONE TOOL: a soldering iron.
-> Every part of this gripper — including all 8 pivot pins, their 8 retaining
-> caps, and the front cover — is **3D-printed**. No screws, no nuts, no metal
-> dowels, no bearings, no bushings, no glue, no Allen keys. The **only** tool
-> the build needs is a **soldering iron**: each pivot pin is retained by
-> melting a separate printed cap onto its protruding stud (a heat-stake /
-> melt-rivet). Everything else slides or snaps together by hand.
+> ## NO PURCHASED HARDWARE. ZERO FASTENERS. ONE TOOL (and only for 4 pins): a soldering iron.
+> Every part of this gripper — including all 8 pivot pins, their 8 retainers, and
+> the front cover — is **3D-printed**. No screws, no nuts, no metal dowels, no
+> bearings, no bushings, no glue, no Allen keys. The **4 AXLE pins are CROSS-PINNED**
+> — a printed `cotter` slips through a cross-bore behind the open back wall = a
+> tool-free, removable, geometric pull-out stop (**no soldering iron**). The **4
+> FINGER pins keep the heat-stake** cap (a separate printed cap fused onto the stud
+> with a soldering iron), because their buried, grip-loaded studs have no clean
+> external access. So the **only** tool the build needs is a **soldering iron, and
+> only for the 4 finger pins**. Everything else slides, cross-pins, or snaps together
+> by hand. (See `docs/PIN_RETENTION_ALTERNATIVES.md` for why the split.)
 
 How to assemble the gripper entirely from printed parts (`gripper.py`) into a
 working, single-DOF, **flooded underwater** gripper. Turn one input shaft and
@@ -42,10 +46,11 @@ axle caps from outside.
 | `follower_L` | 1 | Left B→D link bar |
 | `finger_R` | 1 | Right Fin Ray compliant jaw (TPU) |
 | `finger_L` | 1 | Left Fin Ray compliant jaw (TPU) |
-| `melt_pin_axle` (A_R, A_L, B_R, B_L) | 4 | **Heat-stake axle pin** — journals an arm/follower; melt-stud threads the back-wall flood hole and is capped outside the back wall |
+| `melt_pin_axle` (A_R, A_L, B_R, B_L) | 4 | **Cross-pinned axle pin** — journals an arm/follower; stud threads the back-wall flood hole, carries a transverse cross-bore retained by a cotter outside the back wall |
 | `melt_pin_finger_C` (C_R, C_L) | 2 | **Heat-stake finger pin, LONG** — reaches the crank layer; capped at the crank-eye bottom on the bench |
 | `melt_pin_finger_D` (D_R, D_L) | 2 | **Heat-stake finger pin, SHORT** — reaches the follower layer; capped at the follower-eye bottom on the bench |
-| `melt_cap` | 8 | Separate retaining cap, one per pin — slips over the pin's melt-stud and is fused with a soldering iron into a thermal-rivet head wider than the bore |
+| `cotter` | 4 | **Cross-pin** — a tiny straight rod slipped through each AXLE pin's cross-bore; a geometric pull-out stop wider than the bore. Tool-free, removable, **no soldering iron** |
+| `melt_cap` | 4 | Separate retaining cap, one per FINGER pin — slips over the pin's melt-stud and is fused with a soldering iron into a thermal-rivet head wider than the bore |
 | **Total** | **25** | **Zero purchased hardware** |
 
 The finger pins are **two SKUs** because C and D sit at different Z depths: C
@@ -66,20 +71,26 @@ nothing breaks) and **not** a press fit (nothing relies on friction, so
 nothing slides out). The 8 pins split into two families by *where* the cap is
 melted, which drives the assembly order. Do not confuse them.
 
-### Axle pins — `melt_pin_axle`: A_R, A_L, B_R, B_L (4 pins)
+### Axle pins — `melt_pin_axle`: A_R, A_L, B_R, B_L (4 pins) — CROSS-PINNED
 
 Plain headed journal pins. The **head seats just under the cover boss** (its
 +Z stop); the **shank journals** the gear or follower eye and **bottoms on the
-back-bore step** (its −Z stop); a **melt-stud** threads the existing back-wall
-flood hole and **protrudes past the EXTERIOR back face**.
+back-bore step** (its −Z stop); the **stud threads the back-wall flood hole and
+protrudes past the EXTERIOR back face**, carrying a **transverse cross-bore**.
 
-Retention: insert each axle pin from the open front (mechanism already in),
-then flip the housing and **melt a `melt_cap` onto each stud from OUTSIDE the
-back wall**. The cap fuses into a rivet head wider than the flood hole, so the
-pin is **riveted to the back wall = a fixed pivot post**. There is no sandwich
-relying on the cover; the formed head is the +Z-side capture against the back
-wall. (The back wall is reachable because the mount is the bottom shaft-exit
-flange, not the back face.)
+Retention is a **CROSS-PIN (cotter)** — *tool-free, geometric, removable* (the
+2026-06 alternative to the heat-stake; `docs/PIN_RETENTION_ALTERNATIVES.md`).
+Insert each axle pin from the open front (mechanism already in), flip the housing,
+and **slip a printed `cotter` through the cross-bore** behind the back wall. The
+cotter reaches past the flood-hole rim on both sides = a clevis-pin pull-out stop
+**wider than the bore**, so the pin is a **fixed pivot post** (≈0.1 mm axial play).
+It is **geometric** — it cannot fracture like the old barb (a solid pin, nothing
+flexes) nor slide like the old loose dowel (a positive cross member, not friction)
+— and needs **no soldering iron**. The back-face recess **radially confines** the
+cotter so it stays seated; **pull the cotter to service** the joint. (The back wall
+is reachable because the mount is the bottom shaft-exit flange, not the back face.)
+The **finger pins keep the heat-stake** cap (smaller, grip-loaded studs with no
+clean external access — see below).
 
 **Axial capture of each rotating element** (so an arm cannot slide along the pin):
 every element is trapped between a back-boss **down thrust shoulder** and the pin's
