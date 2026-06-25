@@ -81,6 +81,15 @@ relying on the cover; the formed head is the +Z-side capture against the back
 wall. (The back wall is reachable because the mount is the bottom shaft-exit
 flange, not the back face.)
 
+**Axial capture of each rotating element** (so an arm cannot slide along the pin):
+every element is trapped between a back-boss **down thrust shoulder** and the pin's
+**locating collar** above it (0.12 mm running gap each way). The crank/gear sits in
+the low Z layer and lands on the plain back-boss; the **follower sits a layer higher**,
+so its pivots (B_R, B_L) carry a **taller D-shaped boss** — full thrust shoulder on the
+**outboard** half, cut away on the inboard half where the crank arm sweeps past the
+follower pivot at full open. This trapped the old ~5.6 mm follower axial float down to
+0.24 mm without fouling the crank.
+
 ### Finger pins — `melt_pin_finger_C` (C_R, C_L) + `melt_pin_finger_D` (D_R, D_L) (4 pins, 2 SKUs)
 
 Plain stepped journal pins. From the top down: the **head seats on the finger

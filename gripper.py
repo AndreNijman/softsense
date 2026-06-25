@@ -1354,7 +1354,52 @@ AXLE_PIVOTS = [A_R, B_R, mirror_x(B_R), mirror_x(A_R)]  # captured-axle pivots
 #  gone -- A_L is driven by the crown gear, so it needs a normal pivot axle.)
 AXLE_SCREW_R = AXLE_BORE_R              # snap-pin shank clearance (was M3)
 BOSS_OD_R = AXLE_SCREW_R + 2.0 * SCALE  # axle boss OD -> 2 mm wall around bore (DFM min)
-BACK_BOSS_Z = (-2.0 * SCALE, 1.0 * SCALE)  # back-wall boss into cavity
+BACK_BOSS_Z = (-2.0 * SCALE, 1.0 * SCALE)  # back-wall boss into cavity (top = crank-layer floor)
+# AXIAL DOWN-STOP per pivot. The crank/gear sits in the LOW Z layer (Z_CRANK0..), so it
+# rests directly on the BACK_BOSS_Z[1]=1 boss top (trapped: boss below + collar above).
+# The FOLLOWER sits in a HIGHER layer (Z_FOLLOW0=6.5..), so a boss capped at Z=1 left its
+# bottom floating ~5.5 mm above any support -> it slid axially down the pin (the 2026-06
+# collar pass only added the UP-stop and only the crank happened to land on the boss). Fix:
+# give the B (follower) pivots a TALLER back-boss whose top is a DOWN THRUST SHOULDER just
+# under the follower, so the follower is trapped boss-below + collar-above like the crank.
+B_BOSS_TOP = Z_FOLLOW0 - AXLE_COLLAR_GAP   # follower down-stop top (running thrust gap) = 6.38
+_B_PIVOTS = (B_R, mirror_x(B_R))           # the follower pivots (vs the A crank pivots)
+
+
+def _back_boss_top(px, py):
+    """Back-boss top Z for a pivot: tall (B_BOSS_TOP) at the follower pivots so the
+    follower has a down thrust shoulder; the crank-layer default elsewhere."""
+    return B_BOSS_TOP if (px, py) in _B_PIVOTS else BACK_BOSS_Z[1]
+
+
+def _axle_back_boss(px, py):
+    """Back-wall boss for one pivot. A (crank) pivots get a plain full cylinder capped at
+    the crank-layer floor. B (follower) pivots get a full base (below the crank layer) plus
+    a TALL D-SHAPED thrust stem that reaches up to a down-shoulder just under the follower:
+    the crank arm sweeps the INBOARD side of B near full open (no radial room there -- it
+    nearly touches the pin), so the stem is cut to the OUTBOARD ~180deg where B stays clear
+    at every pose. The half-annulus thrust shoulder still traps the follower axially."""
+    btop = _back_boss_top(px, py)
+    if (px, py) not in _B_PIVOTS:
+        return Cylinder(radius=BOSS_OD_R, height=(btop - BACK_BOSS_Z[0])).moved(
+            Location((px, py, (BACK_BOSS_Z[0] + btop) / 2.0)))
+    base = Cylinder(radius=BOSS_OD_R, height=(BACK_BOSS_Z[1] - BACK_BOSS_Z[0])).moved(
+        Location((px, py, (BACK_BOSS_Z[0] + BACK_BOSS_Z[1]) / 2.0)))
+    sh = btop - BACK_BOSS_Z[1]
+    stem = Cylinder(radius=BOSS_OD_R, height=sh).moved(
+        Location((px, py, (BACK_BOSS_Z[1] + btop) / 2.0)))
+    # keep the OUTBOARD half: outboard = B - A (this pivot's crank centre), rotated ~45deg
+    # away from the arm's up-sweep (measured clear-sector centre; CW on the right side).
+    ax = math.copysign(A_R[0], px)
+    keep = math.degrees(math.atan2(py - A_R[1], px - ax)) + (45.0 if px < 0 else -45.0)
+    kx, ky = math.cos(math.radians(keep)), math.sin(math.radians(keep))
+    L, margin = 4.0 * BOSS_OD_R, 0.4
+    keephalf = Box(L, L, sh + 2.0).moved(
+        Location((px + kx * (L / 2.0 + margin), py + ky * (L / 2.0 + margin),
+                  (BACK_BOSS_Z[1] + btop) / 2.0), (0, 0, 1), keep))
+    return base + (stem & keephalf)
+
+
 COVER_BOSS_Z = (20.0 * SCALE, 22.0 * SCALE)  # cover inner-face boss into cavity
 # --- axle pin HEAT-STAKE capture (replaces the old loose dowel sandwich) -----
 # The plain dowel was meant to be trapped between the back boss and the cover boss,
@@ -1556,8 +1601,7 @@ def build_enclosure():
     body = chamfer(base_edges, length=CHAM_EDGE)
 
     for (px, py) in AXLE_PIVOTS:
-        body += Cylinder(radius=BOSS_OD_R, height=(BACK_BOSS_Z[1] - BACK_BOSS_Z[0])).moved(
-            Location((px, py, (BACK_BOSS_Z[0] + BACK_BOSS_Z[1]) / 2.0)))
+        body += _axle_back_boss(px, py)   # A: full cylinder; B: full base + D-shaped thrust stem
 
     # UPPER journal boss: stands +Y off the inside bottom-wall face into the cavity
     # at the shaft XY (model x=DRIVE_X, z=DRIVE_Z). Axis = model Y.
@@ -1588,7 +1632,9 @@ def build_enclosure():
     # The step (annular shoulder at AXLE_STOP_Z) is the rigid -Z stop the dowel shank
     # bottoms on; the narrow hole keeps the socket flooding/draining.
     for (px, py) in AXLE_PIVOTS:
-        wz0, wz1 = AXLE_STOP_Z, BACK_BOSS_Z[1] + 1.5    # wide bore: step -> cavity
+        # wide bore runs from the back step UP through the (per-pivot) boss into the cavity,
+        # so the pin shank still passes the now-taller follower boss
+        wz0, wz1 = AXLE_STOP_Z, _back_boss_top(px, py) + 1.5
         body -= Cylinder(radius=AXLE_SCREW_R, height=(wz1 - wz0)).moved(
             Location((px, py, (wz0 + wz1) / 2.0)))
         nz0, nz1 = ENC_Z[0] - 3.0, AXLE_STOP_Z + 0.01   # flood hole + melt-stud clearance through back
