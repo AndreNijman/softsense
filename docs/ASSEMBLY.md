@@ -90,6 +90,16 @@ the **melt-stud protrudes past the arm/follower-eye BOTTOM (exit) face**, where
 the cap is melted. C reaches the crank layer (long `melt_pin_finger_C`); D
 reaches the follower layer (short `melt_pin_finger_D`).
 
+**Anti-wobble journal boss (2026-06 redesign):** each rigid C/D eye now grows a
+**journal boss upward** to just under the finger, so the slim land runs
+**continuously from the cap-recess floor up to the finger bottom** (L/D ≈ 3.6 at
+C) instead of journaling a short eye then flag-poling across an empty gap — this
+kills the finger's out-of-plane wobble. The **boss top is the under-finger thrust
+shoulder**: the finger seats on it with a 0.12 mm running gap (head above + shoulder
+below), so the old ~1 mm finger axial float collapses to a running fit and the finger
+sits square on **both** bosses (they end at the same Z). The neck→land step floats
+just above the shoulder, so there is no rotating thrust face to drag.
+
 Because the cap face is **buried mid-cavity** once the mechanism is in the
 housing, the finger pins are staked as a **bench sub-assembly**: build
 {finger + crank arm + follower + the two C/D pins + 2 caps}, melt the 2 caps at
