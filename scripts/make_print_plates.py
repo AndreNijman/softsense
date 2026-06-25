@@ -179,13 +179,22 @@ ORIENT = {
              "cylinder, supportless. PETG-HF. Qty 2: pin_D_R, pin_D_L (the SHORT "
              "finger pin -- reaches the follower layer).",
     ),
+    "cotter": dict(
+        # CROSS-PIN cotter: a tiny straight rod (~1.0 x 4.5 mm) that slips through the
+        # axle pin's cross-bore. Lay it flat (as exported, axis along the bed); it is
+        # tiny enough that the line contact prints clean. No soldering iron needed.
+        rot=[], qty=4, group="petg",
+        note="tiny straight cross-pin (~1.0 x 4.5 mm) -- lay flat. PETG-HF. Qty 4 "
+             "(one per AXLE pin). Slip through the pin's cross-bore behind the back "
+             "wall; the recess confines it. Tool-free, removable -- no soldering iron.",
+    ),
     "melt_cap": dict(
         # Tiny cup with a blind centre pocket. Print OPEN-END UP (closed crown on
         # the bed) so the pocket needs no bridging; no rotation needed.
-        rot=[], qty=8, group="petg",
+        rot=[], qty=4, group="petg",
         note="print OPEN-END UP (closed crown on the bed): the blind stud-pocket "
-             "opens upward so it needs no bridging. Supportless. PETG-HF. Qty 8 "
-             "(one per pin). Slip over a pin's stud and fuse the crown with a "
+             "opens upward so it needs no bridging. Supportless. PETG-HF. Qty 4 "
+             "(one per FINGER pin). Slip over a pin's stud and fuse the crown with a "
              "soldering iron.",
     ),
 }
@@ -194,7 +203,7 @@ ORIENT = {
 RIGID_ORDER = ["enclosure", "front_cover", "drive_arm_L", "drive_arm_R",
                "follower", "input_pinion_shaft"]
 PETG_ORDER = ["melt_pin_axle_AR", "melt_pin_axle_AL", "melt_pin_axle_B",
-              "melt_pin_finger_C", "melt_pin_finger_D", "melt_cap"]
+              "melt_pin_finger_C", "melt_pin_finger_D", "cotter", "melt_cap"]
 TPU_ORDER = ["finger_R", "finger_L"]
 
 

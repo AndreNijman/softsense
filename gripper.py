@@ -51,6 +51,7 @@ from build123d import (
     chamfer,
     extrude,
     fillet,
+    loft,
     make_face,
 )
 
@@ -438,6 +439,34 @@ assert (FP_NECK_R + 0.15) <= MOUNT_HOLE_R + 1e-9, "fat neck won't pass the finge
 assert (MELT_STUD_R + 0.15) <= FP_ARM_BORE_R + 1e-9, "melt stud won't pass the rigid eye"
 assert (MELT_CAP_OR - 0.15) - (FP_ARM_BORE_R + 0.15) >= 0.5 - 1e-9, \
     "melt cap would not catch a solid pull-out shoulder on the rigid arm/follower eye"
+
+# --------------------------------------------------------------------------
+# CROSS-PIN (cotter) retention for the AXLE pins -- tool-free, geometric, REMOVABLE
+# alternative to the heat-stake melt cap (no soldering iron, no operator skill, no
+# permanent weld). Each axle pin's protruding stud (behind the OPEN back wall) carries
+# a TRANSVERSE cross-bore; a separate printed straight COTTER slips through it and
+# reaches past the flood-hole rim on BOTH sides = a clevis-pin pull-out stop. Geometric:
+# it CANNOT fracture like the barb (a solid pin -- nothing flexes) nor slide out like the
+# loose dowel (a positive cross member, not friction). The cotter is radially confined in
+# the back-face recess so it stays seated; pull it to service the joint.
+# AXLE PINS ONLY: the back wall is open + accessible and the fixed pivot post is lightly
+# loaded. The FINGER pins stay heat-stake -- their stud is smaller and grip-loaded, and
+# the buried eye-bottom has no clean access -- per docs/PIN_RETENTION_ALTERNATIVES.md.
+USE_CROSS_PIN   = True
+XPIN_STUD_R     = 1.35 * SCALE   # protruding stud radius: passes the back flood hole (1.5) even
+                                 # at +0.15 mm FDM oversize; still leaves a 0.75 mm cross-bore wall
+XBORE_R         = 0.6 * SCALE    # cross-bore radius (1.2 mm dia) -> 0.8 mm wall each side
+XCOTTER_R       = 0.5 * SCALE    # cotter shaft radius (1.0 mm dia) -> 0.1 mm slip in the bore
+XCOTTER_PROUD   = 0.85 * SCALE   # cotter reaches this far past the stud on each side (the catch)
+XCOTTER_LEN     = 2.0 * XPIN_STUD_R + 2.0 * XCOTTER_PROUD   # tip-to-tip (4.5 mm)
+XRECESS_R       = XCOTTER_LEN / 2.0 + 0.3 * SCALE   # back-face recess radius confining the cotter
+XRECESS_DEPTH   = 1.6 * SCALE    # recess depth into the back face (seats the cotter + the bore Z)
+XBORE_FROM_FACE = XRECESS_DEPTH - XCOTTER_R - 0.1 * SCALE   # cross-bore centre this far in from the
+                                 # retaining face -> the cotter's catch face sits ~0.1 mm below the
+                                 # recess-floor shoulder (so pin axial play stays ~0.1 mm)
+assert XPIN_STUD_R - XBORE_R >= 0.7 - 1e-9, "cross-bore wall too thin to print (<0.7 mm)"
+assert XBORE_R - XCOTTER_R >= 0.08 - 1e-9, "cotter won't slip through the cross-bore"
+assert XRECESS_DEPTH >= 2.0 * XCOTTER_R + 0.4 - 1e-9, "recess too shallow to seat the cotter"
 # grip texture: CROSSHATCH micro-posts on the contact face (so objects don't slip).
 # Optimised by a dedicated grip-texture FEA/swarm campaign (see grip/GRIP_TEXTURE.md):
 # a square-post array out-drains and out-grips the old single-axis ridges on WET
@@ -855,7 +884,7 @@ assert AXLE_COLLAR_R > AXLE_BORE_R + 0.4, "axle collar too small to stop the ele
 
 
 def axle_pin(p, head_inner_z, shank_end_z, stud_tip_z, elem_top_z,
-             tip_z1=None, tip_r=None, label="axle_pin", color=PIN_COLOR):
+             tip_z1=None, tip_r=None, xbore_z=None, label="axle_pin", color=PIN_COLOR):
     """Axle pivot pin (A/B) -- HEAT-STAKE, replaces the loose dowel that slid and
     wobbled out. Built directly in world coords at XY p. Inserted from the FRONT
     (open cavity), stud-first:
@@ -884,8 +913,13 @@ def axle_pin(p, head_inner_z, shank_end_z, stud_tip_z, elem_top_z,
         Location((x, y, head_inner_z + SNAP_HEAD_T / 2.0)))
     shank = Cylinder(radius=PIN_R, height=(head_inner_z - shank_end_z)).moved(
         Location((x, y, (head_inner_z + shank_end_z) / 2.0)))
-    stud = Cylinder(radius=MELT_STUD_R, height=(shank_end_z - stud_tip_z)).moved(
-        Location((x, y, (shank_end_z + stud_tip_z) / 2.0)))
+    # CROSS-PIN: a fatter solid stud whose bottom sits one wall below the cross-bore.
+    # HEAT-STAKE: the reduced melt-stud down to the passed tip. (xbore_z selects.)
+    cross = USE_CROSS_PIN and xbore_z is not None
+    stud_rad = XPIN_STUD_R if cross else MELT_STUD_R
+    stud_bot = (xbore_z - XBORE_R - 0.6 * SCALE) if cross else stud_tip_z
+    stud = Cylinder(radius=stud_rad, height=(shank_end_z - stud_bot)).moved(
+        Location((x, y, (shank_end_z + stud_bot) / 2.0)))
     body = head + shank + stud
     # LOCATING SPIGOT: a reduced tip above the head that threads up into the
     # cover-boss bore so the pin is supported at BOTH ends instead of cantilevering
@@ -909,10 +943,15 @@ def axle_pin(p, head_inner_z, shank_end_z, stud_tip_z, elem_top_z,
     # Bearing surfaces stay crisp.
     rim = [e for e in body.edges().filter_by(GeomType.CIRCLE)
            if abs(e.center().Z - (head_inner_z + SNAP_HEAD_T)) < 0.2
-           or abs(e.center().Z - stud_tip_z) < 0.2
+           or abs(e.center().Z - stud_bot) < 0.2
            or abs(e.center().Z - c_hi) < 0.2
            or (tip_z1 is not None and abs(e.center().Z - tip_z1) < 0.2)]
     body = _safe_round(body, rim, min(DFM_EDGE, SNAP_HEAD_T * 0.5), chamfer)
+    # CROSS-PIN: the TRANSVERSE cross-bore through the protruding stud (the cotter
+    # rides this). Subtract last so the bore mouth stays crisp for the cotter slip-fit.
+    if cross:
+        body = body - Cylinder(radius=XBORE_R, height=4.0 * XPIN_STUD_R).moved(
+            Location((x, y, xbore_z), (0, 1, 0), 90.0))
     body.label = label
     body.color = color
     return body
@@ -938,6 +977,25 @@ def melt_cap(p, z_face, label="melt_cap", color=CAP_COLOR):
     outer = [e for e in body.edges().filter_by(GeomType.CIRCLE)
              if abs(e.center().Z - (rim_z - MELT_CAP_H)) < 0.25]
     body = _safe_round(body, outer, DFM_EDGE, chamfer)
+    body.label = label
+    body.color = color
+    return body
+
+
+def cotter(p, z_face, label="cotter", color=CAP_COLOR):
+    """Separate printed straight COTTER (cross-pin) -- the CROSS-PIN retention's pull-out
+    stop (the SAME part for every axle pin -> qty 4). It slips through the transverse
+    cross-bore in the axle pin's protruding stud and reaches past the flood-hole rim on
+    both sides = a geometric clevis-pin stop (no soldering iron; pull it to service). Built
+    lying ACROSS the stud (axis = world X) at the cross-bore Z, sized + confined by the
+    back-face recess so it cannot slide off the bore. z_face = the exterior back-wall face.
+    Insert by tilting it into the recess and pushing it through the cross-bore."""
+    x, y = p
+    xbore_z = z_face + XBORE_FROM_FACE
+    shaft = Cylinder(radius=XCOTTER_R, height=XCOTTER_LEN).moved(
+        Location((x, y, xbore_z), (0, 1, 0), 90.0))   # stand the +Z cylinder along +X
+    ends = list(shaft.edges().filter_by(GeomType.CIRCLE))   # break both end rims (lead-in)
+    body = _safe_round(shaft, ends, min(DFM_EDGE, XCOTTER_R * 0.6), chamfer)
     body.label = label
     body.color = color
     return body
@@ -1430,6 +1488,10 @@ AXLE_STUD_TIP_Z = ENC_Z[0] + MELT_RECESS_DEPTH - MELT_CAP_HOLE_H + 0.2   # ~ -7.
 assert (MELT_STUD_R + 0.15) <= AXLE_FLOOD_R + 1e-9, "melt stud won't pass the back flood hole"
 assert (MELT_CAP_OR - 0.15) - (AXLE_FLOOD_R + 0.15) >= 0.5 - 1e-9, \
     "melt cap would not catch a solid shoulder on the exterior back face"
+# CROSS-PIN cross-checks (now that AXLE_FLOOD_R is known):
+assert (XPIN_STUD_R + 0.15) <= AXLE_FLOOD_R + 1e-9, "cross-pin stud won't pass the back flood hole"
+assert (XCOTTER_LEN / 2.0) - AXLE_FLOOD_R >= 0.4 - 1e-9, \
+    "cotter not wide enough to catch the flood-hole rim"
 # (the old back-wall A_L shaft bore + plain-bushing seat -- SHAFT_C/SHAFT_BORE_R/
 #  BUSH_* -- are REMOVED: A_L is now driven by the crown gear, not a coaxial
 #  horizontal shaft; the vertical input shaft journals through the bottom wall.)
@@ -1467,15 +1529,18 @@ assert AXLE_TIP_Z1 < COVER_Z[1] - (CHAM_COVER + 0.8), \
 
 # --- snap-clip front cover (tool-free, zero hardware) -------------------
 SNAP_Y = [-9.0 * SCALE, 7.0 * SCALE]  # clip y-centres on each side wall
-SNAP_ARM_W = 9.0 * SCALE             # clip width along Y (flexing beam width)
-SNAP_ARM_T = 2.0 * SCALE             # arm radial thickness (X) -- thinned 2.8->2.0:
-                                     # cuts outward protrusion 3.2->2.4 mm (sleeker,
-                                     # blade-like tab) AND, since bending strain is
-                                     # LINEAR in thickness (eps = 3*t*d/(2*L^2)),
-                                     # DROPS worst-tight strain 1.90%->1.36% -- more
-                                     # PA12-GF margin, not less. Cost is a softer
-                                     # click (stiffness ~ t^3); retention is the
-                                     # geometric hook-in-window, not the spring.
+SNAP_ARM_W = 9.0 * SCALE             # clip width along Y at the flexing TIP
+# TAPERED + FLARED clip (2026-06): the clip kept snapping OFF at its root. The old arm
+# was a UNIFORM 2.0 mm-thick x 9 mm-wide cantilever -- a thin, small connection into the
+# cover that sheared off across the print layers (the weakest direction). It is now a
+# proper snap-fit TAPER: thin/narrow at the free tip (it still flexes the same), growing
+# to a MUCH thicker + wider ROOT where it meets the cover. A tapered beam carries ~uniform
+# bending strain over its length (no sharp root stress-concentration) AND gives a ~2.7x
+# bigger bonded connection area, so it stops breaking off -- at the SAME flex strain.
+SNAP_TIP_T  = 1.8 * SCALE            # arm thickness (X) at the free tip -- the flexing section
+SNAP_ROOT_T = 3.2 * SCALE            # arm thickness (X) at the cover root -- the BIG connection
+SNAP_ROOT_W = 15.0 * SCALE           # arm width (Y) at the cover root -- flared from SNAP_ARM_W
+SNAP_ARM_T  = SNAP_ROOT_T            # the clip's max outward thickness (root) -> protrusion/boss refs
 SNAP_TIP_CHAM = 1.0                  # bevel on the free-tip proud edge so the tab
                                      # reads as an intentional blade, not a nub
                                      # (free tip = print-top -> self-supporting)
@@ -1504,12 +1569,19 @@ SNAP_ARM_Z1 = COVER_Z[0] + 1.0       # arm overlaps INTO the cover so it fuses
 # nobody can re-thicken the arm or shorten it past the brittle limit unnoticed.
 SNAP_FREE_L = COVER_Z[0] - SNAP_Z0                       # 20.5 mm cantilever length
 SNAP_DELTA_WORST = SNAP_HOOK_ENGAGE + 2 * 0.2           # 1.9 mm (eng + FDM each side)
-SNAP_STRAIN_WORST = 3 * SNAP_ARM_T * SNAP_DELTA_WORST / (2 * SNAP_FREE_L ** 2)
+# TAPERED-beam strain: a cantilever that tapers from SNAP_ROOT_T (root) to SNAP_TIP_T (tip)
+# carries ~uniform bending strain along its length, so its PEAK strain is ~1/K of a uniform
+# root-thickness beam (K from the Bayer/BASF snap-fit taper chart -- ~2.0 at tip/root=0.5;
+# we use 1.6 conservatively). Net: the big-root taper does NOT raise the flex strain.
+SNAP_TAPER_K = 1.6
+SNAP_STRAIN_WORST = 1.5 * SNAP_DELTA_WORST * SNAP_ROOT_T / (SNAP_FREE_L ** 2 * SNAP_TAPER_K)
 SNAP_STRAIN_ALLOW = 0.015                               # 1.5% conservative PA12-GF gate
+assert SNAP_TIP_T / SNAP_ROOT_T <= 0.62 + 1e-9, \
+    "taper too shallow for the SNAP_TAPER_K reduction -- thin the tip or thicken the root"
 assert SNAP_STRAIN_WORST < SNAP_STRAIN_ALLOW, (
     f"snap-clip worst-tight bending strain {SNAP_STRAIN_WORST*100:.2f}% exceeds the "
-    f"{SNAP_STRAIN_ALLOW*100:.1f}% PA12-GF gate (t={SNAP_ARM_T}, L={SNAP_FREE_L}); "
-    f"thin the arm or lengthen it (lower SNAP_Z0) -- never reduce SNAP_HOOK_ENGAGE")
+    f"{SNAP_STRAIN_ALLOW*100:.1f}% PA12-GF gate (root t={SNAP_ROOT_T}, tip t={SNAP_TIP_T}, "
+    f"L={SNAP_FREE_L}); thin the tip / lengthen the arm -- never reduce SNAP_HOOK_ENGAGE")
 
 
 def _box_between(x0, x1, y0, y1, z0, z1):
@@ -1518,37 +1590,50 @@ def _box_between(x0, x1, y0, y1, z0, z1):
 
 
 def _one_clip(side, yc):
-    """One cantilever snap clip (arm + hook) for one side & y-centre, world
-    coords. side=+1 right wall (hook points -X inward); side=-1 mirror."""
+    """One cantilever snap clip (arm + hook) for one side & y-centre, world coords.
+    side=+1 right wall (hook points -X inward); side=-1 mirror. The arm is a snap-fit
+    TAPER: thin/narrow at the flexing free tip, lofted up to a thick/wide ROOT fused
+    into the cover -- a big bonded connection that won't snap off, at the same flex
+    strain (the taper spreads the strain instead of concentrating it at the root)."""
     s = side
-    arm_in = s * _ARM_IN_R
-    arm_out = s * _ARM_OUT_R
-    x_lo, x_hi = sorted((arm_in, arm_out))
-    arm = _box_between(x_lo, x_hi, yc - SNAP_ARM_W / 2.0, yc + SNAP_ARM_W / 2.0,
-                       SNAP_Z0, COVER_Z[0])
-    root_in = s * ENC_X[1]
-    rx_lo, rx_hi = sorted((root_in, arm_out))
-    root = _box_between(rx_lo, rx_hi, yc - SNAP_ARM_W / 2.0, yc + SNAP_ARM_W / 2.0,
-                        COVER_Z[0] - 3.0, SNAP_ARM_Z1)
-    arm = arm + root
+    arm_in = s * _ARM_IN_R   # fixed inner (wall-side) face; the taper grows outward
+
+    def _face(zc, t, w):
+        pts = [(arm_in, yc - w / 2.0), (arm_in + s * t, yc - w / 2.0),
+               (arm_in + s * t, yc + w / 2.0), (arm_in, yc + w / 2.0)]
+        return Pos(0, 0, zc) * make_face(Polyline(*_ccw(pts), close=True))
+
+    # tapered + flared flexing arm: thin tip (SNAP_TIP_T x SNAP_ARM_W) -> big root
+    # (SNAP_ROOT_T x SNAP_ROOT_W) at the cover
+    arm = loft([_face(SNAP_Z0, SNAP_TIP_T, SNAP_ARM_W),
+                _face(COVER_Z[0], SNAP_ROOT_T, SNAP_ROOT_W)])
+    # cover fusion: a root-WIDE bridge from the wall out to the arm root, fused UP into
+    # the cover -> the big bonded connection that resists shearing off (rigid zone, so
+    # bridging the flex standoff gap here is fine).
+    rx_lo, rx_hi = sorted((s * ENC_X[1], arm_in + s * SNAP_ROOT_T))
+    arm = arm + _box_between(rx_lo, rx_hi, yc - SNAP_ROOT_W / 2.0, yc + SNAP_ROOT_W / 2.0,
+                             COVER_Z[0] - 0.01, SNAP_ARM_Z1)
+    # hook at the tip region (the unchanged geometric catch into the wall window)
     tip = s * _HOOK_TIP_R
     hx_lo, hx_hi = sorted((arm_in, tip))
     hook = _box_between(hx_lo, hx_hi, yc - SNAP_ARM_W / 2.0, yc + SNAP_ARM_W / 2.0,
                         SNAP_HOOK_Z[0], SNAP_HOOK_Z[1])
     clip = arm + hook
+    # lead-in fillet (hook camming edge) + free-tip bevel, at the lowest-Z tip; OUTER
+    # edge only -- never the loaded root. Both wrapped so a fragile edge pick on the
+    # lofted body can't abort the cover (cosmetic).
     try:
         edges = clip.edges().filter_by(Axis.Y).group_by(Axis.Z)[0]
         inner_edge = sorted(edges, key=lambda e: abs(e.center().X))[0]
         clip = fillet([inner_edge], radius=min(SNAP_LEADIN, SNAP_HOOK_ENGAGE - 0.2))
     except Exception:
         pass
-    # free-tip bevel on the OUTER (proud) edge -> the tab end reads as a blade, not a
-    # nub. Free tip = lowest Z = print-top in the flipped cover orientation, so the
-    # bevel is self-supporting. OUTER edge only: never the high-stress root (rounding
-    # the root would shorten the effective cantilever and raise strain). Fail loud.
-    tip_ys = clip.edges().filter_by(Axis.Y).group_by(Axis.Z)[0]
-    outer_edge = sorted(tip_ys, key=lambda e: abs(e.center().X))[-1]
-    clip = chamfer([outer_edge], length=SNAP_TIP_CHAM)
+    try:
+        tip_ys = clip.edges().filter_by(Axis.Y).group_by(Axis.Z)[0]
+        outer_edge = sorted(tip_ys, key=lambda e: abs(e.center().X))[-1]
+        clip = chamfer([outer_edge], length=SNAP_TIP_CHAM)
+    except Exception:
+        pass
     clip.label = f"snap_clip_{'R' if side > 0 else 'L'}_{yc:+.0f}"
     clip.color = COVER_COLOR
     return clip
@@ -1640,10 +1725,14 @@ def build_enclosure():
         nz0, nz1 = ENC_Z[0] - 3.0, AXLE_STOP_Z + 0.01   # flood hole + melt-stud clearance through back
         body -= Cylinder(radius=AXLE_FLOOD_R, height=(nz1 - nz0)).moved(
             Location((px, py, (nz0 + nz1) / 2.0)))
-        # exterior back-face recess that nests + radially confines the melt cap (so
-        # the riveted cap can't creep out and ends ~flush with the back face).
-        body -= Cylinder(radius=MELT_RECESS_R, height=MELT_RECESS_DEPTH + 0.02).moved(
-            Location((px, py, ENC_Z[0] + MELT_RECESS_DEPTH / 2.0)))
+        # exterior back-face recess: confines the retainer + gives the catch shoulder.
+        # CROSS-PIN -> a deeper/wider pocket that traps the cotter across the stud; the
+        # recess floor is the annular shoulder the cotter catches when the pin pulls out.
+        # HEAT-STAKE -> the melt-cap nesting recess. (Same flush, accessible back face.)
+        _rec_r = XRECESS_R if USE_CROSS_PIN else MELT_RECESS_R
+        _rec_d = XRECESS_DEPTH if USE_CROSS_PIN else MELT_RECESS_DEPTH
+        body -= Cylinder(radius=_rec_r, height=_rec_d + 0.02).moved(
+            Location((px, py, ENC_Z[0] + _rec_d / 2.0)))
 
     # snap-clip catch windows: a through-window in each long side wall so the
     # cover's hook latches behind the window's top edge (also act as drains).
@@ -1870,10 +1959,12 @@ def gen_step():
                 parts.append(finger_pin(pose[j], far, Z_FINGER0,
                                         Z_FINGER0 + T_FINGER, label=lbl))
                 parts.append(melt_cap(pose[j], far, label=cap_lbl))
-            else:                  # axles: HEAT-STAKE pin riveted to the back wall.
-                # Dropped in from the front; head seats under the cover boss, the
-                # melt-stud exits the back-wall flood hole and a cap is melted on
-                # the EXTERIOR back face -> a fixed pivot post (no wobble/fall-out).
+            else:                  # axles: pin riveted/cross-pinned to the back wall.
+                # Dropped in from the front; head seats under the cover boss, the stud
+                # exits the back-wall flood hole. CROSS-PIN: a cotter slips through the
+                # stud's cross-bore behind the wall = a tool-free, removable pull-out stop
+                # (no soldering iron). HEAT-STAKE: a cap melted on the stud. Either way a
+                # fixed pivot post (no wobble/fall-out).
                 # elem_top = top of the element this pin carries, so the locating
                 # collar sits just above it: A -> crank gear/arm top (the LEFT side
                 # also carries the crown gear, so its element is taller); B -> follower top.
@@ -1881,10 +1972,14 @@ def gen_step():
                     elem_top = CROWN_Z[1] if tag == "L" else Z_CRANK0 + T_CRANK
                 else:
                     elem_top = Z_FOLLOW0 + T_FOLLOW
+                xbz = ENC_Z[0] + XBORE_FROM_FACE if USE_CROSS_PIN else None
                 parts.append(axle_pin(pose[j], AXLE_DOWEL_Z1, AXLE_STOP_Z,
-                                      AXLE_STUD_TIP_Z, elem_top,
-                                      tip_z1=AXLE_TIP_Z1, tip_r=AXLE_TIP_R, label=lbl))
-                parts.append(melt_cap(pose[j], ENC_Z[0], label=cap_lbl))
+                                      AXLE_STUD_TIP_Z, elem_top, tip_z1=AXLE_TIP_Z1,
+                                      tip_r=AXLE_TIP_R, xbore_z=xbz, label=lbl))
+                if USE_CROSS_PIN:
+                    parts.append(cotter(pose[j], ENC_Z[0], label=cap_lbl))
+                else:
+                    parts.append(melt_cap(pose[j], ENC_Z[0], label=cap_lbl))
 
     # bolt-on front cover (keep existing occurrence ids stable up to here)
     parts.append(build_front_cover())

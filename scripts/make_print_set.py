@@ -52,7 +52,8 @@ PRINT_SET = {
     "melt_pin_axle_B":    (2, "PETG-HF"),
     "melt_pin_finger_C":  (2, "PETG-HF"),
     "melt_pin_finger_D":  (2, "PETG-HF"),
-    "melt_cap":           (8, "PETG-HF"),
+    "cotter":             (4, "PETG-HF"),   # cross-pin cotter for the 4 axle pins (tool-free)
+    "melt_cap":           (4, "PETG-HF"),   # melt-on cap for the 4 finger pins
 }
 
 

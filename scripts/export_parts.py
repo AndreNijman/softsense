@@ -133,9 +133,10 @@ LABEL_TO_NAME = {
     "pin_C_L": "melt_pin_finger_C",
     "pin_D_R": "melt_pin_finger_D",
     "pin_D_L": "melt_pin_finger_D",
-    # one separate melt-on retaining cap, the SAME part on every pin -> qty 8.
-    "cap_A_R": "melt_cap", "cap_A_L": "melt_cap",
-    "cap_B_R": "melt_cap", "cap_B_L": "melt_cap",
+    # AXLE pin retainers (A/B): CROSS-PIN cotters, the SAME part on every axle pin -> qty 4.
+    "cap_A_R": "cotter", "cap_A_L": "cotter",
+    "cap_B_R": "cotter", "cap_B_L": "cotter",
+    # FINGER pin retainers (C/D): melt-on cap, the SAME part on every finger pin -> qty 4.
     "cap_C_R": "melt_cap", "cap_C_L": "melt_cap",
     "cap_D_R": "melt_cap", "cap_D_L": "melt_cap",
     "front_cover": "front_cover",
