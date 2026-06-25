@@ -1480,7 +1480,12 @@ AXLE_DOWEL_Z1 = COVER_BOSS_Z[0] - AXLE_DOWEL_CLR - SNAP_HEAD_T   # 18.0 (head in
 # rigid step (the insertion depth stop); the MELT-STUD (MELT_STUD_R < flood) then
 # continues through the flood hole and out the back face. The hole still floods/drains.
 AXLE_STOP_Z = 0.0                           # back-bore step (shank flat end bottoms here)
-AXLE_FLOOD_R = 1.5                          # flood hole below the step; also the stud clearance
+# Flood hole: a 1.5 mm absolute FDM-floor/drainage MINIMUM (held, not part-size), but it
+# ALSO has to pass the retention stud -- and the stud scales with SCALE. Above 1x the held
+# minimum would choke the bigger stud, so size the hole to the LARGER of the absolute floor
+# and the stud-pass requirement (stud + the literal 0.15 mm slip clearance). At SCALE=1.0
+# this is EXACTLY 1.5 (the validated 1x is unchanged); it only grows when scale-up needs it.
+AXLE_FLOOD_R = max(1.5, XPIN_STUD_R + 0.15, MELT_STUD_R + 0.15)  # flood hole / stud clearance
 AXLE_DOWEL_Z0 = AXLE_STOP_Z                 # shank flat end seats on the step
 # stud tip: ~0.2 mm shy of the cap-pocket bottom, the cap nested in the back-face recess.
 AXLE_STUD_TIP_Z = ENC_Z[0] + MELT_RECESS_DEPTH - MELT_CAP_HOLE_H + 0.2   # ~ -7.0
