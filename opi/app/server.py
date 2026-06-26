@@ -32,6 +32,8 @@ DEFAULT_CONFIG = {
     "close_pos": 3072,
     "speed": 1500,
     "acc": 50,
+    "stop_on_load": False,   # halt a move as soon as the servo feels resistance
+    "load_limit": 200,       # load magnitude (0-1000) that counts as "contact"
 }
 
 
@@ -94,7 +96,17 @@ class Handler(BaseHTTPRequestHandler):
             "close_pos": CFG["close_pos"],
             "speed": CFG["speed"],
             "acc": CFG["acc"],
+            "stop_on_load": bool(CFG.get("stop_on_load")),
+            "load_limit": CFG.get("load_limit", 200),
         }
+
+    def _do_move(self, target):
+        """Move to target, guarded by stop-on-load when that toggle is on."""
+        if CFG.get("stop_on_load"):
+            return SERVO.guarded_move(target, CFG["speed"], CFG["acc"],
+                                      load_limit=CFG.get("load_limit", 200))
+        return {"ok": SERVO.move(target, CFG["speed"], CFG["acc"]),
+                "target": target}
 
     # -- routing ---------------------------------------------------------------
     def do_GET(self):
@@ -115,21 +127,25 @@ class Handler(BaseHTTPRequestHandler):
             return q.get(name, [default])[0]
 
         if path == "/api/open":
-            ok = SERVO.move(CFG["open_pos"], CFG["speed"], CFG["acc"])
-            self._json({"ok": ok, "target": CFG["open_pos"]})
+            self._json(self._do_move(CFG["open_pos"]))
         elif path == "/api/close":
-            ok = SERVO.move(CFG["close_pos"], CFG["speed"], CFG["acc"])
-            self._json({"ok": ok, "target": CFG["close_pos"]})
+            self._json(self._do_move(CFG["close_pos"]))
         elif path == "/api/goto":
             try:
                 pos = int(arg("pos"))
             except (TypeError, ValueError):
                 return self._json({"error": "pos required"}, 400)
-            ok = SERVO.move(pos, CFG["speed"], CFG["acc"])
-            self._json({"ok": ok, "target": pos})
+            self._json(self._do_move(pos))
         elif path == "/api/torque":
             on = arg("on", "1") in ("1", "true", "on", "yes")
             self._json({"ok": SERVO.torque(on), "torque": on})
+        elif path == "/api/stop_on_load":
+            on = arg("on", "1") in ("1", "true", "on", "yes")
+            CFG["stop_on_load"] = on
+            save_config(CFG)
+            self._json({"ok": True, "stop_on_load": on})
+        elif path == "/api/stop":
+            self._json({"ok": SERVO.stop()})
         elif path == "/api/calibrate":
             # save the servo's current position as the open or close endpoint
             which = arg("which")
@@ -147,12 +163,12 @@ class Handler(BaseHTTPRequestHandler):
                 data = json.loads(self.rfile.read(length) or b"{}")
             except ValueError:
                 return self._json({"error": "bad json"}, 400)
-            for k in ("open_pos", "close_pos", "speed", "acc"):
+            for k in ("open_pos", "close_pos", "speed", "acc", "load_limit"):
                 if k in data:
                     CFG[k] = int(data[k])
             save_config(CFG)
             self._json({"ok": True, "config": {k: CFG[k] for k in
-                       ("open_pos", "close_pos", "speed", "acc")}})
+                       ("open_pos", "close_pos", "speed", "acc", "load_limit")}})
         else:
             self._json({"error": "not found"}, 404)
 

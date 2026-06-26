@@ -219,3 +219,50 @@ class Servo:
     def is_moving(self):
         d = self.read_reg(ADDR_MOVING, 1)
         return None if not d else bool(d[0])
+
+    def stop(self):
+        """Halt motion immediately: command the present position as the goal so
+        the servo brakes and holds where it is (torque stays on)."""
+        with self._lock:
+            pos = self.present_position()
+            if pos is None:
+                return False
+            return self.move(pos, speed=600, acc=0)
+
+    def guarded_move(self, position, speed=1500, acc=50, load_limit=200,
+                     timeout=5.0, grace=0.15, poll=0.025, confirm=2):
+        """Move toward `position` but stop the moment the load magnitude stays
+        at/above `load_limit` -- a gentle 'stop on contact'. A short grace plus
+        `confirm` consecutive over-limit samples reject the acceleration inrush.
+
+        Returns an outcome dict with reason in {load, reached, timeout, no_servo}.
+        Does not hold the bus lock across the loop, so /api/status keeps polling.
+        """
+        position = max(0, min(4095, int(position)))
+        if not self.move(position, speed, acc):
+            return {"ok": False, "stopped": False, "reason": "no_servo",
+                    "target": position}
+        t0 = time.time()
+        time.sleep(grace)                       # ignore acceleration inrush
+        hits = 0
+        last_pos = None
+        while time.time() - t0 < timeout:
+            load = self.present_load()
+            pos = self.present_position()
+            if pos is not None:
+                last_pos = pos
+            if load is not None and abs(load) >= load_limit:
+                hits += 1
+                if hits >= confirm:
+                    self.stop()
+                    return {"ok": True, "stopped": True, "reason": "load",
+                            "position": self.present_position(),
+                            "load": load, "target": position}
+            else:
+                hits = 0
+            if pos is not None and abs(pos - position) <= 10:
+                return {"ok": True, "stopped": False, "reason": "reached",
+                        "position": pos, "load": load, "target": position}
+            time.sleep(poll)
+        return {"ok": True, "stopped": False, "reason": "timeout",
+                "position": last_pos, "target": position}
