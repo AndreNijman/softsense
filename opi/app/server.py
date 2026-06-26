@@ -33,8 +33,11 @@ DEFAULT_CONFIG = {
     "speed": 1500,
     "acc": 50,
     "stop_on_load": False,   # halt a move as soon as the servo feels resistance
-    "load_limit": 200,       # load magnitude (0-1000) that counts as "contact"
-    "load_hold_ms": 300,     # load must stay over the limit this long (rejects gear blips)
+    # Measured (2026-06-26): free-motion load on this gripper caps at ~300 (mean
+    # ~230) -- the Fin-Ray + four-bar cost to just move. 350 clears it with margin
+    # (0% false trips); since free motion never reaches 350 the hold can be short.
+    "load_limit": 350,       # load magnitude (0-1000) above free-motion that = contact
+    "load_hold_ms": 150,     # load must stay over the limit this long (spike insurance)
 }
 
 
