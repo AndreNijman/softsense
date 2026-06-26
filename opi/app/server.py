@@ -34,6 +34,7 @@ DEFAULT_CONFIG = {
     "acc": 50,
     "stop_on_load": False,   # halt a move as soon as the servo feels resistance
     "load_limit": 200,       # load magnitude (0-1000) that counts as "contact"
+    "load_hold_ms": 300,     # load must stay over the limit this long (rejects gear blips)
 }
 
 
@@ -98,13 +99,15 @@ class Handler(BaseHTTPRequestHandler):
             "acc": CFG["acc"],
             "stop_on_load": bool(CFG.get("stop_on_load")),
             "load_limit": CFG.get("load_limit", 200),
+            "load_hold_ms": CFG.get("load_hold_ms", 300),
         }
 
     def _do_move(self, target):
         """Move to target, guarded by stop-on-load when that toggle is on."""
         if CFG.get("stop_on_load"):
             return SERVO.guarded_move(target, CFG["speed"], CFG["acc"],
-                                      load_limit=CFG.get("load_limit", 200))
+                                      load_limit=CFG.get("load_limit", 200),
+                                      hold_ms=CFG.get("load_hold_ms", 300))
         return {"ok": SERVO.move(target, CFG["speed"], CFG["acc"]),
                 "target": target}
 
@@ -163,12 +166,14 @@ class Handler(BaseHTTPRequestHandler):
                 data = json.loads(self.rfile.read(length) or b"{}")
             except ValueError:
                 return self._json({"error": "bad json"}, 400)
-            for k in ("open_pos", "close_pos", "speed", "acc", "load_limit"):
+            for k in ("open_pos", "close_pos", "speed", "acc",
+                      "load_limit", "load_hold_ms"):
                 if k in data:
                     CFG[k] = int(data[k])
             save_config(CFG)
             self._json({"ok": True, "config": {k: CFG[k] for k in
-                       ("open_pos", "close_pos", "speed", "acc", "load_limit")}})
+                       ("open_pos", "close_pos", "speed", "acc",
+                        "load_limit", "load_hold_ms")}})
         else:
             self._json({"error": "not found"}, 404)
 

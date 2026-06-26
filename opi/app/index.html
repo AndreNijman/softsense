@@ -74,6 +74,9 @@
     <div class="pos-label"><span>Load limit <span class="hint">(lower = stops sooner)</span></span><span id="llval">200</span></div>
     <input type="range" id="llslider" min="50" max="800" value="200"
            oninput="llval.textContent=this.value" onchange="setLoadLimit(this.value)">
+    <div class="pos-label"><span>Hold time (ms) <span class="hint">(higher = ignores gear blips)</span></span><span id="hmval">300</span></div>
+    <input type="range" id="hmslider" min="50" max="800" step="50" value="300"
+           oninput="hmval.textContent=this.value" onchange="setHoldMs(this.value)">
     <div class="pos-label"><span>Manual position</span><span id="manval">2048</span></div>
     <input type="range" id="slider" min="0" max="4095" value="2048"
            oninput="manval.textContent=this.value" onchange="goto(this.value)">
@@ -112,6 +115,7 @@ function paintTorque(){ $('tq').classList.toggle('on', torqueOn); }
 function toggleStopOnLoad(){ solOn=!solOn; post('/api/stop_on_load?on='+(solOn?1:0)); paintSol(); }
 function paintSol(){ $('sol').classList.toggle('on', solOn); }
 function setLoadLimit(v){ postJSON('/api/config', {load_limit:Number(v)}); }
+function setHoldMs(v){ postJSON('/api/config', {load_hold_ms:Number(v)}); }
 function note(t){ const n=$('note'); n.textContent=t; n.style.opacity=1;
   clearTimeout(n._t); n._t=setTimeout(()=>{ n.style.opacity=0; }, 2600); }
 function showResult(r){
@@ -136,6 +140,9 @@ async function refresh(){
   if(typeof s.stop_on_load==='boolean'){ solOn=s.stop_on_load; paintSol(); }
   if(s.load_limit!=null && document.activeElement!==$('llslider')){
     $('llslider').value = s.load_limit; $('llval').textContent = s.load_limit;
+  }
+  if(s.load_hold_ms!=null && document.activeElement!==$('hmslider')){
+    $('hmslider').value = s.load_hold_ms; $('hmval').textContent = s.load_hold_ms;
   }
   if(ok && s.position!=null && document.activeElement!==$('slider')){
     $('slider').value = s.position; $('manval').textContent = s.position;

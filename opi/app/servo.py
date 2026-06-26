@@ -15,6 +15,7 @@ import os
 import glob
 import threading
 import time
+from collections import deque
 
 import serial  # vendored in ./vendor
 
@@ -230,36 +231,38 @@ class Servo:
             return self.move(pos, speed=600, acc=0)
 
     def guarded_move(self, position, speed=1500, acc=50, load_limit=200,
-                     timeout=5.0, grace=0.15, poll=0.025, confirm=2):
-        """Move toward `position` but stop the moment the load magnitude stays
-        at/above `load_limit` -- a gentle 'stop on contact'. A short grace plus
-        `confirm` consecutive over-limit samples reject the acceleration inrush.
+                     hold_ms=300, timeout=5.0, grace=0.18, poll=0.02):
+        """Move toward `position`, stopping only when the load stays at/above
+        `load_limit` *consistently* for about `hold_ms` -- so brief load blips
+        from gear backlash/cogging don't trip it, but real sustained contact
+        does. A sliding window requires ~70% of the last `hold_ms` of samples
+        to be over the limit (so momentary dips are tolerated too), after a
+        short acceleration-inrush grace.
 
-        Returns an outcome dict with reason in {load, reached, timeout, no_servo}.
-        Does not hold the bus lock across the loop, so /api/status keeps polling.
+        Returns reason in {load, reached, timeout, no_servo}. Does not hold the
+        bus lock across the loop, so /api/status keeps polling.
         """
         position = max(0, min(4095, int(position)))
         if not self.move(position, speed, acc):
             return {"ok": False, "stopped": False, "reason": "no_servo",
                     "target": position}
+        window = max(3, int((hold_ms / 1000.0) / poll))   # samples spanning hold_ms
+        need = max(2, int(round(window * 0.7)))           # over limit for ~70% of window
+        buf = deque(maxlen=window)
         t0 = time.time()
-        time.sleep(grace)                       # ignore acceleration inrush
-        hits = 0
+        time.sleep(grace)                                 # ignore acceleration inrush
         last_pos = None
         while time.time() - t0 < timeout:
             load = self.present_load()
             pos = self.present_position()
             if pos is not None:
                 last_pos = pos
-            if load is not None and abs(load) >= load_limit:
-                hits += 1
-                if hits >= confirm:
-                    self.stop()
-                    return {"ok": True, "stopped": True, "reason": "load",
-                            "position": self.present_position(),
-                            "load": load, "target": position}
-            else:
-                hits = 0
+            buf.append(1 if (load is not None and abs(load) >= load_limit) else 0)
+            if len(buf) == window and sum(buf) >= need:
+                self.stop()
+                return {"ok": True, "stopped": True, "reason": "load",
+                        "position": self.present_position(),
+                        "load": load, "target": position}
             if pos is not None and abs(pos - position) <= 10:
                 return {"ok": True, "stopped": False, "reason": "reached",
                         "position": pos, "load": load, "target": position}
