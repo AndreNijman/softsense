@@ -40,6 +40,9 @@ const char INDEX_HTML[] PROGMEM = R"HTML(<!DOCTYPE html>
   .switch.on i { left:25px; }
   .foot { color:var(--muted); font-size:12px; text-align:center; margin-top:18px; line-height:1.6; }
   .pos-label { color:var(--muted); font-size:13px; display:flex; justify-content:space-between; }
+  .hint { opacity:.65; font-weight:400; }
+  .note { color:#ffd479; font-size:13px; text-align:center; min-height:18px;
+          opacity:0; transition:opacity .2s; margin:-6px 0 12px; }
 </style>
 </head>
 <body>
@@ -51,6 +54,7 @@ const char INDEX_HTML[] PROGMEM = R"HTML(<!DOCTYPE html>
     <button class="open"  onpointerdown="act('open')">OPEN</button>
     <button class="close" onpointerdown="act('close')">CLOSE</button>
   </div>
+  <div class="note" id="note"></div>
 
   <div class="card">
     <div class="row"><span class="k"><span id="dot" class="dot"></span>Status</span>
@@ -66,6 +70,16 @@ const char INDEX_HTML[] PROGMEM = R"HTML(<!DOCTYPE html>
       <span class="k">Torque</span>
       <div id="tq" class="switch" onclick="toggleTorque()"><i></i></div>
     </div>
+    <div class="toggle row">
+      <span class="k">Stop on load <span class="hint">&mdash; stop on contact</span></span>
+      <div id="sol" class="switch" onclick="toggleStopOnLoad()"><i></i></div>
+    </div>
+    <div class="pos-label"><span>Load limit <span class="hint">(lower = stops sooner)</span></span><span id="llval">350</span></div>
+    <input type="range" id="llslider" min="50" max="800" value="350"
+           oninput="llval.textContent=this.value" onchange="setLoadLimit(this.value)">
+    <div class="pos-label"><span>Hold time (ms) <span class="hint">(higher = ignores gear blips)</span></span><span id="hmval">150</span></div>
+    <input type="range" id="hmslider" min="40" max="800" step="10" value="150"
+           oninput="hmval.textContent=this.value" onchange="setHoldMs(this.value)">
     <div class="pos-label"><span>Manual position</span><span id="manval">2048</span></div>
     <input type="range" id="slider" min="0" max="4095" value="2048"
            oninput="manval.textContent=this.value" onchange="goto(this.value)">
@@ -84,16 +98,27 @@ const char INDEX_HTML[] PROGMEM = R"HTML(<!DOCTYPE html>
 <script>
 const $ = id => document.getElementById(id);
 let torqueOn = false;
+let solOn = false;
 
 async function post(path){
   try { const r = await fetch(path, {method:'POST'}); return await r.json(); }
   catch (e) { return {error:String(e)}; }
 }
-function act(which){ post('/api/'+which); flash(which); }
-function goto(v){ post('/api/goto?pos='+v); }
+async function act(which){ flash(which); showResult(await post('/api/'+which)); }
+async function goto(v){ showResult(await post('/api/goto?pos='+v)); }
 function calib(which){ post('/api/calibrate?which='+which).then(refresh); }
 function toggleTorque(){ torqueOn=!torqueOn; post('/api/torque?on='+(torqueOn?1:0)); paintTorque(); }
 function paintTorque(){ $('tq').classList.toggle('on', torqueOn); }
+function toggleStopOnLoad(){ solOn=!solOn; post('/api/stop_on_load?on='+(solOn?1:0)); paintSol(); }
+function paintSol(){ $('sol').classList.toggle('on', solOn); }
+function setLoadLimit(v){ post('/api/config?load_limit='+v); }
+function setHoldMs(v){ post('/api/config?load_hold_ms='+v); }
+function note(t){ const n=$('note'); n.textContent=t; n.style.opacity=1;
+  clearTimeout(n._t); n._t=setTimeout(()=>{ n.style.opacity=0; }, 2600); }
+function showResult(r){
+  if(r && r.stopped && r.reason==='load')
+    note('✋ stopped on contact @ '+r.position+'  (load '+r.load+')');
+}
 function flash(which){
   const b=document.querySelector('.'+which); b.style.filter='brightness(1.4)';
   setTimeout(()=>b.style.filter='',150);
@@ -109,6 +134,13 @@ async function refresh(){
   $('load').textContent = s.load!=null ? s.load : '–';
   $('volt').textContent = s.voltage ? s.voltage.toFixed(1)+' V' : '–';
   $('temp').textContent = s.temp!=null ? s.temp+' °C' : '–';
+  if(typeof s.stop_on_load==='boolean'){ solOn=s.stop_on_load; paintSol(); }
+  if(s.load_limit!=null && document.activeElement!==$('llslider')){
+    $('llslider').value = s.load_limit; $('llval').textContent = s.load_limit;
+  }
+  if(s.load_hold_ms!=null && document.activeElement!==$('hmslider')){
+    $('hmslider').value = s.load_hold_ms; $('hmval').textContent = s.load_hold_ms;
+  }
   if(ok && s.position!=null && document.activeElement!==$('slider')){
     $('slider').value = s.position; $('manval').textContent = s.position;
   }
