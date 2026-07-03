@@ -72,6 +72,7 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Content-Type", "application/json")
         self.send_header("Content-Length", str(len(body)))
         self.send_header("Cache-Control", "no-store")
+        self.send_header("Access-Control-Allow-Origin", "*")   # localhost gamepad page
         self.end_headers()
         self.wfile.write(body)
 
@@ -85,6 +86,7 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Content-Type", "text/html; charset=utf-8")
         self.send_header("Content-Length", str(len(body)))
         self.send_header("Cache-Control", "no-store")
+        self.send_header("Access-Control-Allow-Origin", "*")
         self.end_headers()
         self.wfile.write(body)
 
@@ -142,6 +144,13 @@ class Handler(BaseHTTPRequestHandler):
             except (TypeError, ValueError):
                 return self._json({"error": "pos required"}, 400)
             self._json(self._do_move(pos))
+        elif path == "/api/jog":
+            # raw, always-unguarded move for live/streamed control (gamepad)
+            try:
+                pos = int(arg("pos"))
+            except (TypeError, ValueError):
+                return self._json({"error": "pos required"}, 400)
+            self._json({"ok": SERVO.move(pos, CFG["speed"], CFG["acc"])})
         elif path == "/api/torque":
             on = arg("on", "1") in ("1", "true", "on", "yes")
             self._json({"ok": SERVO.torque(on), "torque": on})
