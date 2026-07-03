@@ -43,6 +43,10 @@ const char INDEX_HTML[] PROGMEM = R"HTML(<!DOCTYPE html>
   .hint { opacity:.65; font-weight:400; }
   .note { color:#ffd479; font-size:13px; text-align:center; min-height:18px;
           opacity:0; transition:opacity .2s; margin:-6px 0 12px; }
+  .oc { display:grid; grid-template-columns:1fr 1fr auto; gap:10px; align-items:center; }
+  .oc input { background:#0e1116; color:var(--fg); border:1px solid #2a3140; border-radius:8px;
+              padding:12px 10px; font-size:15px; width:100%; text-align:center; -moz-appearance:textfield; }
+  .oc button { background:var(--accent); padding:12px 16px; font-size:14px; font-weight:600; }
 </style>
 </head>
 <body>
@@ -87,6 +91,12 @@ const char INDEX_HTML[] PROGMEM = R"HTML(<!DOCTYPE html>
       <button onclick="calib('open')">Set current as OPEN</button>
       <button onclick="calib('close')">Set current as CLOSE</button>
     </div>
+    <div class="pos-label" style="margin-top:12px"><span>Or type open / close (0&ndash;4095)</span></div>
+    <div class="oc">
+      <input type="number" id="openin" min="0" max="4095" placeholder="open">
+      <input type="number" id="closein" min="0" max="4095" placeholder="close">
+      <button onclick="saveOC()">Save</button>
+    </div>
   </div>
 
   <div class="foot">
@@ -107,6 +117,11 @@ async function post(path){
 async function act(which){ flash(which); showResult(await post('/api/'+which)); }
 async function goto(v){ showResult(await post('/api/goto?pos='+v)); }
 function calib(which){ post('/api/calibrate?which='+which).then(refresh); }
+function saveOC(){
+  const o=$('openin').value.trim(), c=$('closein').value.trim(), q=[];
+  if(o!=='') q.push('open='+o); if(c!=='') q.push('close='+c);
+  if(q.length) post('/api/config?'+q.join('&')).then(refresh);
+}
 function toggleTorque(){ torqueOn=!torqueOn; post('/api/torque?on='+(torqueOn?1:0)); paintTorque(); }
 function paintTorque(){ $('tq').classList.toggle('on', torqueOn); }
 function toggleStopOnLoad(){ solOn=!solOn; post('/api/stop_on_load?on='+(solOn?1:0)); paintSol(); }
@@ -141,6 +156,8 @@ async function refresh(){
   if(s.load_hold_ms!=null && document.activeElement!==$('hmslider')){
     $('hmslider').value = s.load_hold_ms; $('hmval').textContent = s.load_hold_ms;
   }
+  if(s.open_pos!=null && document.activeElement!==$('openin')) $('openin').value = s.open_pos;
+  if(s.close_pos!=null && document.activeElement!==$('closein')) $('closein').value = s.close_pos;
   if(ok && s.position!=null && document.activeElement!==$('slider')){
     $('slider').value = s.position; $('manval').textContent = s.position;
   }
