@@ -190,9 +190,13 @@ String statusJson() {
 
 // ---- HTTP handlers ----------------------------------------------------------
 void sendJson(const String &body, int code = 200) {
+  server.sendHeader("Access-Control-Allow-Origin", "*");   // let a localhost gamepad page talk to us
   server.send(code, "application/json", body);
 }
-void servePage() { server.send_P(200, "text/html", INDEX_HTML); }
+void servePage() {
+  server.sendHeader("Access-Control-Allow-Origin", "*");
+  server.send_P(200, "text/html", INDEX_HTML);
+}
 
 void handleStatus() { sendJson(statusJson()); }
 void handleOpen() { sendJson(doMove(openPos)); }
@@ -202,6 +206,14 @@ void handleGoto() {
   if (!server.hasArg("pos")) return sendJson("{\"error\":\"pos required\"}", 400);
   int p = server.arg("pos").toInt();
   sendJson(doMove(p));
+}
+
+// Raw, always-unguarded move -- for live/streamed control (e.g. a gamepad trigger)
+// where blocking on stop-on-load would stall the stream. Returns immediately.
+void handleJog() {
+  if (!server.hasArg("pos")) return sendJson("{\"error\":\"pos required\"}", 400);
+  moveTo(server.arg("pos").toInt());
+  sendJson("{\"ok\":true}");
 }
 
 void handleTorque() {
@@ -286,6 +298,7 @@ void setup() {
   server.on("/api/open", handleOpen);
   server.on("/api/close", handleClose);
   server.on("/api/goto", handleGoto);
+  server.on("/api/jog", handleJog);
   server.on("/api/torque", handleTorque);
   server.on("/api/stop_on_load", handleStopOnLoad);
   server.on("/api/stop", handleStop);
