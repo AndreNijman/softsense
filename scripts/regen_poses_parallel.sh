@@ -4,10 +4,10 @@
 # multicore box gives wall-time ~= one gen instead of 5x serial. (regen.sh does these
 # serially; use this for the heavy STEP step.)
 set -u
-cd /home/andre/Projects/gripper-cad
+cd /home/andre/Projects/softsense
 source /home/andre/.cad-venv/bin/activate 2>/dev/null || true
 STEP="python /home/andre/.claude/skills/cad/scripts/step"
-LOG=/tmp/claude-1000/-home-andre-Projects-gripper-cad/a3c1cfc8-9fc0-4b7e-9ff1-a293bcece136/scratchpad
+LOG=/tmp/claude-1000/-home-andre-Projects-softsense/a3c1cfc8-9fc0-4b7e-9ff1-a293bcece136/scratchpad
 mkdir -p "$LOG"
 
 echo "[parallel poses] launching 5 concurrent STEP gens..."

@@ -1,6 +1,6 @@
 """Generate all 7 publication-quality figures for the grip-texture campaign.
 
-Run from:  cd /home/andre/gripper-cad/grip/scripts && python make_figures.py
+Run from:  cd /home/andre/Projects/softsense/grip/scripts && python make_figures.py
 """
 
 import sys, os, json
@@ -32,8 +32,8 @@ plt.rcParams.update({
     "legend.framealpha": 0.85,
 })
 
-OUTDIR = "/home/andre/gripper-cad/grip/pictures"
-DATA   = "/home/andre/gripper-cad/grip/iterations"
+OUTDIR = "/home/andre/Projects/softsense/grip/pictures"
+DATA   = "/home/andre/Projects/softsense/grip/iterations"
 
 COLORS = {
     "concentric":   "#2176AE",

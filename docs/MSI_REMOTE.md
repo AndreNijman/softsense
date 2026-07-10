@@ -1,5 +1,9 @@
 # MSI as a remote FEA / render node
 
+*Note: the repo has been renamed `softsense` on GitHub (the old `gripper-cad` remote
+URL still redirects); the MSI's clone still lives at `C:\Users\andre\gripper-cad`
+until it is re-cloned. The Windows paths below are therefore still correct.*
+
 > **POLICY: heavy / high-quality runs go on the MSI; routine work stays local.**
 > High-res or full-battery FEA, big sweeps, long renders → `ssh andremsi` (this node).
 > Quick iteration, single screens, edits, light renders → local. (Also in the repo

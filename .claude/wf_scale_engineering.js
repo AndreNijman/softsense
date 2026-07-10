@@ -16,7 +16,7 @@ export const meta = {
 // Agents MUST NOT git commit (the parent commits per-phase). Compute is LOCAL (MSI down)
 // -> screen/coarse modes; flag hi-fidelity for an MSI re-run.
 
-const REPO = '/home/andre/gripper-cad'
+const REPO = '/home/andre/Projects/softsense'
 const VENV = '/home/andre/.cad-venv/bin/python'
 
 const NUM = { type: 'number' }

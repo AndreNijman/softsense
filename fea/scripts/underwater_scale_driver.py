@@ -25,7 +25,7 @@ wrapper, so the geometry is self-similar. Its peak vM is the pressure-only clamp
 ~(1-2ν)·P — scale-free by inspection — so we expect identical vM and ×k displacement.
 
 Usage (run ONE scale per process; SCALE is read at gripper import time):
-    GRIPPER_SCALE=1.0 PYTHONPATH=/home/andre/gripper-cad \
+    GRIPPER_SCALE=1.0 PYTHONPATH=/home/andre/Projects/softsense \
         python fea/scripts/underwater_scale_driver.py <out_dir>
 
 Writes <out_dir>/underwater_crush_3d.json and <out_dir>/underwater_pressure_probe.json.

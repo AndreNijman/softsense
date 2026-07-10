@@ -11,7 +11,7 @@ A summary table (stdout + parts/MANIFEST.md) lists every part with its print
 quantity, suggested material, bounding box and a print-orientation note.
 
 Run:
-    cd /home/andre/gripper-cad
+    cd /home/andre/Projects/softsense
     source /home/andre/.cad-venv/bin/activate
     python export_parts.py
 

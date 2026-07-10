@@ -63,7 +63,7 @@ render prompt.
 
 ## Bundle (copied to the MSI for rendering)
 ```
-/home/andre/gripper-cad/render_bundle/
+/home/andre/Projects/softsense/render_bundle/
   geometry/   per-part GLB + per-part transform JSON (the rigid kinematics morph)
   fea/        stats.json, stats.md, finray_morph_<frame>.npz, stress_animation.mp4,
               force_curve.png, FEA_NOTES.md

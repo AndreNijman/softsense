@@ -240,7 +240,7 @@ as it scales up — the floppy up-scaling collapse of §5 is gone.
 ### 7.3 Reproduce / artifacts
 
 ```
-GRIPPER_SCALE=1.0 PYTHONPATH=/home/andre/gripper-cad \
+GRIPPER_SCALE=1.0 PYTHONPATH=/home/andre/Projects/softsense \
   /home/andre/.cad-venv/bin/python fea/scripts/eval_finger.py selfsim_1p0 production '{}' screen
 # …1.5, 2.0 likewise. Add '{"_E":40}' for the matched-basis contrast (selfsim_E40_*).
 ```

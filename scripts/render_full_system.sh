@@ -14,7 +14,7 @@
 # We build the THREE keyframe STEPs in parallel (one core each, ~3.5 min wall),
 # then render PNGs from them (cheap), and ffmpeg-assemble the GIF locally.
 set -e
-cd /home/andre/gripper-cad
+cd /home/andre/Projects/softsense
 source /home/andre/.cad-venv/bin/activate 2>/dev/null || true
 
 STEPCLI="python /home/andre/.claude/skills/cad/scripts/step"

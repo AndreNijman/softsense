@@ -1,7 +1,7 @@
 """Finger-only build for the render pipeline (step skill -> STEP+GLB -> snapshot).
 GRIP_OLD=1 reverts to the legacy single-axis ridge texture for the before/after."""
 import os, sys
-sys.path.insert(0, "/home/andre/gripper-cad")
+sys.path.insert(0, "/home/andre/Projects/softsense")
 os.environ.setdefault("GRIPPER_OPEN", "0")
 import gripper as g
 

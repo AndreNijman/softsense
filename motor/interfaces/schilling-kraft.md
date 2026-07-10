@@ -376,7 +376,7 @@ Load case:             The Schilling jaw clamps the D-handle at 4 092 N grip for
 - It is **massively cheaper** (no Ti machining, no per-arm SKU).
 - The mass match works: the arm picks up our gripper as a 350 g held tool, not as a
   bolted appendage. Drop / shock loads do not transmit to our polymer flange.
-- It honours the project's modularity thesis (`../projects/gripper-cad`): same gripper,
+- It honours the project's modularity thesis (`../projects/softsense`): same gripper,
   same D-coupler, **same handle** — works on every work-class arm.
 
 ---

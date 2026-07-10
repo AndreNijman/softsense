@@ -1,7 +1,7 @@
 # Overnight branch — `fix/honest-headlines-overnight`
 
 Andre asked for an overnight fix-up of the critical-review issues in the
-gripper-cad project. This file is the punch-list mapping each issue to the
+softsense project. This file is the punch-list mapping each issue to the
 commit(s) that addressed it.
 
 Read this top-down to audit the changes; each commit is small and focused.

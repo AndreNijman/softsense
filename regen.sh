@@ -7,12 +7,12 @@
 #   system STEPs   -> motor/cad/output/system_assembly_*.step (T2 ladder + T3)
 #   heroes / gif   -> renders/  (now the FULL system: gripper + canister + STS3250)
 set -e
-cd /home/andre/gripper-cad
+cd /home/andre/Projects/softsense
 source /home/andre/.cad-venv/bin/activate 2>/dev/null || true
 STEP="python /home/andre/.claude/skills/cad/scripts/step"
 SNAP="python3 /home/andre/.claude/skills/render/scripts/snapshot"
 SYSGEN="python motor/cad/system_assembly.py"
-export PYTHONPATH=/home/andre/gripper-cad
+export PYTHONPATH=/home/andre/Projects/softsense
 
 echo "[poses]"
 GRIPPER_OPEN=0   $STEP gripper.py -o derived/gripper_closed.step       >/dev/null 2>&1 && echo "  closed"

@@ -295,7 +295,7 @@ def main():
         W, H = psize[0] * 2 + 30, psize[1] + 230
         fig, axL, axR, txt = build_figure(W, H, [(cap, imL, imR)])
         compose(fig, axL, axR, imL, imR, frames[still], txt)
-        p = "/tmp/claude-1000/-home-andre-Projects-gripper-cad/" \
+        p = "/tmp/claude-1000/-home-andre-Projects-softsense/" \
             "37b8a3e8-aa39-49e8-8a81-780f6a85a4d1/scratchpad/grip_demo_still.png"
         fig.savefig(p, dpi=100, facecolor="#f4f4f7")
         print("WROTE", p); return

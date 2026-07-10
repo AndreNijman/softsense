@@ -87,13 +87,13 @@ def _solve_reduced(data, rows, cols, rhs_full, free, dof_red, nfree):
 
 # REPO root: honour GRIPPER_REPO env var, else two-levels-up from this script,
 # else fall back to the historical absolute path (preserves the previous default
-# for callers that source the repo at /home/andre/gripper-cad).
+# for callers that source the repo at /home/andre/Projects/softsense).
 _HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.environ.get(
     "GRIPPER_REPO",
     os.path.dirname(os.path.dirname(_HERE)) if os.path.isfile(
         os.path.join(os.path.dirname(os.path.dirname(_HERE)), "gripper.py")
-    ) else "/home/andre/gripper-cad",
+    ) else "/home/andre/Projects/softsense",
 )
 ITERDIR = os.path.join(REPO, "fea", "iterations")
 # make `import gripper` work when iter_harness.py is invoked from any cwd

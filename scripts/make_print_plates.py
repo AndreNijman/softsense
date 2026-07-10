@@ -33,7 +33,7 @@ to refresh both the per-part STLs and the plates. Stale plates do not reflect
 the current design.
 
 Run:
-    cd /home/andre/gripper-cad
+    cd /home/andre/Projects/softsense
     source /home/andre/.cad-venv/bin/activate
     python make_print_plates.py            # 256x256 bed
     python make_print_plates.py --bed 220 220

@@ -2,12 +2,12 @@
 The OLD finger is reproduced by reverting the grip-texture params on the imported
 module before building (the rest of the geometry is identical)."""
 import os, sys
-sys.path.insert(0, "/home/andre/gripper-cad")
+sys.path.insert(0, "/home/andre/Projects/softsense")
 os.environ["GRIPPER_OPEN"] = "0"
 import gripper as g
 from build123d import export_step
 
-PIC = "/home/andre/gripper-cad/grip/pictures"
+PIC = "/home/andre/Projects/softsense/grip/pictures"
 
 
 def build_finger():
