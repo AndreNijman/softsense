@@ -8,9 +8,9 @@ STL mesh tolerance: `0.05 mm` (linear), `0.1` (angular). Each part is translated
 
 | Part | Qty | Printable | Material | Bbox (mm) | Instances | Print orientation |
 |------|-----|-----------|----------|-----------|-----------|-------------------|
-| `enclosure.step`/`.stl` | 1 | yes | PETG / Nylon | 144.0 x 61.5 x 42.0 | enclosure | open cavity face UP on the bed (back flange down); supports only inside the shaft bore. |
-| `drive_arm_R.step`/`.stl` | 1 | yes | PA12-GF | 39.8 x 75.0 x 17.8 | drive_arm_R | lay the flat gear+arm plate face-down on the bed (5 mm thick). Both arms ride on the heat-stake axle pins (no integral shaft). |
-| `drive_arm_L.step`/`.stl` | 1 | yes | PA12-GF | 39.3 x 74.8 x 17.8 | drive_arm_L | lay the flat gear+arm plate face-down on the bed (5 mm thick). Both arms ride on the heat-stake axle pins (no integral shaft). |
+| `enclosure.step`/`.stl` | 1 | yes | PETG / Nylon | 144.0 x 114.5 x 44.7 | enclosure | open cavity face UP on the bed (back flange down); supports only inside the shaft bore. |
+| `drive_arm_R.step`/`.stl` | 1 | yes | PA12-GF | 41.4 x 75.8 x 17.8 | drive_arm_R | lay the flat gear+arm plate face-down on the bed (5 mm thick). Both arms ride on the heat-stake axle pins (no integral shaft). |
+| `drive_arm_L.step`/`.stl` | 1 | yes | PA12-GF | 40.4 x 75.3 x 17.8 | drive_arm_L | lay the flat gear+arm plate face-down on the bed (5 mm thick). Both arms ride on the heat-stake axle pins (no integral shaft). |
 | `follower.step`/`.stl` | 2 | yes | PETG / Nylon | 15.0 x 58.3 x 9.6 | follower_R, follower_L | lay the flat link bar face-down on the bed (5 mm thick). |
 | `finger_R.step`/`.stl` | 1 | yes | TPU (shore ~95A) | 43.7 x 144.2 x 15.0 | finger_R | lay the Fin Ray plane FLAT on the bed, RIDGE (contact-face) side DOWN for clean grip ridges; the 10 mm depth is the Z height (may want a 90 deg rotate from the exported pose). |
 | `finger_L.step`/`.stl` | 1 | yes | TPU (shore ~95A) | 43.7 x 144.2 x 15.0 | finger_L | lay the Fin Ray plane FLAT on the bed, RIDGE (contact-face) side DOWN for clean grip ridges; the 10 mm depth is the Z height (may want a 90 deg rotate from the exported pose). |
@@ -22,7 +22,7 @@ STL mesh tolerance: `0.05 mm` (linear), `0.1` (angular). Each part is translated
 | `melt_pin_finger_D.step`/`.stl` | 2 | yes | PETG-HF | 11.7 x 11.7 x 29.0 | pin_D_R, pin_D_L | stand the pin AXIS VERTICAL, HEAD DOWN, melt-stud UP; no supports (plain stepped cylinder, collar prints as a self-supporting band). Finger pins: _finger_C long (crank layer), _finger_D short (follower layer). Axle pins differ by collar height: _axle_AR (crank), _axle_AL (crank+crown), _axle_B (follower). After assembly, slip a melt_cap on the protruding stud and fuse it. |
 | `melt_pin_axle_AL.step`/`.stl` | 1 | yes | PETG-HF | 11.7 x 11.7 x 43.1 | pin_A_L | stand the pin AXIS VERTICAL, HEAD DOWN, melt-stud UP; no supports (plain stepped cylinder, collar prints as a self-supporting band). Finger pins: _finger_C long (crank layer), _finger_D short (follower layer). Axle pins differ by collar height: _axle_AR (crank), _axle_AL (crank+crown), _axle_B (follower). After assembly, slip a melt_cap on the protruding stud and fuse it. |
 | `front_cover.step`/`.stl` | 1 | yes | PETG / Nylon | 150.8 x 54.0 x 35.2 | front_cover | outer face DOWN on the bed, snap clips pointing UP; the clips print as unsupported cantilevers off the inner face -- no supports needed. |
-| `input_pinion_shaft.step`/`.stl` | 1 | yes | PA12-GF | 17.4 x 52.5 x 17.4 | input_pinion_shaft | print shaft-axis VERTICAL: rotate 90 about X so the shaft stands up; D-coupler/shoulder end DOWN on the bed (r=5.0mm, wider base), pinion teeth UP. Shaft cylinder = self-supporting rings; the bottom shoulder bridges ~1.8mm radially (1-2 layers). SUPPORTLESS. Installs into the housing FROM BELOW (pinion-first). |
+| `input_pinion_shaft.step`/`.stl` | 1 | yes | PA12-GF | 27.9 x 29.7 x 27.9 | input_pinion_shaft | print shaft-axis VERTICAL: rotate 90 about X so the shaft stands up; D-coupler/shoulder end DOWN on the bed (r=5.0mm, wider base), pinion teeth UP. Shaft cylinder = self-supporting rings; the bottom shoulder bridges ~1.8mm radially (1-2 layers). SUPPORTLESS. Installs into the housing FROM BELOW (pinion-first). |
 
 ## Notes
 
