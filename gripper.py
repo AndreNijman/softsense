@@ -41,6 +41,7 @@ from build123d import (
     Box,
     Color,
     Compound,
+    Cone,
     Cylinder,
     GeomType,
     Location,
@@ -51,6 +52,7 @@ from build123d import (
     chamfer,
     extrude,
     fillet,
+    loft,
     make_face,
 )
 
@@ -180,7 +182,10 @@ AXLE_BORE_R = PIN_R + AXLE_FIT_CLEAR  # link/arm/gear runs on its axle pin: snug
 # REPRESENTATIVE geometry (involute-free straight flanks, nominal pitch) meant
 # to be coupon-tuned for backlash/contact on the target printer -- NOT a final
 # tooth form. A_L keeps its spur rim teeth meshing A_R (drive is unbroken).
-SHAFT_R = 4.0 * SCALE # vertical input-shaft radius
+SHAFT_R = 7.5 * SCALE # vertical input-shaft radius (BEEFED 4.5->7.5 / Ø15: lets the UPSIZED
+                      # module-1.8 bevel pinion (tip 7.65) still install pinion-first through the
+                      # journal bore, and stiffens the shaft. The Ø6 servo spline socket nests
+                      # inside this fat shaft end.)
 
 
 def _involute_tip_r(m, z, pa_deg, x, backlash, a_coef=1.0, b_coef=1.25,
@@ -305,11 +310,49 @@ DRIVE_LBORE_Y = (-25.0 * SCALE, -18.0 * SCALE)  # lower journal bore: len 7.0
 #   +Y push-in : the bottom SHOULDER (OD > bore) bottoms on the flange outer face.
 #   -Y pull-out: the D-coupler is engaged in the actuator horn-adapter / wet D-socket
 #                bolted under the flange -> geometric retention once the servo is on.
-SHAFT_SHOULDER_R = SHAFT_R + 1.8 * SCALE  # bottom shoulder OD (> bore -> +Y push-in stop)
+SHAFT_SHOULDER_R = SHAFT_R + 1.8 * SCALE  # bottom shoulder OD (> bore -> +Y push-in stop; its
+                                          # bottom face is where the servo top register-bears)
 SHAFT_SHOULDER_T = 2.0 * SCALE       # shoulder axial length (model Y)
-SHAFT_COUPLER_R = 5.0 * SCALE  # bottom coupler radius (D-profile for a servo/motor)
-SHAFT_COUPLER_LEN = 12.0 * SCALE
-SHAFT_DFLAT = 1.4 * SCALE  # D-flat depth on the coupler
+# --- FEETECH STS3250 DIRECT MOUNT: female 25T spline socket (replaces the old D-coupler) ---
+# The servo's 25-tooth Ø6 output spline presses straight UP into the bottom of the input
+# shaft -- no adapter horn. Standard 25T servo serration; the cavity is scaled SPLINE_PRESS
+# (<1) for a snug press-fit ("a little too much"). CALIPER-VERIFY the real STS3250 spline
+# (OD/root/PA) and tune SPLINE_PRESS before printing -- the exact Feetech profile isn't public.
+# Feetech 25T / 6mm-class hobby spline (Futaba-3F / Hitec-H25T family; STS3250 shares the
+# STS3215 output per Feetech's "25T / OD5.9mm" callout). It is a FINE SERRATION (25 narrow
+# triangular/trapezoidal teeth ~0.3mm high), NOT a module involute. (Confirmed by research:
+# OD 5.9, root ~5.3, M3 horn screw; root dia/profile inferred from the matching generic
+# spline -- caliper-verify a real unit + print the fit coupon before committing.)
+# NB: these are REAL off-the-shelf-servo dimensions and DELIBERATELY DO NOT scale with
+# GRIPPER_SCALE -- the STS3250 spline is the same physical part at every gripper size, so the
+# socket that mates it must stay Ø5.9 even when the gripper is printed at 1.5x. (Only the
+# scaled shaft AROUND the socket grows.)
+SPLINE_Z = 25                                # tooth count (Feetech 25T -- HIGH confidence)
+SPLINE_OD = 5.9                               # tip / major diameter (Feetech "OD5.9mm") -- NO SCALE
+SPLINE_ROOT = 5.3                             # root / minor diameter (~0.3mm tooth height) -- NO SCALE
+SPLINE_TIPW = 0.13                            # tooth-tip half-width as a fraction of the pitch
+SPLINE_H = 4.0                                 # servo spline engagement height -- NO SCALE
+SPLINE_SOCK_DEPTH = SPLINE_H + 1.2             # socket bored a touch deeper than the spline -- NO SCALE
+SPLINE_PRESS = 0.97                            # cavity radial scale -> ~0.09mm radial interference
+                                              # (research: start ~0.1mm; tune via the fit coupon)
+SPLINE_SCREW_R = 1.7                           # M3 clearance up the centre (M3x6 horn screw) -- NO SCALE
+
+
+def _spline_profile(scale=1.0):
+    """25T servo-spline 2D outline (axis +Z) -- a fine SERRATION: 25 narrow trapezoidal teeth
+    from root (SPLINE_ROOT) to tip (SPLINE_OD), the real hobby-servo form (not an involute).
+    `scale` shrinks the whole profile uniformly; scale<1 -> tighter female cavity (press-fit)."""
+    z = SPLINE_Z
+    r_tip = (SPLINE_OD / 2.0) * scale
+    r_root = (SPLINE_ROOT / 2.0) * scale
+    step = 2.0 * math.pi / z
+    pts = []
+    for k in range(z):
+        c = k * step
+        pts.append((r_root * math.cos(c - step / 2.0), r_root * math.sin(c - step / 2.0)))  # root land
+        pts.append((r_tip * math.cos(c - step * SPLINE_TIPW), r_tip * math.sin(c - step * SPLINE_TIPW)))  # tip CCW
+        pts.append((r_tip * math.cos(c + step * SPLINE_TIPW), r_tip * math.sin(c + step * SPLINE_TIPW)))  # tip CW
+    return pts
 
 # --- 3D-printed HEAT-STAKE (melt-rivet) pin geometry ------------------------
 # Replaces BOTH the old barbed snap pins (which kept snapping -- the split
@@ -345,7 +388,9 @@ assert MELT_CAP_HOLE_R > MELT_STUD_R, "melt cap blind hole must clear the stud"
 assert MELT_CAP_H - MELT_CAP_HOLE_H >= 0.3, "melt cap crown wall too thin to print/melt"
 assert MELT_RECESS_R >= MELT_CAP_OR, "melt recess must nest the cap"
 
-GEAR_TEETH = 16       # COUNT held (scaled radius + fixed count -> module scales, ratio intact)
+GEAR_TEETH = 12       # BEEFED from 16: coarser module (1.5->2.0) = 33% bigger, stronger sync
+                      # teeth (the snap-off fix); 1:1 ratio + 24 mm centre distance held, and
+                      # 12T clears the 25deg no-undercut floor (~11.2T) so no profile shift
 # --- spur sector-gear TOOTH FORM (A_L <-> A_R sync mesh): now a TRUE INVOLUTE ---
 # The old 4-point straight-flank trapezoid was non-conjugate (~0deg pressure angle at
 # pitch) -> it tip-gouged then ran in a loose gap = the visible mesh ripple/rattle and
@@ -353,7 +398,9 @@ GEAR_TEETH = 16       # COUNT held (scaled radius + fixed count -> module scales
 # replaced by a sampled involute (involute_gear_points) with a designed printed
 # backlash. Pitch radius R_GEAR and centre distance 2*R_GEAR are unchanged, so the 1:1
 # synced mirror and the half-tooth interleave (gen_step) are preserved exactly.
-GEAR_MODULE = 2.0 * R_GEAR / GEAR_TEETH   # = 1.5*SCALE  (pitch diameter / teeth)
+GEAR_MODULE = 2.0 * R_GEAR / GEAR_TEETH   # = 2.0*SCALE now (12T) -- bigger module = stronger
+GEAR_A_COEF = 0.90        # STUB sync teeth (10% short addendum) -> shorter bending lever +
+                          # stronger root; contact ratio stays >1.1 at 12T / 25deg PA
 GEAR_PA_DEG = 25.0        # involute pressure angle: 25deg drops the no-undercut floor to
                           # 11.2T so the 16T gear needs zero profile shift (held process)
 GEAR_BACKLASH = 0.15      # total circular backlash (mm) removed as symmetric flank
@@ -756,7 +803,7 @@ def gear(center, phase_deg, z0, thickness, label, color, bore=True):
     `bore=False` leaves the hub solid (for a gear with an integral shaft)."""
     # TRUE INVOLUTE flanks (replaces the 4-point straight-flank trapezoid). phase_deg
     # carries the L/R half-tooth interleave from gen_step so the pair still meshes.
-    pts = involute_gear_points(GEAR_MODULE, GEAR_TEETH, pa_deg=GEAR_PA_DEG,
+    pts = involute_gear_points(GEAR_MODULE, GEAR_TEETH, pa_deg=GEAR_PA_DEG, a_coef=GEAR_A_COEF,
                                x=0.0, backlash=GEAR_BACKLASH, phase_deg=phase_deg)
     sol = _poly_solid(pts, z0, thickness)
     if bore:
@@ -765,6 +812,112 @@ def gear(center, phase_deg, z0, thickness, label, color, bore=True):
     sol = sol.moved(Location((center[0], center[1], 0)))
     sol.label = label
     sol.color = color
+    return sol
+
+
+# --- 90deg straight BEVEL drive (replaces the crown + spur-pinion face mesh) ----
+# The shallow crown/face mesh SLIPPED and its thin proud teeth SNAPPED off. It is
+# replaced by a TRUE bevel pair: the bevel GEAR axis is A_L's Z, the bevel PINION
+# axis is the input shaft's model-Y. Those axes already cross at 90deg at the APEX
+# (DRIVE_X, 0, DRIVE_Z), and the held pitch radii (PINION_RP 3 / CROWN_RC 8) already
+# satisfy the 90deg bevel condition, so the 8/3 ratio + the whole motor chain are
+# UNCHANGED. The teeth are FULL conical teeth (far more root material than the crown's
+# proud blocks) with a rounded root -> they don't snap; deep conical engagement ->
+# they don't slip. The bevel gear fuses onto the A_L sync-gear top exactly where the
+# crown sat; the bevel pinion is integral with the input shaft and its outer tip stays
+# < the journal bore, so the one-piece pinion-first install is preserved.
+# STRENGTH PASS: bevel tooth COUNTS are intentionally COARSE (16/6, not 24/9) for a
+# bigger MODULE (1.0 vs 0.667) = ~50% bigger, much stronger teeth. 16/6 = 8/3 ratio and
+# the 3/8 pitch radii are HELD, so the motor chain is untouched. The 6T pinion is below
+# the undercut floor, so it carries a big positive profile shift (fat root); both teeth
+# are STUBBED (short addendum) + 25deg PA for a short, thick, strong root. The coarse
+# pinion needs the fatter SHAFT_R (4.5) to still install pinion-first -- which also
+# stiffens the shaft (another snap-resistance win).
+# STRENGTH PASS v2 -- UPSIZED to MODULE 1.8 (was 1.0) for ~+90% thicker, much stronger
+# teeth (the snap fix). To fit module-1.8 teeth inside the body the bevel ratio is relaxed
+# 8/3 -> 2.0 (12T gear / 6T pinion): held at 8/3 the gear would grow to Ø32 and punch the
+# top wall. The bevel pitch radii are now DECOUPLED from the crown-era PINION_RP/CROWN_RC
+# (dead crown) -- BEVEL_RP/BEVEL_RC drive the bevel. The bigger pinion (tip 7.65) needs the
+# fatter SHAFT_R 7.5 (Ø15) to still install pinion-first through the journal bore.
+BEVEL_NG, BEVEL_NP = 12, 6                           # 12/6 = 2.0 ratio (relaxed from 8/3 to fit mod-1.8)
+BEVEL_MOD   = 1.8 * SCALE                            # module (was 1.0) -> ~+90% thicker teeth
+BEVEL_RP    = BEVEL_MOD * BEVEL_NP / 2.0             # pinion bevel pitch radius (5.4)
+BEVEL_RC    = BEVEL_MOD * BEVEL_NG / 2.0             # gear   bevel pitch radius (10.8)
+BEVEL_PA    = 25.0                                   # higher PA -> thicker tooth base
+BEVEL_GAMP  = math.atan2(BEVEL_NP, BEVEL_NG)         # pinion pitch-cone half-angle (26.57)
+BEVEL_GAMG  = math.atan2(BEVEL_NG, BEVEL_NP)         # gear   pitch-cone half-angle (63.43)
+BEVEL_AO    = BEVEL_RP / math.sin(BEVEL_GAMP)        # outer cone distance (12.07)
+BEVEL_FW    = min(2.9 * 1.8 * SCALE, BEVEL_AO / 3.0) # face width (longer teeth scale w/ module)
+BEVEL_PINX  = 0.40                                   # +shift fattens the 6T pinion root
+BEVEL_A_COEF = 0.85                                  # STUB teeth (short addendum -> strong root)
+BEVEL_BACKLASH = 0.30 * SCALE                        # tight printed running clearance -- relatively
+                                                     # tighter at module 1.8 -> the snug "no-slop" mesh
+BEVEL_GEAR_CLOCK = 270.0                             # clock a gear tooth onto the -Y mesh azimuth
+PINION_BACK_Y = -BEVEL_AO * math.cos(BEVEL_GAMP)     # pinion back-face model-Y (shaft butts here)
+BEVEL_PINION_TIP = BEVEL_RP + BEVEL_MOD * (BEVEL_A_COEF + BEVEL_PINX)   # outer-end tip radius
+# bevel APEX height (OVERRIDES the crown-era DRIVE_Z; the crown is dead). The vertical input
+# shaft runs at DRIVE_Z. The fat module-1.8 pinion (radius = BEVEL_PINION_TIP) must clear the
+# SYNC-GEAR top (Z_CRANK0+T_CRANK = 6) on its underside; raising the apex to here centres the
+# pinion in the gap between the sync gear and the cavity ceiling (Z=22), and the gear hub then
+# bridges from the back face down to the sync-gear top.
+DRIVE_Z = (Z_CRANK0 + T_CRANK) + BEVEL_PINION_TIP + 0.35   # ~14.0 (was 10.17)
+# topmost bevel-gear material (inner tooth end, near the apex) -- used to seat the A_L axle
+# locating collar ABOVE the gear (replaces the stale dead-crown CROWN_Z[1]).
+BEVEL_GEAR_TOP = DRIVE_Z - (BEVEL_AO - BEVEL_FW) * math.cos(BEVEL_GAMG)
+assert BEVEL_PINION_TIP < SHAFT_R + PRINT_CLEAR, \
+    "bevel pinion outer tip >= journal bore -> one-piece input shaft would not install"
+
+
+def _bevel_gear_solid(teeth, gam, x, hub_drop, hub_r, bore_r, phase_deg, a_coef=BEVEL_A_COEF):
+    """Straight BEVEL gear: axis +Z, apex at the LOCAL origin, cone opening toward -Z.
+    The teeth are a loft of the involute section at the OUTER (back) cone end down to
+    the INNER end near the apex, the module scaled by cone-distance so the teeth
+    converge on the apex (Tredgold-style real bevel teeth).
+
+    CLEAN BODY: the hub below the back face is a single FRUSTUM from hub_r at the host
+    to min(hub_r, tip_r) at the back face -- so it never exceeds hub_r (introduces no
+    new clash) yet flows smoothly into the teeth:
+      * host FATTER than the tooth tips (the PINION: SHAFT_R 4.5 > tip 4.25) -> the hub
+        necks DOWN to the tips, so the teeth grow out of the shaft as one tapered
+        spindle instead of hiding behind a proud hub lip (the old "knob with nubs").
+      * host NARROWER than the tips (the GEAR: hub 7.5 < tip 8.85) -> the hub stays a
+        plain cylinder at hub_r and the teeth stand proud, as on any bevel gear. This
+        is REQUIRED: the mating pinion meshes into the open tooth valleys just past the
+        back face, so filling the gear hub out to the tip envelope would JAM the mesh.
+    The flush case (top==base, the gear) is a Cylinder because build123d's Cone rejects
+    two equal radii. Falls back to a stepped multi-loft if the kernel rejects the loft."""
+    Ai = BEVEL_AO - BEVEL_FW
+    def sect(cd):                                    # involute section at cone distance cd
+        m = BEVEL_MOD * cd / BEVEL_AO                 # module scales toward the apex
+        z = -cd * math.cos(gam)                       # axial position below the apex
+        pts = involute_gear_points(m, teeth, pa_deg=BEVEL_PA, x=x, a_coef=a_coef,
+                                   backlash=BEVEL_BACKLASH, phase_deg=phase_deg, n_root=4)
+        return make_face(Polyline(*_ccw(pts), close=True)).moved(Location((0, 0, z)))
+    try:
+        teeth_sol = loft([sect(BEVEL_AO), sect(Ai)])
+    except Exception:
+        teeth_sol = None
+        n = 5
+        for i in range(n):
+            ca = BEVEL_AO - (BEVEL_AO - Ai) * i / n
+            cb = BEVEL_AO - (BEVEL_AO - Ai) * (i + 1) / n
+            seg = loft([sect(ca), sect(cb)])
+            teeth_sol = seg if teeth_sol is None else teeth_sol + seg
+    zo = -BEVEL_AO * math.cos(gam)                    # back-face z (widest tooth ring)
+    # --- monolithic hub frustum (never exceeds hub_r -> no new clash) ---
+    tip_r = BEVEL_MOD * teeth / 2.0 + BEVEL_MOD * (a_coef + x)   # outer tooth-tip radius
+    r_bot = hub_r                                     # host attach radius
+    r_top = min(hub_r, tip_r)                         # neck down to the tips only if hub is fatter
+    zc = zo - hub_drop / 2.0
+    if abs(r_bot - r_top) < 1e-3:                     # equal radii -> Cone would raise; use Cylinder
+        body = Cylinder(radius=r_bot, height=hub_drop).moved(Location((0, 0, zc)))
+    else:
+        body = Cone(bottom_radius=r_bot, top_radius=r_top, height=hub_drop).moved(
+            Location((0, 0, zc)))
+    sol = teeth_sol + body
+    if bore_r:
+        sol -= Cylinder(radius=bore_r, height=hub_drop * 3 + 30).moved(
+            Location((0, 0, zc)))
     return sol
 
 
@@ -832,7 +985,16 @@ def drive_arm(A, C, spin_deg, z0, thickness, label, color, with_crown=False):
                    eye1_boss_top=Z_FINGER0 - FINGER_THRUST_GAP)
     part = g + arm
     if with_crown:
-        part += _crown_gear(A, CROWN_Z[0], CROWN_Z[1], label + "_crown", color)
+        # bevel GEAR fused onto the A_L sync-gear top, coaxial (axis Z), apex at
+        # (A, DRIVE_Z) = the axis intersection. It rotates rigidly with the arm, so
+        # its tooth clocking carries the arm spin + a fixed -Y mesh clock. The hub
+        # drops from the back face down to the sync-gear top face (z0+thickness).
+        bg_back_z = DRIVE_Z - BEVEL_AO * math.cos(BEVEL_GAMG)
+        bg = _bevel_gear_solid(BEVEL_NG, BEVEL_GAMG, x=0.0,
+                               hub_drop=max(0.8, bg_back_z - (z0 + thickness)),
+                               hub_r=BEVEL_RC - 0.7, bore_r=AXLE_BORE_R,
+                               phase_deg=spin_deg + BEVEL_GEAR_CLOCK)
+        part += bg.moved(Location((A[0], A[1], DRIVE_Z)))
     # clearance bore so the arm rides on its axle pin (re-cut after crown fuse)
     part -= Cylinder(radius=AXLE_BORE_R, height=thickness * 6 + 8).moved(
         Location((A[0], A[1], z0 + thickness / 2.0)))
@@ -1393,6 +1555,32 @@ CHAM_COVER = 1.2            # matching chamfer on the front-cover outer perimete
                             # (shared edge language -> the body/cover seam reads as an
                             # intentional shadow line, not a parts mismatch)
 
+# --- FEETECH STS3250 DIRECT MOUNT (open dry bench/topside config) --------------------
+# A rectangular housing hangs below the flange; the STS3250 (20W x 54L x 47H) slides UP
+# into it from below and its 25T output spline presses straight into the input-shaft
+# socket (no adapter). Servo L(54) runs along gripper X, W(20) along Z; the spline sits
+# SERVO_SPLINE_OFF off the servo body centre, so the body centre is DRIVE_X+OFF (keeps the
+# 54-long box inside +/-48). NOT sealed -- the gripper body floods, so this mount is for
+# DRY bench/topside use; underwater still uses the separate sealed canister.
+# REAL STS3250 dimensions -- these do NOT scale with GRIPPER_SCALE (the servo is the same
+# physical part at every gripper size). Only the servo POSITION follows the scaled body.
+SERVO_W, SERVO_L, SERVO_H = 20.0, 54.0, 47.0   # STS3250 body W x L x H -- NO SCALE
+SERVO_CLR  = 0.5                          # slide-in clearance per face -- NO SCALE (fit to real servo)
+SERVO_WALL = 3.0                          # housing wall -- NO SCALE
+SERVO_SPLINE_OFF = 16.0                   # spline offset from the servo body centre (along L) -- NO SCALE
+SERVO_TOP_Y = BOT_FLANGE_Y[0] - SHAFT_SHOULDER_T   # servo top face Y (register-bears on the shoulder)
+SERVO_CX = DRIVE_X + SERVO_SPLINE_OFF     # servo body centre X = scaled drive axis + REAL spline offset
+SERVO_CZ = DRIVE_Z                         # servo W centred on the drive axis Z
+SERVO_Y0 = SERVO_TOP_Y - SERVO_H           # servo bottom Y
+# Pocket = servo + clearance, walled on ALL FOUR sides (front/back/left/right) so the servo
+# can ONLY be inserted through the BOTTOM (model -Y) face -- a clean bottom-loading hole, not
+# a side/front opening. The housing wraps the pocket with SERVO_WALL on every side; its front
+# wall protrudes just past the body front because the drive axis sits forward.
+SERVO_PKT_X = (SERVO_CX - SERVO_L / 2 - SERVO_CLR, SERVO_CX + SERVO_L / 2 + SERVO_CLR)
+SERVO_PKT_Z = (SERVO_CZ - SERVO_W / 2 - SERVO_CLR, SERVO_CZ + SERVO_W / 2 + SERVO_CLR)
+SERVO_HOUS_X = (SERVO_PKT_X[0] - SERVO_WALL, SERVO_PKT_X[1] + SERVO_WALL)
+SERVO_HOUS_Z = (SERVO_PKT_Z[0] - SERVO_WALL, SERVO_PKT_Z[1] + SERVO_WALL)
+
 # --- underwater drainage / flood holes ---
 # The 12 drilled drains (8 bottom-flange + 4 side-wall, Ø5) were REMOVED (2026-06,
 # cosmetic). The flood-vent sim showed flooding is never flow-limited: the kinematic
@@ -1676,6 +1864,23 @@ def build_enclosure():
         raise RuntimeError("base perimeter chamfer: no bottom edges selected")
     body = chamfer(base_edges, length=CHAM_EDGE)
 
+    # --- STS3250 direct-mount housing: a rounded rectangular shell hung below the flange
+    #     that the servo slides UP into; rounded uprights match the body's edge language so
+    #     it reads as part of the body, not a bolted-on box. (Added after the base chamfer so
+    #     that chamfer still targets the flange base, not the deeper housing.) ---
+    housing = _box_between(*SERVO_HOUS_X, SERVO_Y0 - SERVO_WALL, BOT_FLANGE_Y[0] + 0.1, *SERVO_HOUS_Z)
+    housing = fillet(housing.edges().filter_by(Axis.Y), radius=R_VERT)
+    body += housing
+    # pocket cavity: walled on all four sides, OPEN ONLY through the BOTTOM (-Y) face -- the
+    # servo is inserted through that bottom hole and slides UP. (Cut past the housing bottom so
+    # the bottom is fully open; the four side walls stay intact -> no side/front loading hole.)
+    body -= _box_between(*SERVO_PKT_X, SERVO_Y0 - SERVO_WALL - 2.0, SERVO_TOP_Y, *SERVO_PKT_Z)
+    # clearance recess for the shaft register-shoulder, from the pocket top up to the flange
+    body -= Cylinder(radius=SHAFT_SHOULDER_R + 0.4, height=(BOT_FLANGE_Y[0] - SERVO_TOP_Y) + 0.6).moved(
+        Location((DRIVE_X, (SERVO_TOP_Y + BOT_FLANGE_Y[0]) / 2.0, DRIVE_Z), (1, 0, 0), -90.0))
+    # NOTE: no side cable slot -- the servo lead exits DOWN through the open bottom (the side
+    # walls stay solid so the only opening is the bottom loading hole).
+
     for (px, py) in AXLE_PIVOTS:
         body += _axle_back_boss(px, py)   # A: full cylinder; B: full base + D-shaped thrust stem
 
@@ -1822,7 +2027,7 @@ def _pinion_spin_deg(open_norm):
     with it, the pinion (rp) turns crank_delta*(rc/rp). Sign chosen so the pinion
     rolls along the crown; flip if it reads wrong on the meshing flank."""
     crank_delta = -(crank_angle_deg(open_norm) - THETA_CLOSED)  # A_L turns -spin
-    return -crank_delta * (CROWN_RC / PINION_RP)
+    return -crank_delta * (BEVEL_NG / BEVEL_NP)
 
 
 def build_input_drive(open_norm):
@@ -1841,40 +2046,75 @@ def build_input_drive(open_norm):
     was geometrically captured but un-installable -- it could not pass either bore;
     it is gone, which also gives a longer uninterrupted journal.) Printed, zero
     hardware. Material PA12-GF (stiff, low-creep) so the journals stay round."""
-    # --- pinion (axis model -Y) ---
-    pin_t = PINION_T
-    pinion = _spur_pinion(pin_t, "pinion", color=DARK)
-    pinion = pinion.moved(Location((0, 0, 0), (1, 0, 0), -90.0))   # axis +Z -> +Y
-    # after -90X the slab z[0,pin_t] maps to y[0,pin_t]; shift so the disc spans
-    # PINION_Y = (PINION_YC -/+ pin_t/2), i.e. straddling the crown -Y azimuth.
-    pinion = pinion.moved(Location((0, PINION_Y[0], 0)))
+    # --- bevel PINION (axis model -Y) ---
+    # Built apex-at-origin opening -Z, rotated -90X so its teeth point to the -Y mesh
+    # azimuth; the apex sits at the part origin (the final .move puts that at the bevel
+    # apex DRIVE_X,0,DRIVE_Z). The hub is a BLEND NECK (tooth-tip 4.25 -> SHAFT_R 4.5)
+    # so the teeth flow out of the shaft as ONE clean tapered spindle; it is EXPOSED
+    # (the journal shaft below starts at its base) instead of buried inside the SHAFT_R
+    # cylinder as a proud 0.25 mm lip (the old "knob with nubs" look).
+    PIN_NECK = 2.8                                      # exposed shaft->pinion blend length
+    pinion = _bevel_gear_solid(BEVEL_NP, BEVEL_GAMP, x=BEVEL_PINX,
+                               hub_drop=PIN_NECK, hub_r=SHAFT_R, bore_r=None,
+                               phase_deg=360.0 / BEVEL_NP / 2.0)
+    pinion = pinion.moved(Location((0, 0, 0), (1, 0, 0), -90.0))   # +Z -> -Y
 
     def _cyl_y(r, y0, y1):
         return Cylinder(radius=r, height=(y1 - y0)).moved(
             Location((0, (y0 + y1) / 2.0, 0), (1, 0, 0), -90.0))
 
     # --- journal shaft: one running diameter SHAFT_R through both bores ---
-    # from the pinion bottom (y=PINION_Y[0]) down through both journals to the
-    # flange bottom (BOT_FLANGE_Y[0]); journals are the boss + flange bore spans.
-    shaft = _cyl_y(SHAFT_R, BOT_FLANGE_Y[0], PINION_Y[0] + 0.01)
+    # from the blend-neck BASE down through both journals to the flange bottom
+    # (BOT_FLANGE_Y[0]); journals are the boss + flange bore spans (all <= -13.5).
+    # Starting the shaft at the neck base (not PINION_BACK_Y) EXPOSES the pinion blend
+    # neck instead of burying it; the shortened top span is all free cavity, so no
+    # journal is affected. (+0.4 overlaps the neck for a watertight fuse.)
+    shaft = _cyl_y(SHAFT_R, BOT_FLANGE_Y[0], PINION_BACK_Y - PIN_NECK + 0.4)
 
-    # --- shoulder just below the flange bottom face (the +Y push-in stop) ---
-    sh_y0 = BOT_FLANGE_Y[0] - SHAFT_SHOULDER_T
+    # --- register shoulder just below the flange (the +Y push-in stop; its BOTTOM face is
+    #     where the STS3250's top face register-bears when the servo is slid up onto it) ---
+    sh_y0 = BOT_FLANGE_Y[0] - SHAFT_SHOULDER_T                 # ~ -27
     shoulder = _cyl_y(SHAFT_SHOULDER_R, sh_y0, BOT_FLANGE_Y[0] + 0.01)
+    part = pinion + shaft + shoulder
 
-    # --- D-profile coupler at the very bottom (the actuator interface) ---
-    cp_y1 = sh_y0
-    cp_y0 = cp_y1 - SHAFT_COUPLER_LEN
-    coupler = _cyl_y(SHAFT_COUPLER_R, cp_y0, cp_y1)
-    # flat the D on the +X side
-    coupler -= Box(SHAFT_DFLAT * 2, SHAFT_COUPLER_LEN + 2, 4 * SHAFT_COUPLER_R).moved(
-        Location((SHAFT_COUPLER_R, (cp_y0 + cp_y1) / 2.0, 0)))
-
-    part = pinion + shaft + shoulder + coupler
+    # --- FEMALE 25T SPLINE SOCKET bored UP into the shaft bottom (the actuator interface):
+    #     the STS3250 output spline presses straight in -- no adapter horn. + an M3 clearance
+    #     up the centre so the servo's captive retaining screw has somewhere to seat. The
+    #     press-fit (SPLINE_PRESS) is the primary retention. ---
+    def _spline_y(scale, y0, y1):                             # spline cavity along model -Y (like _cyl_y)
+        h = y1 - y0
+        sol = _poly_solid(_spline_profile(scale), -h / 2.0, h)
+        return sol.moved(Location((0, (y0 + y1) / 2.0, 0), (1, 0, 0), -90.0))
+    sock_open = sh_y0 - 0.6                                    # open a hair below the shoulder bottom face
+    sock_top = sh_y0 + SPLINE_SOCK_DEPTH                       # how far up into the shaft the socket reaches
+    part -= _spline_y(SPLINE_PRESS, sock_open, sock_top)       # the 25-tooth female cavity
+    part -= _cyl_y(SPLINE_SCREW_R, sock_open - 0.5, sock_top + 6.0)   # M3 clearance up the centre
     part = part.moved(Location((0, 0, 0), (0, 1, 0), _pinion_spin_deg(open_norm)))
     part = part.moved(Location((DRIVE_X, 0.0, DRIVE_Z)))
     part.label = "input_pinion_shaft"
     part.color = DARK
+    return part
+
+
+def build_servo():
+    """FEETECH STS3250 -- VISUALISATION ONLY (not a printed part). Box body + 25T output
+    spline + cable stub, placed so the spline presses up into the input-shaft socket on the
+    drive axis. Lets the render show the servo slid into its body housing."""
+    sbody = Box(SERVO_L, SERVO_H, SERVO_W).moved(
+        Location((SERVO_CX, (SERVO_Y0 + SERVO_TOP_Y) / 2.0, SERVO_CZ)))
+    # spline overlaps the body top by 0.6 so the union is ONE connected solid (a coincident
+    # touch would split into a ShapeList that Compound rejects)
+    sp_y0, sp_y1 = SERVO_TOP_Y - 0.6, SERVO_TOP_Y + SPLINE_H
+    spline = _poly_solid(_spline_profile(1.0), -(sp_y1 - sp_y0) / 2.0, sp_y1 - sp_y0).moved(
+        Location((0, (sp_y0 + sp_y1) / 2.0, 0), (1, 0, 0), -90.0)).moved(
+        Location((DRIVE_X, 0.0, DRIVE_Z)))
+    # cable stub hangs DOWN out of the servo bottom (the lead exits through the bottom hole,
+    # not a side wall); overlaps the body so it stays one solid
+    cable = Cylinder(radius=2.0, height=8.0).moved(   # real cable -- no SCALE
+        Location((SERVO_CX - SERVO_L / 2.0 + 4.0, SERVO_Y0, SERVO_CZ), (1, 0, 0), 90))
+    part = sbody + spline + cable
+    part.label = "servo_STS3250"
+    part.color = Color(0.10, 0.11, 0.13)
     return part
 
 
@@ -1960,7 +2200,7 @@ def gen_step():
                 # collar sits just above it: A -> crank gear/arm top (the LEFT side
                 # also carries the crown gear, so its element is taller); B -> follower top.
                 if j == "A":
-                    elem_top = CROWN_Z[1] if tag == "L" else Z_CRANK0 + T_CRANK
+                    elem_top = BEVEL_GEAR_TOP if tag == "L" else Z_CRANK0 + T_CRANK
                 else:
                     elem_top = Z_FOLLOW0 + T_FOLLOW
                 xbz = ENC_Z[0] + XBORE_FROM_FACE if USE_CROSS_PIN else None
@@ -1979,6 +2219,8 @@ def gen_step():
     # all pre-existing occurrence ids are unchanged: the vertical input pinion +
     # shaft + D-coupler, exits the model -Y bottom (world DOWN).
     parts.append(build_input_drive(OPEN_NORM))
+    if os.environ.get("GRIPPER_SHOW_SERVO", "1") != "0":
+        parts.append(build_servo())   # STS3250 slid into its body housing (viz only, not printed)
 
     asm = Compound(label="gripper", children=parts)
     # reorient to Z-up for printing & viewing: fingers point world +Z (up); the

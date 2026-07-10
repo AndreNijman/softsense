@@ -468,7 +468,7 @@ def fig_tier2_fea():
     ax_a.set_xlabel("Real contact pressure p_real (MPa)", fontsize=9.5)
     ax_a.set_ylabel("Effective land fraction φ_eff", fontsize=9.5)
     ax_a.set_title("(a) φ_eff vs load — flat confirms\nload-independence (geometrically dominated)", fontsize=9.5)
-    ax_a.set_ylim(0, 1.0)
+    ax_a.set_ylim(0.55, 0.9)
     ax_a.legend(fontsize=8.5)
     ax_a.grid(lw=0.4, alpha=0.5)
     ax_a.annotate("flat → geometric\ncontrol (C_FLAT validated)",

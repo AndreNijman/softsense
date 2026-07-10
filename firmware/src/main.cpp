@@ -46,6 +46,12 @@ int closePos = 3072;
 int moveSpeed = 1500;   // steps/s
 int moveAcc = 50;
 
+// stop-on-load (measured on this gripper: free-motion load caps ~300, so 350
+// clears it; free motion never reaches it, so a short hold suffices)
+bool stopOnLoad = false;
+int loadLimit = 350;    // load magnitude (0-1023) above free-motion that = contact
+int loadHoldMs = 150;   // load must stay over the limit this long (sustained window)
+
 #if USE_OLED
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
@@ -60,6 +66,9 @@ void loadCfg() {
   closePos = prefs.getInt("close", closePos);
   moveSpeed = prefs.getInt("speed", moveSpeed);
   moveAcc = prefs.getInt("acc", moveAcc);
+  stopOnLoad = prefs.getBool("sol", stopOnLoad);
+  loadLimit = prefs.getInt("llim", loadLimit);
+  loadHoldMs = prefs.getInt("lhold", loadHoldMs);
   prefs.end();
 }
 void saveCfg() {
@@ -68,6 +77,9 @@ void saveCfg() {
   prefs.putInt("close", closePos);
   prefs.putInt("speed", moveSpeed);
   prefs.putInt("acc", moveAcc);
+  prefs.putBool("sol", stopOnLoad);
+  prefs.putInt("llim", loadLimit);
+  prefs.putInt("lhold", loadHoldMs);
   prefs.end();
 }
 
@@ -76,6 +88,79 @@ void moveTo(int pos) {
   pos = constrain(pos, 0, 4095);
   st.EnableTorque(SERVO_ID, 1);
   st.WritePosEx(SERVO_ID, pos, moveSpeed, moveAcc);
+}
+
+// Present-load magnitude (0-1023) from the cached FeedBack, robust to whether
+// the lib hands back a signed value or the raw sign-magnitude word (bit 0x400 =
+// direction). Returns -1 if the feedback read failed.
+static int loadMag(int fb) {
+  if (fb == -1) return -1;
+  int raw = st.ReadLoad(-1);
+  return (raw < 0 ? -raw : raw) & 0x3FF;
+}
+
+// Brake and hold wherever it is right now.
+void stopHold() {
+  int p = st.ReadPos(SERVO_ID);
+  if (p != -1) { st.EnableTorque(SERVO_ID, 1); st.WritePosEx(SERVO_ID, p, moveSpeed, moveAcc); }
+}
+
+// Move to target but stop as soon as the load stays over loadLimit *consistently*
+// for ~loadHoldMs -- a sliding window needs ~70% of samples over the limit, so
+// brief gear blips don't trip it but real contact does. Mirrors the Orange Pi
+// Python guarded_move(). Blocks the loop for the move (<=TIMEOUT), which is fine.
+String guardedMove(int target) {
+  target = constrain(target, 0, 4095);
+  st.EnableTorque(SERVO_ID, 1);
+  st.WritePosEx(SERVO_ID, target, moveSpeed, moveAcc);
+
+  const uint32_t GRACE = 180, POLL = 20, TIMEOUT = 5000;   // ms
+  const int MAXW = 64;
+  int window = (int)loadHoldMs / (int)POLL;
+  if (window < 3) window = 3;
+  if (window > MAXW) window = MAXW;
+  int need = (int)(window * 0.7 + 0.5);
+  if (need < 2) need = 2;
+
+  bool buf[MAXW];
+  int idx = 0, filled = 0, sum = 0;
+  int lastPos = -1, lastMag = 0;
+  uint32_t t0 = millis();
+  delay(GRACE);                                   // ignore acceleration inrush
+  while (millis() - t0 < TIMEOUT) {
+    uint32_t ts = millis();
+    int fb = st.FeedBack(SERVO_ID);
+    int pos = (fb != -1) ? st.ReadPos(-1) : -1;
+    int mag = loadMag(fb);
+    if (pos != -1) lastPos = pos;
+    if (mag >= 0) lastMag = mag;
+    bool over = (mag >= 0) && (mag >= loadLimit);
+
+    if (filled == window) sum -= buf[idx] ? 1 : 0; else filled++;
+    buf[idx] = over; sum += over ? 1 : 0; idx = (idx + 1) % window;
+
+    if (filled == window && sum >= need) {
+      int hp = (lastPos != -1) ? lastPos : target;
+      st.WritePosEx(SERVO_ID, hp, moveSpeed, moveAcc);      // brake + hold
+      return String("{\"ok\":true,\"stopped\":true,\"reason\":\"load\",\"position\":")
+           + hp + ",\"load\":" + lastMag + ",\"target\":" + target + "}";
+    }
+    if (pos != -1 && abs(pos - target) <= 12)
+      return String("{\"ok\":true,\"stopped\":false,\"reason\":\"reached\",\"position\":")
+           + pos + ",\"target\":" + target + "}";
+
+    uint32_t el = millis() - ts;
+    if (el < POLL) delay(POLL - el);
+  }
+  return String("{\"ok\":true,\"stopped\":false,\"reason\":\"timeout\",\"position\":")
+       + lastPos + ",\"target\":" + target + "}";
+}
+
+// Route a move through the guard when stop-on-load is enabled, else a plain move.
+String doMove(int target) {
+  if (stopOnLoad) return guardedMove(target);
+  moveTo(target);
+  return String("{\"ok\":true,\"target\":") + constrain(target, 0, 4095) + "}";
 }
 
 String statusJson() {
@@ -96,25 +181,39 @@ String statusJson() {
   j += ",\"close_pos\":" + String(closePos);
   j += ",\"speed\":" + String(moveSpeed);
   j += ",\"acc\":" + String(moveAcc);
+  j += ",\"stop_on_load\":"; j += stopOnLoad ? "true" : "false";
+  j += ",\"load_limit\":" + String(loadLimit);
+  j += ",\"load_hold_ms\":" + String(loadHoldMs);
   j += "}";
   return j;
 }
 
 // ---- HTTP handlers ----------------------------------------------------------
 void sendJson(const String &body, int code = 200) {
+  server.sendHeader("Access-Control-Allow-Origin", "*");   // let a localhost gamepad page talk to us
   server.send(code, "application/json", body);
 }
-void servePage() { server.send_P(200, "text/html", INDEX_HTML); }
+void servePage() {
+  server.sendHeader("Access-Control-Allow-Origin", "*");
+  server.send_P(200, "text/html", INDEX_HTML);
+}
 
 void handleStatus() { sendJson(statusJson()); }
-void handleOpen() { moveTo(openPos); sendJson("{\"ok\":true,\"target\":" + String(openPos) + "}"); }
-void handleClose() { moveTo(closePos); sendJson("{\"ok\":true,\"target\":" + String(closePos) + "}"); }
+void handleOpen() { sendJson(doMove(openPos)); }
+void handleClose() { sendJson(doMove(closePos)); }
 
 void handleGoto() {
   if (!server.hasArg("pos")) return sendJson("{\"error\":\"pos required\"}", 400);
   int p = server.arg("pos").toInt();
-  moveTo(p);
-  sendJson("{\"ok\":true,\"target\":" + String(constrain(p, 0, 4095)) + "}");
+  sendJson(doMove(p));
+}
+
+// Raw, always-unguarded move -- for live/streamed control (e.g. a gamepad trigger)
+// where blocking on stop-on-load would stall the stream. Returns immediately.
+void handleJog() {
+  if (!server.hasArg("pos")) return sendJson("{\"error\":\"pos required\"}", 400);
+  moveTo(server.arg("pos").toInt());
+  sendJson("{\"ok\":true}");
 }
 
 void handleTorque() {
@@ -123,6 +222,15 @@ void handleTorque() {
   st.EnableTorque(SERVO_ID, on ? 1 : 0);
   sendJson(String("{\"ok\":true,\"torque\":") + (on ? "true" : "false") + "}");
 }
+
+void handleStopOnLoad() {
+  String v = server.arg("on");
+  stopOnLoad = !(v == "0" || v == "false" || v == "off");
+  saveCfg();
+  sendJson(String("{\"ok\":true,\"stop_on_load\":") + (stopOnLoad ? "true" : "false") + "}");
+}
+
+void handleStop() { stopHold(); sendJson("{\"ok\":true}"); }
 
 void handleCalibrate() {
   String which = server.arg("which");
@@ -140,6 +248,8 @@ void handleConfig() {
   if (server.hasArg("close")) closePos = constrain(server.arg("close").toInt(), 0, 4095);
   if (server.hasArg("speed")) moveSpeed = max(0, (int)server.arg("speed").toInt());
   if (server.hasArg("acc")) moveAcc = constrain(server.arg("acc").toInt(), 0, 255);
+  if (server.hasArg("load_limit")) loadLimit = constrain(server.arg("load_limit").toInt(), 0, 1023);
+  if (server.hasArg("load_hold_ms")) loadHoldMs = constrain(server.arg("load_hold_ms").toInt(), 20, 1280);
   saveCfg();
   sendJson(statusJson());
 }
@@ -188,7 +298,10 @@ void setup() {
   server.on("/api/open", handleOpen);
   server.on("/api/close", handleClose);
   server.on("/api/goto", handleGoto);
+  server.on("/api/jog", handleJog);
   server.on("/api/torque", handleTorque);
+  server.on("/api/stop_on_load", handleStopOnLoad);
+  server.on("/api/stop", handleStop);
   server.on("/api/calibrate", handleCalibrate);
   server.on("/api/config", handleConfig);
   server.onNotFound(servePage);          // captive-portal probes land on the UI

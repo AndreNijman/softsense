@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gripper · DualSense</title>
+<style>
+  :root { --bg:#0e1116; --card:#1a1f29; --fg:#e8edf4; --muted:#7d8794;
+          --open:#2ecc71; --close:#e74c3c; --accent:#3d7bff; --warn:#ffd479; }
+  * { box-sizing:border-box; }
+  html,body { margin:0; background:var(--bg); color:var(--fg);
+              font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif; }
+  .wrap { max-width:560px; margin:0 auto; padding:18px 16px 48px; }
+  h1 { font-size:20px; margin:4px 0 2px; }
+  .sub { color:var(--muted); font-size:13px; margin-bottom:14px; }
+  .card { background:var(--card); border-radius:14px; padding:14px 16px; margin-bottom:12px; }
+  .row { display:flex; justify-content:space-between; align-items:center; gap:10px; margin:7px 0; }
+  .k { color:var(--muted); font-size:14px; } .v { font-variant-numeric:tabular-nums; font-weight:600; }
+  input[type=text],input[type=number] { background:#0e1116; color:var(--fg); border:1px solid #2a3140;
+      border-radius:8px; padding:8px 10px; font-size:14px; width:100%; }
+  .num { width:88px; }
+  .dot { width:10px; height:10px; border-radius:50%; display:inline-block; margin-right:7px; background:var(--close); }
+  .dot.on { background:var(--open); }
+  .bar { height:22px; background:#0e1116; border-radius:6px; overflow:hidden; border:1px solid #2a3140; }
+  .bar > i { display:block; height:100%; width:0; background:linear-gradient(90deg,var(--open),var(--close)); transition:width .05s; }
+  .legend { display:grid; grid-template-columns:auto 1fr; gap:4px 12px; font-size:13px; color:var(--muted); }
+  .legend b { color:var(--fg); font-weight:600; }
+  .hint { color:var(--warn); font-size:13px; }
+  code { background:#0e1116; padding:1px 5px; border-radius:5px; }
+  details { font-size:12px; color:var(--muted); } summary { cursor:pointer; }
+  pre { white-space:pre-wrap; word-break:break-all; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Gripper · DualSense</h1>
+  <div class="sub">Laptop bridge — reads the controller here, sends to the board over Wi-Fi.</div>
+
+  <div class="card">
+    <div class="row"><span class="k">Board URL</span>
+      <input type="text" id="base" style="max-width:210px" value="http://192.168.4.1"></div>
+    <div class="row"><span class="k"><span id="bdot" class="dot"></span>Board</span><span class="v" id="bstat">—</span></div>
+    <div class="row"><span class="k"><span id="gdot" class="dot"></span>Controller</span><span class="v" id="gstat">press a button…</span></div>
+    <div id="secwarn" class="hint" style="display:none">⚠ Gamepad API is blocked here — open this page from <code>http://localhost</code>, not the board's IP.</div>
+  </div>
+
+  <div class="card">
+    <div class="row"><span class="k">Grip (target)</span><span class="v" id="gripv">–</span></div>
+    <div class="bar"><i id="gripbar"></i></div>
+    <div class="row" style="margin-top:12px"><span class="k">Position</span><span class="v" id="pos">–</span></div>
+    <div class="row"><span class="k">Load</span><span class="v" id="load">–</span></div>
+    <div class="row"><span class="k">Voltage</span><span class="v" id="volt">–</span></div>
+    <div class="row"><span class="k">Open / Close pos</span>
+      <span><input class="num" type="number" id="openp" value="1024"> /
+            <input class="num" type="number" id="closep" value="3072"></span></div>
+  </div>
+
+  <div class="card">
+    <div class="k" style="margin-bottom:8px">Mapping</div>
+    <div class="legend">
+      <b>R2</b><span>proportional grip — release = open, squeeze = close</span>
+      <b>L-stick ↕</b><span>fine jog (when R2 released)</span>
+      <b>✕ Cross</b><span>Open</span>
+      <b>◯ Circle</b><span>Close (uses stop-on-load if on)</span>
+      <b>L1</b><span>STOP — brake &amp; hold</span>
+      <b>□ Square</b><span>toggle Torque</span>
+      <b>△ Triangle</b><span>toggle Stop-on-load</span>
+    </div>
+  </div>
+
+  <details class="card"><summary>debug (raw controller)</summary><pre id="dbg">–</pre></details>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const base = () => $('base').value.replace(/\/+$/,'');
+$('base').value = localStorage.getItem('gripBase') || 'http://192.168.4.1';
+$('base').onchange = () => localStorage.setItem('gripBase', $('base').value);
+
+// ---- secure-context check (Gamepad API needs https or http://localhost) ------
+if (!window.isSecureContext) $('secwarn').style.display = 'block';
+
+// ---- send helpers ------------------------------------------------------------
+let busy = false, lastJogT = 0, lastTarget = -1;
+const THROTTLE = 90, DEADBAND = 18;
+function tap(path){ fetch(base()+path, {method:'POST'}).catch(()=>{}); }
+async function jog(target){
+  const now = performance.now();
+  if (busy || now - lastJogT < THROTTLE || Math.abs(target - lastTarget) < DEADBAND) return;
+  busy = true; lastJogT = now; lastTarget = target;
+  try { await fetch(base()+'/api/jog?pos='+target, {method:'POST'}); } catch(e){} finally { busy = false; }
+}
+
+// ---- gamepad -----------------------------------------------------------------
+let padIndex = null, grip = 0, torqueOn = false, solOn = false;
+const prev = {};   // previous button pressed-state for edge detection
+window.addEventListener('gamepadconnected', e => {
+  padIndex = e.gamepad.index;
+  $('gstat').textContent = e.gamepad.id.slice(0, 40);
+  $('gdot').classList.add('on');
+});
+window.addEventListener('gamepaddisconnected', () => {
+  padIndex = null; $('gstat').textContent = 'disconnected'; $('gdot').classList.remove('on');
+});
+function edge(gp, i){ const now = !!(gp.buttons[i] && gp.buttons[i].pressed); const was = prev[i]; prev[i] = now; return now && !was; }
+
+function tick(){
+  const pads = navigator.getGamepads ? navigator.getGamepads() : [];
+  const gp = padIndex != null ? pads[padIndex] : (pads && [...pads].find(Boolean));
+  if (gp) {
+    if (padIndex == null) { padIndex = gp.index; $('gstat').textContent = gp.id.slice(0,40); $('gdot').classList.add('on'); }
+    const r2 = gp.buttons[7] ? gp.buttons[7].value : 0;   // right trigger, analog 0..1
+    const ly = gp.axes[1] || 0;                            // left stick Y (up = -1)
+
+    // grip in [0,1]: R2 is absolute; else L-stick integrates a fine jog
+    if (r2 > 0.04) grip = r2;
+    else if (Math.abs(ly) > 0.15) grip = Math.min(1, Math.max(0, grip + ly * 0.02));
+
+    // edge-triggered buttons
+    if (edge(gp, 0)) { grip = 0; tap('/api/open'); }                       // Cross
+    if (edge(gp, 1)) { grip = 1; tap('/api/close'); }                      // Circle
+    if (edge(gp, 4)) { tap('/api/stop'); }                                 // L1 -> STOP
+    if (edge(gp, 2)) { torqueOn = !torqueOn; tap('/api/torque?on='+(torqueOn?1:0)); }   // Square
+    if (edge(gp, 3)) { solOn = !solOn; tap('/api/stop_on_load?on='+(solOn?1:0)); }      // Triangle
+
+    // stream proportional/jog position
+    const op = +$('openp').value, cp = +$('closep').value;
+    const target = Math.round(op + grip * (cp - op));
+    $('gripv').textContent = Math.round(grip*100) + '%  → ' + target;
+    $('gripbar').style.width = Math.round(grip*100) + '%';
+    if (r2 > 0.04 || Math.abs(ly) > 0.15) jog(target);
+
+    $('dbg').textContent =
+      'R2 ' + r2.toFixed(2) + '  LY ' + ly.toFixed(2) +
+      '\nbtn ' + gp.buttons.map((b,i)=>b.pressed?i:'').filter(x=>x!=='').join(' ') +
+      '\naxes ' + gp.axes.map(a=>a.toFixed(2)).join(' ');
+  }
+  requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
+
+// ---- status poll (needs the board's CORS header; degrades gracefully) --------
+async function poll(){
+  try {
+    const s = await (await fetch(base()+'/api/status')).json();
+    $('bdot').classList.add('on'); $('bstat').textContent = s.connected ? 'servo connected' : 'no servo';
+    if (s.open_pos != null && document.activeElement !== $('openp')) $('openp').value = s.open_pos;
+    if (s.close_pos != null && document.activeElement !== $('closep')) $('closep').value = s.close_pos;
+    $('pos').textContent  = s.position!=null ? s.position : '–';
+    $('load').textContent = s.load!=null ? s.load : '–';
+    $('volt').textContent = s.voltage ? (+s.voltage).toFixed(1)+' V' : '–';
+    torqueOn = !!s.torque; solOn = !!s.stop_on_load;
+  } catch(e){
+    $('bdot').classList.remove('on'); $('bstat').textContent = 'unreachable / no CORS';
+  }
+}
+setInterval(poll, 800); poll();
+</script>
+</body>
+</html>
