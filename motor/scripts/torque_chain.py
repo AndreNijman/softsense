@@ -86,8 +86,9 @@ def plot(out):
         ax.text(0.02, 12.4, "12 N FEA stress-probe", fontsize=8, alpha=0.7)
         ax.set_title(f"{gname}\n(T_safe = {tsafe} N·m)", fontsize=9)
         ax.set_xlabel("open_norm (0=closed → 1=open)")
-        ax.grid(alpha=0.3); ax.legend(fontsize=7)
+        ax.grid(alpha=0.3, which="both"); ax.legend(fontsize=7); ax.set_yscale("log")
     axs[0].set_ylabel("per-finger tip force (N), mid-face")
+    axs[0].set_ylim(0.05, 14)
     fig.suptitle("Motor → tip-force chain: gear ceiling binds, not the servo "
                  "(12 N is FEA stress-probe, not operating force)", fontsize=11)
     fig.tight_layout()
