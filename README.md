@@ -5,7 +5,8 @@
 > consolidated record: parametric CAD, FEA campaigns, the grip-texture and
 > actuator studies, print profiles, ESP32 firmware and the Orange Pi
 > controllers — everything in one place. (Formerly `gripper-cad`; the old
-> GitHub URL redirects.)
+> GitHub URL redirects. The judge-facing engineering document is
+> `SoftSense_Innovations_Documentation.docx`.)
 
 <p align="center">
   <img src="renders/gripper_hero_open.png" width="46%" alt="SoftSense gripper, open">
@@ -94,6 +95,7 @@ pressure equalizes with depth. Top slots are sized to the measured arm sweep.
 | `motor/cad/output/system_assembly_T2_*.step` | **Full integrated system** (gripper + canister + servo + shaft + seal + penetrators), one STEP per servo option. |
 | `firmware/`, `opi/` | Controllers — see table above. |
 | `scripts/`, `regen.sh` | Export/plate/render helpers; `./regen.sh` rebuilds all derived artifacts. |
+| `SoftSense_Innovations_Documentation.docx` | The competition documentation deliverable. |
 
 ## Print & build
 
