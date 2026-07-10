@@ -1,0 +1,9 @@
+{
+  "port": "/dev/ttyUSB0",
+  "baud": 1000000,
+  "servo_id": 1,
+  "open_pos": 1024,
+  "close_pos": 3072,
+  "speed": 1500,
+  "acc": 50
+}

@@ -1,0 +1,13 @@
+# Wired link to the dev laptop for flashing new app code (deploy.sh).
+# Static on both ends: OPi = 192.168.7.2, laptop = 192.168.7.1.
+# Matches whatever the H6 GbE shows up as (eth0 / end0 / en*).
+[Match]
+Name=eth0 end0 en*
+
+[Network]
+Address=192.168.7.2/24
+ConfigureWithoutCarrier=yes
+LinkLocalAddressing=no
+
+[Link]
+RequiredForOnline=no

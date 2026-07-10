@@ -1,0 +1,14 @@
+[Unit]
+Description=Gripper wired static link (192.168.7.2)
+DefaultDependencies=no
+After=local-fs.target
+Before=network-pre.target gripper-web.service
+Wants=network-pre.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/gripper-netup.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

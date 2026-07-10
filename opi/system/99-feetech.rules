@@ -1,0 +1,3 @@
+# Feetech FE-URT-1 bus adapter (CH340). Stable /dev/feetech symlink, world
+# read/write, and keep ModemManager from grabbing the port.
+SUBSYSTEM=="tty", ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="7523", SYMLINK+="feetech", MODE="0666", ENV{ID_MM_DEVICE_IGNORE}="1"
