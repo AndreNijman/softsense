@@ -19,7 +19,7 @@ iter_harness:
 So an apples-to-apples cross-validation has not been done; "two solves agree
 on peak vM ~2.7 MPa" is an order-of-magnitude consistency claim, not a true
 cross-derivation. See `docs/TESTING_AND_SIMULATION.md §A.11` for the table
-and `OVERNIGHT_FIXES.md #3` for the framing fix.
+and `docs/OVERNIGHT_FIXES.md #3` for the framing fix.
 
 Model: St.-Venant-Kirchhoff, total Lagrangian, analytic consistent tangent,
 Newton iteration with load stepping. Mounts (C/D bores) clamped; a horizontal

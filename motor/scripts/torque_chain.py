@@ -26,7 +26,7 @@ PICS = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
 
 # selected actuators (continuous torque, N.m) -- SURVEY.md / SELECTION.md
 SERVOS = {"XW540-T260": 1.9, "STS3215": 0.98}
-# gear ceiling T_safe (N.m): three bounds reported now (per OVERNIGHT_FIXES #2):
+# gear ceiling T_safe (N.m): three bounds reported now (per docs/OVERNIGHT_FIXES.md #2):
 #   * shipped, single-station 2D crown FEA (gear_fea.py)              = 0.034 N.m
 #   * shipped, radial 2D crown FEA inner-edge bound (gear_fea_radial)  = 0.013 N.m
 #   * proposed re-size (un-implemented)                                 = 0.40  N.m

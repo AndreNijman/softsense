@@ -21,7 +21,7 @@ Every named run below has a directory under `fea/iterations/<name>/` with its
 > margin at the operating force is ≈ 100–700× (small-strain linear scaling).
 > The design rank ordering is preserved at any sub-`T_safe` load. See
 > `docs/TESTING_AND_SIMULATION.md §A.8 / A.12 / C.4` for the full framing
-> and `OVERNIGHT_FIXES.md #1` for the propagation through the doc stack.
+> and `docs/OVERNIGHT_FIXES.md #1` for the propagation through the doc stack.
 
 ---
 

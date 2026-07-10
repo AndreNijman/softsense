@@ -1,20 +1,15 @@
 __pycache__/
 *.glb
+node_modules/
 
-# FEA/render transfer scratch
+# FEA/render transfer scratch (MSI remote workflow)
 fea_out.tgz
 fea_pull/
-render_bundle.tar.gz
-fea_work/
-render_bundle/
 
 # FEA iteration scratch — large/regenerable (keep eval.json/metrics.json + renders)
 fea/iterations/**/*.npz
 fea/iterations/**/section.step
 fea/iterations/_*.log
-
-# Attic — staged-for-deletion (kept around for review; not deleted by reorg).
-attic/
 
 # Render-frame scratch produced by scripts/render_full_system.sh
 motor/cad/output/frame_*.step
@@ -29,9 +24,14 @@ variants/**/_*.log
 # The finished assembly mp4/gif are checked in under renders/.
 anim/
 
-# Intermediate per-frame PNG sequences from render scripts (regenerable;
-# the composed gifs/mp4s and summary stills are kept).
+# Intermediate render scratch (regenerable; the composed gifs/mp4s and
+# summary stills are kept).
 renders/**/_frames_*/
+renders/_*/
+grip/iterations/_hqcache/
+
+# Firmware build log (PlatformIO)
+firmware/build.log
 
 # Dated .docx backups (the live document is tracked).
 *.backup-*.docx

@@ -3,7 +3,7 @@
 The blow-by-blow: every approach, dead end, correction and number behind
 [`GRIP_TEXTURE.md`](GRIP_TEXTURE.md). Chronological.
 
-> ⚠️ **Updated honest framing (see `OVERNIGHT_FIXES.md` #5–#7, #11).** The
+> ⚠️ **Updated honest framing (see `docs/OVERNIGHT_FIXES.md` #5–#7, #11).** The
 > grip-model "literature gate" is a **sufficient-condition** test (the
 > Tier-1 model *can be fit* to reproduce the published wet-grip ordering on
 > the 5 reference patterns; the [PLACEHOLDER] coefficients were chosen so

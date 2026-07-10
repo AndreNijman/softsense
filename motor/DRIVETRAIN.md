@@ -268,7 +268,7 @@ absolute grip still needs the module/radius re-size, not just a bigger envelope.
   0.0161 → 0.140 → 0.326 N·m, a ratio of ~8.7× / ~20× vs `k`, far above `k³`. This is
   a **tooling artifact, not physics** — the 3D model simply cannot read the power law
   while its disk and mesh are pinned to absolute sizes. The shipped 1× repo posture
-  (per `OVERNIGHT_FIXES.md`) treats 3D as the better *physics* at 1×; that judgement
+  (per `docs/OVERNIGHT_FIXES.md`) treats 3D as the better *physics* at 1×; that judgement
   stands for the 1× point, but for the **scaling study the radial 2D bound is the
   honest basis** because it is the one that is actually self-similar. The 3D
   per-scale JSONs are retained in `variants/scale_<k>x/fea/_gear_fea_3d.json` flagged
