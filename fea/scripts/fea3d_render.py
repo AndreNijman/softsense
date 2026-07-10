@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from matplotlib.collections import LineCollection
 from collections import defaultdict
 
-BUNDLE=r"C:\Users\andre\gripper_render\render_bundle"
+BUNDLE=os.environ.get("GRIPPER_RENDER_BUNDLE", "render_bundle")  # render-bundle root
 OUT=os.path.join(BUNDLE,"fea3d")
 sol=np.load(os.path.join(OUT,"fea3d_solution.npz"))
 rest=sol['rest']; tets=sol['tets']; frames=sol['frames']; vms=sol['vms']

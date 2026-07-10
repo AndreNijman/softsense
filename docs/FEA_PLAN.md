@@ -1,12 +1,10 @@
 # FEA plan — gripper stats + FEA-driven finger morph for the underwater render
 
-**Run location decision (final):** FEA runs on the **Surface** (Linux, `.cad-venv`
-with build123d — needed to extract the Fin Ray cross-section; the solve is a small
-2D CPU job, no GPU benefit). The **MSI laptop** (Windows 11, RTX 3070, Blender 5.1)
-does the **photoreal render only** — that is the genuinely heavy, GPU-bound task.
-
-**SSH:** key `~/.ssh/id_ed25519` (comment `andre@void`, the mislabel). Alias
-`andremsi` in `~/.ssh/config` → `192.168.1.160`, user `andre`. `ssh andremsi` works.
+**Run location decision (final):** FEA ran **locally on the Linux workstation**
+(`.cad-venv` with build123d — needed to extract the Fin Ray cross-section; the
+solve is a small 2D CPU job, no GPU benefit). The **photoreal render only** ran
+on a **Windows RTX-3070 workstation** (Blender 5.1) — that is the genuinely
+heavy, GPU-bound task.
 
 ---
 
@@ -61,7 +59,7 @@ render prompt.
   artistic Blender sim. The render is **"FEA-driven compliance + keyframed kinematics
   + artistic sediment"** — NOT "fully simulated physics."
 
-## Bundle (copied to the MSI for rendering)
+## Bundle (copied to the render workstation)
 ```
 /home/andre/Projects/softsense/render_bundle/
   geometry/   per-part GLB + per-part transform JSON (the rigid kinematics morph)
@@ -70,6 +68,3 @@ render prompt.
   prompt.txt  PC-ready Blender prompt referencing these bundle paths
   README.md   contents + what is exact vs approximated
 ```
-Copy to MSI: `tar` the bundle here, `scp` it to `andremsi`, untar with Windows
-`tar.exe` (ships since Win10 1803). `scp -r` as the fallback (rsync likely absent
-on stock Windows).

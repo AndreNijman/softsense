@@ -13,8 +13,8 @@ export const meta = {
 // runs the existing scripts at 1.5x AND 2.0x (and 1.0x where a self-similar baseline
 // is needed), writes result artifacts into variants/scale_<k>x/fea, updates its domain
 // doc with a both-scale table + honest framing, and RETURNS structured headline numbers.
-// Agents MUST NOT git commit (the parent commits per-phase). Compute is LOCAL (MSI down)
-// -> screen/coarse modes; flag hi-fidelity for an MSI re-run.
+// Agents MUST NOT git commit (the parent commits per-phase). Compute is LOCAL (the GPU
+// FEA node is down) -> screen/coarse modes; flag where a high-fidelity re-run is warranted.
 
 const REPO = '/home/andre/Projects/softsense'
 const VENV = '/home/andre/.cad-venv/bin/python'
@@ -45,8 +45,9 @@ const SCALE_RESULT = {
 const common = `Repo: ${REPO}. Python venv: ${VENV}. Always run with PYTHONPATH=${REPO}.
 The model now has a global self-similar scale: set env GRIPPER_SCALE=1.5 or 2.0 and the
 gripper geometry (and anything that imports gripper.py for dimensions) scales self-similarly
-(walls included). The 1x baseline is GRIPPER_SCALE=1.0 (== unset). MSI is DOWN, so run LOCALLY
-in screen/coarse mode; note where a high-fidelity MSI re-run is warranted. Do NOT git commit.
+(walls included). The 1x baseline is GRIPPER_SCALE=1.0 (== unset). The GPU FEA node is DOWN,
+so run LOCALLY in screen/coarse mode; note where a high-fidelity re-run (GPU workstation) is
+warranted. Do NOT git commit.
 Do NOT modify gripper.py. Keep edits to your own domain's docs + result files.`
 
 const fingerPrompt = `${common}

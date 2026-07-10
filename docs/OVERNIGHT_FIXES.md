@@ -371,5 +371,5 @@ bounds). Now the headline crown number in `drivetrain_force_envelope.py`.
   wrap geometry across stages of closure for every sweep configuration.
 
 **Not regenerated**: `fea/pictures/hero_*` (the photoreal in-scene FEA
-overlays built by the MSI Blender bundle — render-only artefacts that
-need the MSI laptop, not affected by the FEA changes in this branch).
+overlays built by the Blender render bundle — render-only artefacts that
+need the render workstation, not affected by the FEA changes in this branch).

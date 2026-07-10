@@ -12,7 +12,9 @@ server, and the servo bus master, all in one board.
 
 1. Power the board from **~12 V (3S)** via the XH2.54 DC input (the bus servo
    power comes from this rail — a 12 V STS3250 wants ~12 V).
-2. It broadcasts Wi-Fi **`Gripper`** / password **`gripper1234`**.
+2. It broadcasts Wi-Fi **`Gripper`** / password **`gripper1234`** (published
+   defaults — change `AP_SSID`/`AP_PASS` in `src/main.cpp` before flashing if
+   that matters for your build).
 3. Join it on your phone → a captive "sign in" page pops up (or open
    **http://192.168.4.1/**).
 4. Tap **OPEN** / **CLOSE**. Live position / load / voltage / temp show below;

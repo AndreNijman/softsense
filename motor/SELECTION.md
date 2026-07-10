@@ -169,7 +169,7 @@ current-limit remains the mandatory protection on all three servos** — the
 current setpoint changes. The selected servos clear the load with large margin at
 every scale; none is the binding element. (Caveat: the 3D crown FEA does **not**
 scale self-similarly as configured — hardcoded `DISK_T` + absolute mesh — so the
-radial 2D bound is the scaling basis; an MSI self-similar 3D re-run is the
+radial 2D bound is the scaling basis; a self-similar 3D re-run (GPU workstation) is the
 high-fidelity follow-up, per `DRIVETRAIN.md §9.3`.)
 
 > **Rank-only caveat (carried from `grip/GRIP_MODEL.md`).** This selection ranks

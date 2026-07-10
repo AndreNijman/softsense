@@ -5,8 +5,7 @@
 > consolidated record: parametric CAD, FEA campaigns, the grip-texture and
 > actuator studies, print profiles, ESP32 firmware and the Orange Pi
 > controllers — everything in one place. (Formerly `gripper-cad`; the old
-> GitHub URL redirects. The judge-facing engineering document is
-> `SoftSense_Innovations_Documentation.docx`.)
+> GitHub URL redirects.)
 
 <p align="center">
   <img src="renders/gripper_hero_open.png" width="46%" alt="SoftSense gripper, open">
@@ -83,7 +82,7 @@ pressure equalizes with depth. Top slots are sized to the measured arm sweep.
 |---|---|
 | `gripper.py` | **Source of truth** — parametric build123d generator + four-bar solver + Fin Ray finger + enclosure. Env: `GRIPPER_OPEN` 0–1 (pose), `GRIPPER_FINGER_SCALE` 0.6–2.5, `GRIPPER_SCALE` (whole-gripper scale-up). |
 | `docs/TESTING_AND_SIMULATION.md` | **How everything was tested & simulated** — judge-facing account of every simulation, its physics, what it proves, fidelity honesty, reproduce commands. Start here for "how do you know it works?". |
-| `docs/` | Engineering guides: assembly, BOM, DFM, underwater, printing, print profiles, materials, testing, scale-up (`SCALE_UP.md`), the overnight honest-framing fixes (`OVERNIGHT_FIXES.md`), MSI remote-compute node. |
+| `docs/` | Engineering guides: assembly, BOM, DFM, underwater, printing, print profiles, materials, testing, scale-up (`SCALE_UP.md`), the overnight honest-framing fixes (`OVERNIGHT_FIXES.md`). |
 | `fea/` | **Finger FEA campaign** — universal-finger study, scalability, underwater crush, decision log (~90 runs), 3D corotational contact solver (CPU+GPU). |
 | `grip/` | **Grip-texture campaign** — wet-grip surrogate model, sweep + ±50% sensitivity, Tier-2 contact FEA, literature validation gate, decision log. |
 | `motor/` | **Actuator/sensing/integration campaign** — requirements, survey, selection, drivetrain gear FEA (`T_safe`), force-via-current sensing, electrical, ROV integration, bench-test plan, FMEA, mounting-interface dossiers + 7 modelled adapters (`motor/cad/adapters/`), power supply. |
@@ -95,7 +94,6 @@ pressure equalizes with depth. Top slots are sized to the measured arm sweep.
 | `motor/cad/output/system_assembly_T2_*.step` | **Full integrated system** (gripper + canister + servo + shaft + seal + penetrators), one STEP per servo option. |
 | `firmware/`, `opi/` | Controllers — see table above. |
 | `scripts/`, `regen.sh` | Export/plate/render helpers; `./regen.sh` rebuilds all derived artifacts. |
-| `SoftSense_Innovations_Documentation.docx` | The competition documentation deliverable. |
 
 ## Print & build
 
@@ -118,7 +116,8 @@ python gripper.py                                  # numeric kinematic self-chec
 ./regen.sh                                         # full rebuild (poses + parts + plates + renders)
 ```
 
-Heavy FEA/render batteries run on the MSI remote node — `docs/MSI_REMOTE.md`.
+The FEA solver has a CuPy GPU backend (`GRIPPER_FEA_GPU=1`), but at these mesh
+sizes (≤25k DOF) CPU is faster — the GPU only wins past ~100k DOF.
 
 ### Interactive viewer
 
@@ -174,4 +173,7 @@ slider (= turning the shaft); mesh and edges move together live.
 
 ## License
 
-See `LICENSE`.
+**CC BY-NC-ND 4.0** — you may view, download, build, and share this work
+**with attribution, for non-commercial purposes, without distributing
+modified versions**. Commercial use and derivative redistribution rights are
+reserved; contact the author to arrange a commercial license. See `LICENSE`.

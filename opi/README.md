@@ -55,6 +55,12 @@ It sets the laptop NIC to `192.168.7.1`, rsyncs `app/` → `/opt/gripper`, and
 restarts `gripper-web`. Your on-device `config.json` (calibration) is preserved.
 SSH is `root@192.168.7.2`, key-only from this laptop (console password `gripper`).
 
+> **If you build one of these:** the published defaults — console root password
+> `gripper` and AP passphrase `gripper1234` (`system/hostapd.conf`) — are known
+> to anyone reading this repo. SSH is key-only so they only matter at a local
+> console / within AP range, but change both (`passwd` on the Pi + edit
+> `hostapd.conf`) before using it anywhere shared.
+
 ## (Re)flashing the whole appliance
 
 With a card that already has Armbian for this board, mounted at

@@ -8,7 +8,7 @@ finger_L: x-mirror of the finger_R field (geometry + displacement) -> map to fin
 import numpy as np, os, sys
 from scipy.spatial import cKDTree
 
-BUNDLE=r"C:\Users\andre\gripper_render\render_bundle"
+BUNDLE=os.environ.get("GRIPPER_RENDER_BUNDLE", "render_bundle")  # render-bundle root
 GEO=os.path.join(BUNDLE,"geometry"); OUT=os.path.join(BUNDLE,"fea3d")
 
 def read_obj_verts(path):

@@ -526,7 +526,7 @@ bounds the wet case at every scale.
 ### 7.3 Fidelity note
 
 These runs are **local, screen/coarse** (NLAYERS = 5, gmsh 0.5–1.3 mm ×k;
-MSI was down). A high-fidelity MSI re-run (finer mesh, NLAYERS ≥ 8) is
+the GPU FEA node was down). A high-fidelity re-run (finer mesh, NLAYERS ≥ 8) is
 warranted only if a certified absolute crush-depth number is needed — but it
 would not change the scale-invariance conclusion, which is analytic. The
 honest absolute crush figures already carry the §3 linear-validity caveat

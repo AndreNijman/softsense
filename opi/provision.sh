@@ -84,15 +84,17 @@ sudo cp "$SSH_PUBKEY" "$R/root/.ssh/authorized_keys"
 sudo chmod 700 "$R/root/.ssh"; sudo chmod 600 "$R/root/.ssh/authorized_keys"
 sudo chown -R 0:0 "$R/root/.ssh"
 
-# --- wipe prior owner's leftovers --------------------------------------------
-say "removing prior config (OnzeArcher / firstboot / andre)"
-sudo rm -f  "$R/etc/NetworkManager/system-connections/OnzeArcher.nmconnection"
+# --- wipe the donor image's leftovers -----------------------------------------
+# PRIOR_USER: the first-boot user account that exists on the donor Armbian image.
+PRIOR_USER="${PRIOR_USER:-andre}"
+say "removing prior config (saved Wi-Fi profiles / firstboot / $PRIOR_USER)"
+sudo rm -f  "$R/etc/NetworkManager/system-connections/"*.nmconnection
 sudo rm -f  "$R/root/firstboot.sh" "$R/root/authorized_keys"
 sudo rm -f  "$R/etc/systemd/system/firstboot.service" "$R/var/lib/firstboot.done"
-sudo rm -f  "$R/etc/sudoers.d/010-andre-nopasswd"
+sudo rm -f  "$R/etc/sudoers.d/"*-nopasswd
 
 # --- system identity + services (in chroot) ----------------------------------
-say "setting hostname/password, removing andre, enabling services"
+say "setting hostname/password, removing $PRIOR_USER, enabling services"
 sudo chroot "$R" /bin/bash -c '
   set -e
   export DEBIAN_FRONTEND=noninteractive
@@ -100,12 +102,12 @@ sudo chroot "$R" /bin/bash -c '
   sed -i "/127.0.1.1/d" /etc/hosts
   echo "127.0.1.1 gripper" >> /etc/hosts
   echo "root:gripper" | chpasswd
-  userdel -rf andre 2>/dev/null || true
+  userdel -rf '"$PRIOR_USER"' 2>/dev/null || true
   systemctl unmask hostapd 2>/dev/null || true
   systemctl enable hostapd dnsmasq gripper-web systemd-networkd ssh 2>/dev/null || true
   systemctl mask wpa_supplicant systemd-networkd-wait-online 2>/dev/null || true
 '
-sudo rm -rf "$R/home/andre"
+sudo rm -rf "$R/home/$PRIOR_USER"
 
 # --- verify/repair the enable symlinks (chroot systemctl can be flaky) -------
 say "verifying service enablement"

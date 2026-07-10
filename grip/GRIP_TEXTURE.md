@@ -264,12 +264,12 @@ two (rescored shipped crosshatch, conservative basis):
   is **scale-invariant** (0.476 at every scale — both numerator and denominator
   scale), so durability margin is unchanged.
 
-No MSI re-run is warranted: the scale dependence here is **analytic in the Tier-1
+No high-fidelity re-run is warranted: the scale dependence here is **analytic in the Tier-1
 surrogate** (a closed-form consequence of `edge_dens ∝ 1/λ` and the `land_char`
 vs `LAND_CRIT` ratio), not an FEA-derived effect, so a per-scale solve sweep would
 reproduce the same closed-form numbers at compute cost for no new information. A
 full per-scale Tier-2 contact-FEA + agent-swarm re-optimisation would only be
-worth MSI time if the *texture family itself* were re-opened at a new scale (e.g.
+worth GPU-workstation time if the *texture family itself* were re-opened at a new scale (e.g.
 to ask whether a finer-relative texture should be re-introduced at 2.0× to recover
 the edge density) — which is out of scope here, since the brief is self-similar
 scaling of the *shipped* optimum.

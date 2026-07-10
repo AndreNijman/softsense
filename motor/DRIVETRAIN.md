@@ -259,7 +259,7 @@ size (good — a 2× gripper delivers ~4× the per-finger clamp force, 0.55–1.
 capability**, so the qualitative finding of §6 is scale-invariant: a *functional*
 absolute grip still needs the module/radius re-size, not just a bigger envelope.
 
-### 9.3 Honesty: what does NOT scale cleanly, and the MSI follow-up
+### 9.3 Honesty: what does NOT scale cleanly, and the high-fidelity follow-up
 
 - **`gear_fea_3d.py` is NOT self-similar as configured.** It hardcodes `DISK_T =
   4.0 mm` (absolute, not `×SCALE`) and meshes at **absolute** gmsh sizes
@@ -273,12 +273,12 @@ absolute grip still needs the module/radius re-size, not just a bigger envelope.
   honest basis** because it is the one that is actually self-similar. The 3D
   per-scale JSONs are retained in `variants/scale_<k>x/fea/_gear_fea_3d.json` flagged
   as non-scaling.
-- **MSI re-run warranted (high-fidelity follow-up):** make `gear_fea_3d.py`
+- **High-fidelity re-run warranted (follow-up):** make `gear_fea_3d.py`
   self-similar (`DISK_T = 4.0 * g.SCALE`; gmsh `MeshSizeMax/Min` scaled by `SCALE`)
-  and re-run at `k ∈ {1.0, 1.5, 2.0}` on the MSI (RTX-3070 node, `docs/MSI_REMOTE.md`)
+  and re-run at `k ∈ {1.0, 1.5, 2.0}` on a GPU workstation (RTX 3070)
   to confirm the 3D solve also recovers `k³` once disk + mesh scale with the part.
   This is the clean way to cross-check the radial 2D headline at higher fidelity; it
-  is left for the MSI because the 3D mesh + build123d STEP step is the heavy part.
+  is left for the GPU workstation because the 3D mesh + build123d STEP step is the heavy part.
 - **`torque_chain.py` does NOT scale.** Its `T_SAFE` and `SERVOS` are **hardcoded 1×
   literals** (lines 33–37); it only imports `kinematics_chain` for `MA`/`i_g`. Run at
   `GRIPPER_SCALE=k` it therefore pairs `k`-scaled `MA` (which falls as `1/k`) against

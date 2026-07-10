@@ -75,7 +75,7 @@ Self-similar scaling fixes exactly this: the **walls scale with the blade**, so 
 wall/blade stiffness ratio is constant and the bigger finger is as stiff (relative to its
 size) as the validated 1× finger.
 
-**FEA confirms it (3-object screen battery, local — MSI down).** On the matched-material
+**FEA confirms it (3-object screen battery, run locally — the GPU FEA node was down).** On the matched-material
 basis (E = 40 MPa, the same modulus the old blade-only study used) the self-similar finger
 holds a **flat** universal score and reaches the 12 N stress-probe at every scale:
 
@@ -88,7 +88,7 @@ holds a **flat** universal score and reaches the 12 N stress-probe at every scal
 
 *(The blade-only row is quoted from the prior `SCALABILITY.md` study; the fresh self-similar
 1.0× run reproduces its 1× score 0.632 ≈ 0.645, anchoring the same basis. A fresh blade-only
-control at 1.5×/2× would make the contrast fully airtight — flagged for the MSI re-run.)*
+control at 1.5×/2× would make the contrast fully airtight — flagged for the high-fidelity re-run.)*
 
 On the current Bambu TPU 95A HF material (E = 9.8 MPa, ~4× softer) the 12 N probe isn't
 reached within the stroke at any size, but the score still does **not** fall — it edges up
@@ -118,7 +118,7 @@ stays **gear-limited** and the firmware current-limit remains the gear protectio
 ~k² but is still capped below the 12 N finger probe — a *functional absolute* grip still needs the
 proposed gear module re-size (scale-invariant finding). (Two non-self-similar tooling scripts —
 `gear_fea_3d.py`, `torque_chain.py` — were caught and excluded from the scaling headline; flagged
-for an MSI self-similar re-run.)
+for a self-similar high-fidelity re-run.)
 
 **Underwater crush** (`fea/UNDERWATER_FEA.md`) — **scale-invariant**, as similitude predicts:
 the von-Mises field and material-yield depth are unchanged (peak vM 12.58 MPa @100 m, yield
@@ -185,6 +185,6 @@ motor, is the ceiling). Force scales ~k² off a sub-Newton base, so a 248 mm jaw
   coupler must transmit ~k² torque), so the 7 separate mounting **adapters**
   (`motor/cad/adapters/`) must be re-scaled to re-mate. Consider stepping the flange bolts
   up to **M5/M6** at 2× given the higher loads (currently kept at M4).
-- **Compute caveat:** these re-runs were done **locally** (the MSI FEA node was
+- **Compute caveat:** these re-runs were done **locally** (the GPU FEA node was
   unreachable); FEA used screen/coarse modes for the comparative rankings. A
-  high-fidelity MSI re-run is the follow-up for publication-grade fields.
+  high-fidelity re-run (GPU workstation) is the follow-up for publication-grade fields.

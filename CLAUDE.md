@@ -9,18 +9,12 @@ controller worktree/branches are merged in under `opi/`). Treat the design as
 are all final. Future work here is archival/maintenance — docs, renders,
 reproductions — not design iteration.
 
-## ⚙️ COMPUTE POLICY (if heavy work ever comes back)
+## ⚙️ Compute note
 
-**Heavy / high-quality runs → the MSI. Everything else → local.**
-
-- **Run on the MSI** (`ssh andremsi`, an RTX-3070 laptop set up as a remote FEA/render
-  node — see `docs/MSI_REMOTE.md`) for: high-resolution / high-quality FEA, full
-  multi-object batteries, big sweeps, long render jobs. Full stack in
-  `C:\Users\andre\cad-venv`; repo clone at `C:\Users\andre\gripper-cad` (pre-rename
-  name until re-cloned). Exact commands + gotchas in `docs/MSI_REMOTE.md`.
-- **Stay local** for: quick iteration, single screens, edits, doc work, light renders.
-- **GPU note:** the solver has a CuPy GPU backend (`GRIPPER_FEA_GPU=1`) but at the
-  gripper's mesh sizes (≤25k DOF) **CPU is faster**; crossover is ~100k+ DOF.
+The FEA solver has a CuPy GPU backend (`GRIPPER_FEA_GPU=1`), but at the gripper's
+mesh sizes (≤25k DOF) **CPU is faster** (GPU is overhead-bound; crossover is
+~100k+ DOF) — keep CPU the default. Heavy batteries (high-res FEA, multi-object
+sweeps, long renders) are just long jobs; run them wherever suits.
 
 ## Orientation
 

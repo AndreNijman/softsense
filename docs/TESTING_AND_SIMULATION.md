@@ -29,7 +29,7 @@ so a specialist can check every claim against the code.
 
 | # | Simulation | Type | What it answers | Scale | Where |
 |---|---|---|---|---|---|
-| A1 | 3D corotational contact FEA | **full FEA** | Does the finger wrap & stay gentle? Stress, grip, wrap. | 25k tets / ~20k DOF | `fea/`, MSI |
+| A1 | 3D corotational contact FEA | **full FEA** | Does the finger wrap & stay gentle? Stress, grip, wrap. | 25k tets / ~20k DOF | `fea/`, GPU workstation |
 | A2 | 2D plane-strain FEA (precursor) | **full FEA** | Independent cross-check of A1's stress. | scikit-fem | `fea/fea2d/` |
 | A3 | Universal finger scorer (battery + swarm) | **full FEA ×N** | Which finger geometry grasps *every* shape/size? | ~90 solves | `fea/scripts/` |
 | B1 | Tier-1 wet-grip model | **validated surrogate** | Which texture grips best across wet surfaces? | >700k evals | `grip/` |
@@ -233,7 +233,7 @@ reports, and only the 3D displacement-controlled solve can push past it.
 
 A CuPy **GPU backend** was also added and validated to give numerically identical
 results to the CPU path (it's slower at this mesh size — the gripper is overhead-
-bound below ~100k DOF — so CPU is the default; see `MSI_REMOTE.md`).
+bound below ~100k DOF — so CPU is the default; the crossover is ~100k+ DOF).
 
 ## A.12 Results and the honest ceiling
 

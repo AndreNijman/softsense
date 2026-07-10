@@ -7,8 +7,8 @@ formulations were run and **agree in order of magnitude** on the fragility metri
 
 | Solve | Where | Model | Peak von Mises | Margin vs TPU | Result |
 |---|---|---|---|---|---|
-| **2D plane-strain** (precursor) | Surface, scikit-fem | finite-strain StVK, load-controlled patch, ν=0.45, no contact | **2.66 MPa** | ~10× | tip wrap 23 mm @ 5.4 N (load-control limit point at ≈5.7 N) |
-| **3D corotational contact** (high quality) | MSI (RTX 3070) | 25,119 tets, penalty contact vs neck, ν=0.42, displacement-controlled | **2.70 MPa** | ~9–15× | tip wrap 12 mm @ 18 N (`PRESS_MAX = 10 mm`) |
+| **2D plane-strain** (precursor) | Linux workstation, scikit-fem | finite-strain StVK, load-controlled patch, ν=0.45, no contact | **2.66 MPa** | ~10× | tip wrap 23 mm @ 5.4 N (load-control limit point at ≈5.7 N) |
+| **3D corotational contact** (high quality) | GPU workstation (RTX 3070) | 25,119 tets, penalty contact vs neck, ν=0.42, displacement-controlled | **2.70 MPa** | ~9–15× | tip wrap 12 mm @ 18 N (`PRESS_MAX = 10 mm`) |
 
 The two solves **do not solve the same problem** (different BCs, ν, strain measure,
 and load control), so this is an **order-of-magnitude consistency check**, not a
@@ -39,7 +39,7 @@ solve pushes past the snap-instability threshold.
 
 ## 1. The 3D FEA (`fea3d/`) — the high-quality solve
 
-Run on the MSI (Blender-render machine, RTX 3070) — see `scripts/fea3d_finger.py`.
+Run on the render workstation (RTX 3070) — see `scripts/fea3d_finger.py`.
 
 - **Geometry:** the real finger structural cross-section (`fea2d/finray_morph.npz`:
   1655 nodes / 2791 tris — toothed contact face + Fin Ray rib truss + mount eyes)
@@ -57,11 +57,11 @@ Run on the MSI (Blender-render machine, RTX 3070) — see `scripts/fea3d_finger.
 - **Material:** Bambu TPU 95A HF — measured ISO 527 in-plane E = **9.8 MPa**, ν = 0.42.
   > **Material-update note (2026):** the absolute grip/von-Mises figures in this
   > section were computed at the *old* E = 40 MPa eSUN estimate (the legacy
-  > `fea3d` MSI-bundle solve). It is press-controlled, so at the measured 9.8 MPa
+  > `fea3d` render-bundle solve). It is press-controlled, so at the measured 9.8 MPa
   > modulus the absolute grip and stress scale ~×0.245 (grip ~4.5 N, peak vM
   > ~0.66 MPa); margins are reported against the measured **27.3 MPa** in-plane
   > strength, and the rank-preservation / locking conclusions (ratios, swings) are
-  > modulus-independent and stand. A re-run on the MSI is the clean follow-up.
+  > modulus-independent and stand. A high-fidelity re-run (GPU workstation) is the clean follow-up.
 - **Result (grasp working point, at the legacy E = 40 MPa basis):** grip reaction
   **18.25 N**, tip wrap **12.05 mm**, **peak von Mises 2.704 MPa → ~10× margin**
   vs the measured 27.3 MPa strength (≈40× at the rescaled 9.8 MPa modulus).
@@ -73,7 +73,7 @@ Files: `fea3d/fea3d_solution.npz` (per-step 3D field + von Mises), `wrap_stages.
 
 ## 2. The 2D FEA (`fea2d/`) — the precursor
 
-Run on the Surface in scikit-fem (`scripts/solve_finger.py`). 2D plane-strain is the
+Run locally (Linux workstation) in scikit-fem (`scripts/solve_finger.py`). 2D plane-strain is the
 *correct* reduced model because the Fin Ray finger is a Z-constant 2.5-D extrusion.
 Finite-strain St.-Venant–Kirchhoff, **analytic consistent tangent finite-difference
 verified** before trusting Newton. Load-controlled contact patch (hit the load-control
@@ -306,6 +306,6 @@ inside the locking-uncertainty band reported above.
   keyframed CAD kinematics + artistic sediment/water**, never "fully simulated physics".
 
 The full cinematic render (animation.mp4 + 4K cinematic hero stills `hero_1_approach`,
-`hero_3_lift_sediment`, `hero_4_held`) lives on the MSI under
-`gripper_render/render_bundle/render_out/` and is not committed here (these are render
+`hero_3_lift_sediment`, `hero_4_held`) lives on the render workstation (in the render
+bundle's `render_out/`) and is not committed here (these are render
 showcase, not FEA); it can be pulled in on request.

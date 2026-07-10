@@ -1,28 +1,41 @@
-Copyright (c) 2026 Andre Nijman. All Rights Reserved.
+Copyright (c) 2026 Andre Nijman
 
-This repository and all of its contents — including but not limited to the
-parametric CAD source (gripper.py, motor/cad/*, the printed parts, the
-mounting adapters), the FEA solvers and scripts (fea/, grip/, motor/scripts/),
-the simulation results, derived artifacts (STEPs, STLs, GLBs, renders, PNGs,
-GIFs, MP4s), documentation (every .md file), print profiles, and engineering
-analyses — are the sole property of Andre Nijman and are protected by
-copyright law.
+This work — the SoftSense underwater gripper: all CAD sources and geometry,
+FEA and study code, firmware, controller software, documentation, renders,
+and generated design files in this repository — is licensed under the
 
-No license, express or implied, is granted to any other person or entity to
-use, copy, modify, merge, publish, distribute, sublicense, sell, manufacture,
-fabricate, 3D-print, or create derivative works of any part of this
-repository without the prior written permission of Andre Nijman.
+    Creative Commons Attribution-NonCommercial-NoDerivatives 4.0
+    International License (CC BY-NC-ND 4.0)
 
-Viewing this repository or its public mirror does not grant any rights to
-its contents. Forking on a hosting service (e.g. GitHub) for the sole
-mechanical purpose enabled by that service is not deemed permission to use
-the contents.
+Full legal text: https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode
 
-THE REPOSITORY AND ITS CONTENTS ARE PROVIDED "AS IS", WITHOUT WARRANTY OF
-ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
-IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER
-LIABILITY ARISING FROM, OUT OF, OR IN CONNECTION WITH THE REPOSITORY OR ITS
-CONTENTS.
+In plain language, you are free to:
 
-For licensing inquiries, contact Andre Nijman.
+  * View, download, copy, and share this work, and build the gripper for
+    yourself, provided you give appropriate credit (attribution to
+    Andre Nijman, with a link back to this repository).
+
+Under the following terms:
+
+  * NonCommercial — you may not use this work, or anything built from it,
+    for commercial purposes or monetary gain.
+  * NoDerivatives — if you remix, transform, or build upon this work, you
+    may not distribute the modified material. You may not present this work
+    or any part of it as your own.
+  * No additional restrictions — you may not apply legal terms or
+    technological measures that legally restrict others from doing anything
+    this license permits.
+
+All rights not expressly granted above — including commercial exploitation,
+distribution of derivative works, and any patent or trademark rights — are
+reserved by the copyright holder. The public availability of this repository
+constitutes prior art with respect to the designs it discloses.
+
+THE WORK IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. IN NO EVENT SHALL
+THE AUTHOR BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY ARISING
+FROM, OUT OF, OR IN CONNECTION WITH THE WORK.
+
+For commercial licensing or any permission beyond the scope of this license,
+contact the author via GitHub: https://github.com/AndreNijman

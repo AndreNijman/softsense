@@ -254,13 +254,13 @@ GRIPPER_SCALE=1.0 PYTHONPATH=/home/andre/Projects/softsense \
   basis the parts actually print in); the §7.1(A) contrast *table* is the matched E = 40 MPa
   basis. The figures therefore show the (lower-force) current-material wrap, not the E40 table.
 
-### 7.4 Coarse / local-run caveat — where an MSI re-run is warranted
+### 7.4 Coarse / local-run caveat — where a high-fidelity re-run is warranted
 
 These runs were done **locally in coarse `screen` mode** (3-object battery; `NSTEPS = 12`;
-mesh `MESH_MAX/MIN = 2.4/1.1 · eff`) because the MSI FEA node is currently down. The
+mesh `MESH_MAX/MIN = 2.4/1.1 · eff`) because the GPU FEA node was down. The
 **rank conclusion is robust** (the self-similar vs blade-only gap is large — 0.60+ vs
 0.37–0.44 — and the §6 prediction it confirms is mechanical, not marginal). A
-**high-fidelity MSI re-run is warranted** to firm up the absolute numbers before any
+**high-fidelity re-run (GPU workstation) is warranted** to firm up the absolute numbers before any
 publication-grade claim: the **full 7-object battery** at `NSTEPS = 24` and the finer
 `MESH_MAX/MIN = 1.3/0.5 · eff`, ideally at both the E40 and current-E bases, plus a
 mesh-convergence check at 2.0× (element count is held constant across scales by the
