@@ -121,18 +121,20 @@ if [ ! -e /proc/sys/fs/binfmt_misc/qemu-arm ]; then
 fi
 sudo cp "$QEMU" "$R/usr/bin/"
 for m in proc sys dev dev/pts; do sudo mount --bind "/$m" "$R/$m"; done
-say "setting root password + removing prior owner 'marco' (chroot)"
+# PRIOR_USER: the first-boot user account that exists on the donor image.
+PRIOR_USER="${PRIOR_USER:-marco}"
+say "setting root password + removing prior owner '$PRIOR_USER' (chroot)"
 sudo chroot "$R" /bin/bash -c '
   set -e
   echo "root:gripper" | chpasswd
-  userdel -rf marco 2>/dev/null || true
-  groupdel marco    2>/dev/null || true
-' || red "chroot identity step failed -- root pw / marco removal may be incomplete"
-sudo rm -rf "$R/home/marco"
+  userdel -rf '"$PRIOR_USER"' 2>/dev/null || true
+  groupdel '"$PRIOR_USER"'    2>/dev/null || true
+' || red "chroot identity step failed -- root pw / prior-user removal may be incomplete"
+sudo rm -rf "$R/home/$PRIOR_USER"
 
 # --- remove octoprint/openvpn leftover bulk (optional tidy) ------------------
 say "tidying prior-owner data"
-sudo rm -rf "$R/home/marco" "$R/root/.octoprint" 2>/dev/null || true
+sudo rm -rf "$R/home/$PRIOR_USER" "$R/root/.octoprint" 2>/dev/null || true
 
 say "syncing"
 sync
